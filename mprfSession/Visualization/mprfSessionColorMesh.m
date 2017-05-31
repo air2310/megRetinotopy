@@ -1,5 +1,5 @@
 function msh = mprfSessionColorMesh(msh, data, cmap, drange, mask)
-
+%% SOME COMMENT TO CHECK IT
 prefs = mrmPreferences;
 
 windowID = meshGet(msh,'windowid');
