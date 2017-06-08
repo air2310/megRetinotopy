@@ -96,8 +96,17 @@ for n = 1:length(surfaces_to_load)
     if numel(bs_vert_idx) == size(Vertices,1);
         
     else
-        error('Could only find %d of %d brainstorm vertices in transformed FreeSurfer vertices',...
-            length(bs_vert_idx), size(Vertices,1));
+        verts_02 = round(verts ./ 10.^-10) .* 10.^-10;
+        Vertices_02 = round(Vertices ./ 10.^-10) .* 10.^-10;
+        
+        [~, bs_vert_idx, bs_vert_idx2] = intersectCols(verts_02', Vertices_02');
+        if numel(bs_vert_idx) == size(Vertices,1);
+            
+        else
+            
+            error('Could only find %d of %d brainstorm vertices in transformed FreeSurfer vertices',...
+                length(bs_vert_idx), size(Vertices,1));
+        end
     end
     
     if strcmpi(w_export,'prf')

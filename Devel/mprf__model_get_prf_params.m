@@ -62,7 +62,6 @@ prf.beta.file = beta_fpath;
 prf.beta.type = b_type;
 
 bs.model_file = bs_file;
-roi = [];
 
 if model.params.roi_specific || model.params.roi_mask
     
@@ -163,6 +162,10 @@ if model.params.roi_specific || model.params.roi_mask
     end
     
     roi = get_roi_data(model, roi_info);
+    
+else
+    roi.mask = ones(size(prf.x0.val));
+    roi.idx_out = ones(size(prf.x0.val));
     
 end
 

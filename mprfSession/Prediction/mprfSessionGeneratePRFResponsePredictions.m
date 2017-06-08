@@ -32,7 +32,12 @@ if strcmpi(surf.type,'brainstorm')
     fname_parts = strsplit(surf.name,'_');
     
     tmp = {'pial','white','mid'};
-    file_prefix = tmp{ceil(cellfind([strfind(fname_parts,tmp{1}),strfind(fname_parts,tmp{2}),strfind(fname_parts,tmp{3}) ])./length(fname_parts))};
+    
+    file_prefix = tmp{ceil(find(~cellfun(@isempty, [cellfun(@(x) strfind(x,tmp{1}), fname_parts, 'UniformOutput',false) ...
+        cellfun(@(x) strfind(x,tmp{2}), fname_parts, 'UniformOutput',false) ...
+        cellfun(@(x) strfind(x,tmp{3}), fname_parts, 'UniformOutput',false)])) ...
+        ./length(fname_parts))};
+    
     file_prefix = [file_prefix '.'];
     
     

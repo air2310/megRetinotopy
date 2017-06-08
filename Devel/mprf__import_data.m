@@ -37,20 +37,57 @@ if ischar(orig_path)
         
         if overwrite
             if system(sys_cmnd);
-                warning('Could not copy %s \n', file_type);
+                tmp = strsplit(orig_path, ' ');
+                orig_path_02 = tmp{1};
+                
+                
+                for n = 2:length(tmp)
+                    orig_path_02 = [orig_path_02 '\ ' tmp{n}];
+                end
+                
+                sys_cmnd = sprintf('cp %s %s',orig_path_02,dest_path);
+                
+                
+                if system(sys_cmnd)
+                    
+                    warning('Could not copy %s \n', file_type);
+                else
+                    fprintf('Imported %s \n', file_type)
+                end
+                
+                
             else
                 fprintf('Imported %s \n', file_type)
+                
             end
-            
             
         end
         
         
     else
         if system(sys_cmnd);
-            warning('Could not copy %s \n', file_type);
+            tmp = strsplit(orig_path, ' ');
+            orig_path_02 = tmp{1};
+            
+            
+            for n = 2:length(tmp)
+                orig_path_02 = [orig_path_02 '\ ' tmp{n}];
+            end
+            
+            sys_cmnd = sprintf('cp %s %s',orig_path_02,dest_path);
+            
+            
+            if system(sys_cmnd)
+                
+                warning('Could not copy %s \n', file_type);
+            else
+                fprintf('Imported %s \n', file_type)
+            end
+            
+            
         else
             fprintf('Imported %s \n', file_type)
+            
         end
     end
     
