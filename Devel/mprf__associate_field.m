@@ -93,6 +93,11 @@ switch lower(data_type)
     case 'bs_tag_to_idx'
         field_name = 'rois.surf.bs_tag';
         
+    case 'model_predictions'
+        field_name = 'model.predictions';
+        
+    case 'model_results'
+        field_name = 'model.results';
         
     otherwise
         error('Unkown data type')

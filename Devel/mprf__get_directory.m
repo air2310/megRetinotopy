@@ -75,24 +75,18 @@ for n = 1:length(varargin)
         case 'meg_imported_stim'
             varargout{n} = 'stimuli/meg/imported_stimulus';
             
-            %case
-            %    varargout{n} =
+        case 'model_predictions'
+            varargout{n}  = 'modeling/predictions';
             
-            %case
-            %    varargout{n} =
-            
-            %case
-            %    varargout{n} =
-            %
-            %case
-            %    varargout{n} =
-            
-            
-            
+        case 'model_results'
+            varargout{n}  = 'modeling/results';
+
         otherwise
             
             fprintf('ERROR: unknow type %s\n',varargin{n})
             print_list = {
+                'model_results'
+                'model_predictions'
                 'meg_imported_stim'
                 'rh_rois'
                 'lh_rois'

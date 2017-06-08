@@ -25,6 +25,8 @@ get_dir_for = {
     'lh_rois'
     'rh_rois'
     'meg_imported_stim'
+    'model_predictions'
+    'model_results'
     };
 
 
