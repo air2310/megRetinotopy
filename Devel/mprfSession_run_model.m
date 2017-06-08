@@ -43,7 +43,8 @@ cur_time = datestr(now);
 cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
 
 save_dir = mprf__get_directory('model_predictions');
-save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]));
+save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
+    'prf','bs','roi','model','stimulus','pred_resp','syn_data');
 
 
 
