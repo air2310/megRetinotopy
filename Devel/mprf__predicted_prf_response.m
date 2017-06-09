@@ -3,7 +3,7 @@ function pred_resp = mprf__predicted_prf_response(model, stimulus, prf,roi)
 %%% As it is now, this code is not very flexible, possibly update it, i.e.
 %%% change it when necessary. Think about how to implement scrambled
 %%% versions or versions with a ranged pRF parameter -> 
-
+pred_resp = [];
 if isfield(roi,'idx') && model.params.roi_specific
     
     rois = fieldnames(roi.idx);

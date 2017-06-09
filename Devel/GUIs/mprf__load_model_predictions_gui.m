@@ -22,7 +22,7 @@ function varargout = mprf__load_model_predictions_gui(varargin)
 
 % Edit the above text to modify the response to help mprf__load_model_predictions_gui
 
-% Last Modified by GUIDE v2.5 08-Jun-2017 14:30:12
+% Last Modified by GUIDE v2.5 09-Jun-2017 13:30:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -108,5 +108,3 @@ function lst_models_available_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
