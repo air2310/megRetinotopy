@@ -15,6 +15,8 @@
 % Adjust MEG data preprocessing script, make gui as well with some
 % options??
 % 
+% Create code that replicates the first attempt and expand on this when
+% necessary
 
 
 %%

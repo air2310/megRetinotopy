@@ -22,7 +22,7 @@ function varargout = mprf__load_model_predictions_gui_devel_02(varargin)
 
 % Edit the above text to modify the response to help mprf__load_model_predictions_gui_devel_02
 
-% Last Modified by GUIDE v2.5 09-Jun-2017 14:39:28
+% Last Modified by GUIDE v2.5 05-Jul-2017 11:46:16
 % ADD:
 % IF ROI SPECIFIC OR NOT
 % AMOUNT OF ROIS
@@ -69,7 +69,7 @@ set(handles.lst_models_available, 'String',handles.models.names)
 guidata(hObject, handles);
 
 % UIWAIT makes mprf__load_model_predictions_gui_devel_02 wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -78,10 +78,16 @@ function varargout = mprf__load_model_predictions_gui_devel_02_OutputFcn(hObject
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 % Get default command line output from handles structure
-varargout{1} = handles.output;
+if isempty(handles.selected.model)
+    tmp = get(handles.lst_models_available,'String');
+    handles.selected.model = tmp(get(handles.lst_models_available,'Value'));
+end
 
+model = load(handles.selected.model);
+varargout = {model};
+% Get default command line output from handles structure
+delete(handles.figure1)
 
 % --- Executes on selection change in lst_models_available.
 function lst_models_available_Callback(hObject, eventdata, handles)
@@ -115,7 +121,14 @@ set(handles.txt_y0_range,'String',get_prf_par_val(handles, y0_opts, 'y0'));
 set(handles.txt_x0_range,'String',get_prf_par_val(handles, x0_opts, 'x0'));
 set(handles.txt_sigma_range,'String',get_prf_par_val(handles, sigma_opts, 'sigma'));
 
+if isfield(handles.tmp.model.roi,'idx');
+   roi_list = fieldnames(handles.tmp.model.roi.idx);
+    
+else
+    roi_list = {'None'};
+end
 
+set(handles.lb_roi,'String',roi_list);
 
 guidata(hObject, handles)
 
@@ -143,4 +156,56 @@ elseif opts.type.range
 else
     val = 'NA';
     
+end
+
+% --- Executes on button press in pb_load.
+function pb_load_Callback(hObject, eventdata, handles)
+
+figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
+
+
+
+
+% hObject    handle to pb_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+
+if isequal(get(hObject, 'waitstatus'), 'waiting')
+    uiresume(hObject);
+    
+else
+    % Hint: delete(hObject) closes the figure
+    delete(hObject);
+end
+
+
+% --- Executes on selection change in lb_roi.
+function lb_roi_Callback(hObject, eventdata, handles)
+% hObject    handle to lb_roi (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns lb_roi contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from lb_roi
+
+
+% --- Executes during object creation, after setting all properties.
+function lb_roi_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to lb_roi (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
