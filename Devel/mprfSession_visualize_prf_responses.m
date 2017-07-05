@@ -16,10 +16,7 @@ pred = mprf__load_model_predictions;
 surf_file = [tmp(strfind(tmp,'tess'):end) '.mat'];
 surf_path = fullfile(main_dir, anat_dir, surf_file);
 
-
-bs_msh = mprfMeshFromBrainstorm(surf_path);
-bs_msh = meshVisualize(bs_msh);
-
+mprf__prf_pred_mesh_gui(pred, surf_path);
 
 
 
