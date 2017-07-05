@@ -55,6 +55,11 @@ function mprf__load_model_predictions_gui_devel_02_OpeningFcn(hObject, eventdata
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to mprf__load_model_predictions_gui_devel_02 (see VARARGIN)
 
+global mprfSESSION
+if isempty(mprfSESSION)
+    load('mprfSESSION.mat')
+end
+
 % Choose default command line output for mprf__load_model_predictions_gui_devel_02
 handles.output = hObject;
 

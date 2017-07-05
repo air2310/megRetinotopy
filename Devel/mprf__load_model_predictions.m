@@ -1,14 +1,18 @@
+function pred = mprf__load_model_predictions
+
+pred = [];
 
 global mprfSESSION
-
-
 if isempty(mprfSESSION)
-    error('mprfSESSION is empty')
-    
+    load('mprfSESSION.mat')
 end
 
-mprf__load_model_predictions_gui_devel_02;
-
+try
+    pred = mprf__load_model_predictions_gui_devel_02;
+catch
+    
+end
+end
 
 
 
