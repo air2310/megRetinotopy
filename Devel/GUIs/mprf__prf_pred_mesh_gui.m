@@ -134,25 +134,36 @@ cur_cbs = handles.cb_nums;
 all_rois = zeros(size(cur_cbs));
 ctr = 0;
 
-pred = zeros(1,n_vert);
-mask = nan(size(pred));
-
-for nn = 1:length(cur_cbs)
-    eval(['cur_val = get(handles.roi_checkbox' num2str(cur_cbs(nn)) ',''Value'');'])
+if length(cur_cbs) == 1
     
-    if cur_val
-        ctr = ctr+1;
-        eval(['cur_roi_str = get(handles.roi_checkbox' num2str(cur_cbs(nn)) ',''String'');'])
-        all_rois(ctr) = nn;
+    pred = handles.data.pred_resp(cur_im,:);
+    mask = logical(handles.data.roi.mask);
+    
+elseif length(cur_cbs) > 1
+    
+    
+    pred = zeros(1,n_vert);
+    mask = nan(size(pred));
+    
+    for nn = 1:length(cur_cbs)
+        eval(['cur_val = get(handles.roi_checkbox' num2str(cur_cbs(nn)) ',''Value'');'])
         
-        pred = sum([pred; squeeze(handles.data.pred_resp(cur_im,:,nn))]);
-        mask(handles.data.roi.idx_out == handles.data.roi.idx.(cur_roi_str).idx) = true;
+        if cur_val
+            ctr = ctr+1;
+            eval(['cur_roi_str = get(handles.roi_checkbox' num2str(cur_cbs(nn)) ',''String'');'])
+            all_rois(ctr) = nn;
+            
+            pred = sum([pred; squeeze(handles.data.pred_resp(cur_im,:,nn))]);
+            mask(handles.data.roi.idx_out == handles.data.roi.idx.(cur_roi_str).idx) = true;
+            
+        end
         
     end
-    
+    mask = ~isnan(mask);
 end
+
 drange = [];
-handles.mesh.bs_msh = mprfSessionColorMesh(handles.mesh.bs_msh, pred,jet(256), drange, ~isnan(mask));
+handles.mesh.bs_msh = mprfSessionColorMesh(handles.mesh.bs_msh, pred,jet(256), drange, mask);
 
 
 
@@ -213,6 +224,7 @@ function stim_slider_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 updateStim(hObject, handles);
+pause(0.1)
 updateMesh(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
