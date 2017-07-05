@@ -52,6 +52,8 @@ function mprf__prf_pred_mesh_gui_OpeningFcn(hObject, eventdata, handles, varargi
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to mprf__prf_pred_mesh_gui (see VARARGIN)
 
+handles.data = varargin{1};
+
 % Choose default command line output for mprf__prf_pred_mesh_gui
 handles.output = hObject;
 
