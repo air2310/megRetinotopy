@@ -421,9 +421,9 @@ if model.params.roi_specific
                         end
                     end
                 else
-                    comb_rois = roi_fields{nn};
-                    these_idx = roi_info.tag_to_idx.(roi_fields{nn});
-                    skip_rois = [skip_rois roi_fields{nn}];
+
+                    comb_rois = roi_fields{n};
+                    these_idx = roi_info.tag_to_idx.(roi_fields{n});
                     
                 end
                 
