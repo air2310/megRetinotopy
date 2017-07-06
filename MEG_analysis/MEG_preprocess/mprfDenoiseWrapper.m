@@ -45,7 +45,7 @@ presented_conds = all_cond(ismember(all_cond,unique(epoch_idx)));
 fprintf('Making design matrix...\n')
 fprintf('Loading stimulus...\n')
 stimfiles = dir(fullfile(stim_dir,'*.mat'));
-stim = load(fullfile(stim_dir, stimfiles(1).name));
+stim = load(fullfile(stim_dir, stimfiles(2).name));
 
 stim_range = double([min(stim.stimulus.images(:)) max(stim.stimulus.images(:))]);
 bk = double(mode(mode(stim.stimulus.images(:,:,1))));

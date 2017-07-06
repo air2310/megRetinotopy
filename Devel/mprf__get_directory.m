@@ -83,10 +83,18 @@ for n = 1:length(varargin)
 
         case 'syn_data'
             varargout{n}  = 'modeling/synthetic';
+            
+        case 'meg_preproc'
+            varargout{n}  = 'data/meg/preproc';
+            
+        case 'syn_preproc'
+            varargout{n}  = 'modeling/synthetic/preproc';
+            
         otherwise
             
             fprintf('ERROR: unknow type %s\n',varargin{n})
             print_list = {
+                'meg_preproc'
                 'syn_data'
                 'model_results'
                 'model_predictions'

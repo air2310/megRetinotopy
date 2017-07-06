@@ -22,7 +22,7 @@ function varargout = mprf__preprocess_meg_gui(varargin)
 
 % Edit the above text to modify the response to help mprf__preprocess_meg_gui
 
-% Last Modified by GUIDE v2.5 06-Jul-2017 13:46:22
+% Last Modified by GUIDE v2.5 06-Jul-2017 16:44:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,13 +54,56 @@ function mprf__preprocess_meg_gui_OpeningFcn(hObject, eventdata, handles, vararg
 
 % Choose default command line output for mprf__preprocess_meg_gui
 handles.output = hObject;
+handles.files.meg = varargin{1};
+handles.files.syn = varargin{2};
+handles.files.stim = varargin{3};
+
+handles.dir.main = mprf__get_directory('main_dir');
+handles.dir.meg_data = mprf__get_directory('meg_data');
+handles.dir.stim = mprf__get_directory('meg_imported_stim');
+handles.dir.syn_data = mprf__get_directory('syn_data');
+
+tmp = load(fullfile(handles.dir.main, handles.dir.stim, handles.files.stim{1}));
+fname = fieldnames(tmp);
+handles.stim = tmp.(fname{1});
+handles.stim.full_im = handles.stim.full_im ./ max(handles.stim.full_im(:));
+im_range = [1 size(handles.stim.full_im,3)];
+
+set(handles.lbl_stim_max,'String',num2str(im_range(2)));
+set(handles.stim_slider,...
+    'Min',1,...
+    'Max',im_range(2),...
+    'SliderStep',[(1/(im_range(2) - im_range(1))) (10/(im_range(2) - im_range(1)))],...
+    'Value',1)
+
+axes(handles.axes1)
+colormap('gray');
+
+handles = updateStim(hObject, handles);
+uipanel1_SelectionChangeFcn(hObject, eventdata, handles);
+set(handles.cb_save_at_every_step,'Value',1);
+set(handles.cb_hp_filt,'Value',1);
+set(handles.cb_pre_proc_data,'Value',1);
+set(handles.cb_denoise_data,'Value',1);
+set(handles.epoch_lower,'String',num2str(150));
+set(handles.epoch_upper,'String',num2str(1100));
 
 % Update handles structure
 guidata(hObject, handles);
-
+ 
 % UIWAIT makes mprf__preprocess_meg_gui wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+uiwait(handles.figure1);
 
+
+function handles = updateStim(hObject, handles)
+
+cur_val = ceil(get(handles.stim_slider,'Value'));
+
+axes(handles.axes1);
+imagesc(handles.stim.full_im(:,:,cur_val), [0 1]);
+set(handles.axes1,'YTick',[]);
+set(handles.axes1,'XTick',[]);
+set(handles.lbl_cur_im, 'String',num2str(cur_val));
 
 % --- Outputs from this function are returned to the command line.
 function varargout = mprf__preprocess_meg_gui_OutputFcn(hObject, eventdata, handles) 
@@ -68,7 +111,24 @@ function varargout = mprf__preprocess_meg_gui_OutputFcn(hObject, eventdata, hand
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+preproc.do.save = logical(get(handles.cb_save_at_every_step,'Value'));
+preproc.do.filt = logical(get(handles.cb_hp_filt ,'Value'));
+preproc.do.preproc = logical(get(handles.cb_pre_proc_data ,'Value'));
+preproc.do.denoise = logical(get(handles.cb_denoise_data ,'Value'));
+preproc.params.epoch.low = str2double(get(handles.epoch_lower,'String'));
+preproc.params.epoch.include = str2double(get(handles.epoch_upper,'String'));
+tmp = get(handles.lb_load_data,'String');
 
+if get(handles.uipanel1,'SelectedObject') == handles.rb_meg;
+    preproc.data.type = 'meg_data';
+elseif get(handles.uipanel1,'SelectedObject') == handles.rb_meg;
+    preproc.data.type = 'synthetic_data';
+end
+
+preproc.data.file = tmp{get(handles.lb_load_data,'Value')};
+preproc.stimulus = handles.stim;
+
+handles.output.preproc = preproc;
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
@@ -78,3 +138,199 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on slider movement.
+function stim_slider_Callback(hObject, eventdata, handles)
+% hObject    handle to stim_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+handles = updateStim(hObject, handles);
+% Update handles structure
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function stim_slider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to stim_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes when selected object is changed in uipanel1.
+function uipanel1_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in uipanel1 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+
+if get(handles.uipanel1,'SelectedObject') == handles.rb_meg
+    if isempty(handles.files.meg)
+        set(handles.lb_load_data,'String','No data found');
+    else
+        set(handles.lb_load_data,'String',handles.files.meg);
+    end
+    
+elseif get(handles.uipanel1,'SelectedObject') == handles.rb_syn
+    if isempty(handles.files.syn)
+        set(handles.lb_load_data,'String','No data found');
+    else
+        set(handles.lb_load_data,'String',handles.files.syn);
+    end
+end
+
+
+% --- Executes on selection change in lb_load_data.
+function lb_load_data_Callback(hObject, eventdata, handles)
+% hObject    handle to lb_load_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns lb_load_data contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from lb_load_data
+
+
+% --- Executes during object creation, after setting all properties.
+function lb_load_data_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to lb_load_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in cb_save_at_every_step.
+function cb_save_at_every_step_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_save_at_every_step (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_save_at_every_step
+
+
+% --- Executes on button press in cb_hp_filt.
+function cb_hp_filt_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_hp_filt (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_hp_filt
+
+
+% --- Executes on button press in cb_pre_proc_data.
+function cb_pre_proc_data_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_pre_proc_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_pre_proc_data
+
+
+% --- Executes on button press in cb_denoise_data.
+function cb_denoise_data_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_denoise_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_denoise_data
+
+
+
+function epoch_upper_Callback(hObject, eventdata, handles)
+% hObject    handle to epoch_upper (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of epoch_upper as text
+%        str2double(get(hObject,'String')) returns contents of epoch_upper as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function epoch_upper_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to epoch_upper (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function epoch_lower_Callback(hObject, eventdata, handles)
+% hObject    handle to epoch_lower (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of epoch_lower as text
+%        str2double(get(hObject,'String')) returns contents of epoch_lower as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function epoch_lower_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to epoch_lower (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pb_go.
+function pb_go_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_go (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+figure1_CloseRequestFcn(hObject, eventdata,handles,true);
+
+
+% --- Executes on button press in pb_cancel.
+function pb_cancel_Callback(hObject, eventdata, handles)
+% hObject    handle to pb_cancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+figure1_CloseRequestFcn(hObject, eventdata,handles,false);
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles,do_go)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if ~exist('do_go','var') || isempty(do_go)
+    do_go = false;
+end
+
+handles.output.do_go = do_go;
+
+guidata(hObject, handles);
+
+% Hint: delete(hObject) closes the figure
+if isequal(get(handles.figure1, 'waitstatus'), 'waiting')
+    uiresume(handles.figure1);
+    
+else
+    % Hint: delete(hObject) closes the figure
+    delete(handles.figure1);
+end
