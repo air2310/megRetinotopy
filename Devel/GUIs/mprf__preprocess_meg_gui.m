@@ -121,8 +121,8 @@ tmp = get(handles.lb_load_data,'String');
 
 if get(handles.uipanel1,'SelectedObject') == handles.rb_meg;
     preproc.data.type = 'meg_data';
-elseif get(handles.uipanel1,'SelectedObject') == handles.rb_meg;
-    preproc.data.type = 'synthetic_data';
+elseif get(handles.uipanel1,'SelectedObject') == handles.rb_syn;
+    preproc.data.type = 'syn_data';
 end
 
 preproc.data.file = tmp{get(handles.lb_load_data,'Value')};

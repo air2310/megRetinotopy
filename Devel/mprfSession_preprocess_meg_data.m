@@ -1,8 +1,8 @@
-
+function mprfSession_preprocess_meg_data
 
 global mprfSESSION
 
-if isempty('mprfSESSION')
+if all(size(mprfSESSION) == [0 0])
     load('mprfSESSION.mat')
     
 end
@@ -20,7 +20,7 @@ meg_files = {};
 syn_files = {};
 stim_files = {};
 
-if exist(meg_ddir,'dir') 
+if exist(meg_ddir,'dir')
     in_meg_dir = dir(fullfile(meg_ddir, '*.sqd'));
     if ~isempty(in_meg_dir)
         has_meg_file = true;
@@ -30,7 +30,7 @@ if exist(meg_ddir,'dir')
 end
 
 if exist(syn_ddir,'dir')
-    in_syn_dir = dir(fullfile(meg_ddir, '*.sqd'));
+    in_syn_dir = dir(fullfile(syn_ddir, '*.sqd'));
     if ~isempty(in_syn_dir)
         has_syn_file = true;
         syn_files = {in_syn_dir.name};
@@ -40,7 +40,7 @@ if exist(syn_ddir,'dir')
 end
 
 
-if exist(stim_dir,'dir') 
+if exist(stim_dir,'dir')
     in_stim_dir = dir(fullfile(stim_dir, '*.mat'));
     if ~isempty(in_stim_dir)
         has_stim_file = true;
@@ -50,7 +50,7 @@ if exist(stim_dir,'dir')
 end
 
 if (has_meg_file || has_syn_file) && has_stim_file
-
+    
 else
     fprintf('Error, no data and/or stimulus found\n')
     return
@@ -69,13 +69,13 @@ cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
 if ~exist('denoisedata','file')
     tbUse('knk')
     add_dirs('denoise')
-
+    
 end
 
 
 if strcmpi(params.preproc.data.type,'meg_data');
     raw_meg_file = fullfile(main_dir, mprf__get_directory('meg_data'),params.preproc.data.file);
-    [~,fname] = fileparts(source_file);
+    [~,fname] = fileparts(raw_meg_file);
     fname(fname == ' ' | fname == ':' | fname == '-'|fname == '.') = '_';
     dest_dir = fullfile(main_dir, mprf__get_directory('meg_preproc'),['pp_run_' fname '_on_' cur_time]);
     
@@ -83,9 +83,21 @@ if strcmpi(params.preproc.data.type,'meg_data');
     
 elseif strcmpi(params.preproc.data.type,'syn_data');
     raw_meg_file = fullfile(main_dir, mprf__get_directory('syn_data'),params.preproc.data.file);
-    [~,fname] = fileparts(source_file);
+    [fpath,fname] = fileparts(raw_meg_file);
     fname(fname == ' ' | fname == ':' | fname == '-'|fname == '.') = '_';
     dest_dir = fullfile(main_dir, mprf__get_directory('syn_preproc'),['pp_run_' fname '_on_' cur_time]);
+    
+    tmp = strfind(params.preproc.data.file,'syn_data_');
+    if any(tmp)
+        tmp2 = params.preproc.data.file(tmp+length('syn_data_'):end);
+        [~, fname] = fileparts(tmp2);
+        trig_info_name_guess = fullfile(fpath,['trig_info_' fname '.mat']);
+        
+        if exist(trig_info_name_guess,'file')
+            load(trig_info_name_guess)
+            fprintf('Loading %s as timing file\n',trig_info_name_guess);
+        end
+    end
     
     mkdir(dest_dir)
     
@@ -283,7 +295,7 @@ if strcmpi(preproc,'filter') || strcmpi(preproc,'full')
     
     if strcmpi(preproc, 'filter')
         preproc = 'full';
-    end    
+    end
     
     
 end
@@ -348,41 +360,41 @@ end
 
 
 
-    %% Denoise the data:
-    %data      : time series [channel x time samples x epoch]
-    %design    : design matrix [epoch x nconds]
+%% Denoise the data:
+%data      : time series [channel x time samples x epoch]
+%design    : design matrix [epoch x nconds]
+
+
+
+if ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
+    [fname, fpath] = uigetfile('*','Please select epoched filtered data file');
     
-
-
-    if ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
-        [fname, fpath] = uigetfile('*','Please select epoched filtered data file');
-        
-        load(fullfile(fpath, fname));
-        
-        if  ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
-            error('Could not load data file');
-            
-        end
+    load(fullfile(fpath, fname));
+    
+    if  ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
+        error('Could not load data file');
         
     end
     
-    [epoched_filtered_preproc_data, results, evalout,denoised_spec] = mprfDenoiseWrapper(epoched_filtered_preproc_data, stim_dir);
-    
-    epoched_filtered_preproc_denoised_data = epoched_filtered_preproc_data;
-    
-    clear epoched_filtered_preproc_data
-    
-    fprintf('Saving denoised data...\n')
-    save(fullfile(dest_dir,epoched_hp_filt_preproc_denoised_file),'epoched_filtered_preproc_denoised_data','-v7.3');
-    save(fullfile(dest_dir,'denoise_results'),'results','evalout','denoised_spec','-v7.3');
-    
-    fprintf('Done.\n')
-    
+end
 
-        
-        
-       
+[epoched_filtered_preproc_data, results, evalout,denoised_spec] = mprfDenoiseWrapper(epoched_filtered_preproc_data, stim_dir);
 
+epoched_filtered_preproc_denoised_data = epoched_filtered_preproc_data;
+
+clear epoched_filtered_preproc_data
+
+fprintf('Saving denoised data...\n')
+save(fullfile(dest_dir,epoched_hp_filt_preproc_denoised_file),'epoched_filtered_preproc_denoised_data','-v7.3');
+save(fullfile(dest_dir,'denoise_results'),'results','evalout','denoised_spec','-v7.3');
+
+fprintf('Done.\n')
+
+
+
+
+
+end
 
 
 

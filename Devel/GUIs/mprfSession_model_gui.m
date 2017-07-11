@@ -22,7 +22,7 @@ function varargout = mprfSession_model_gui(varargin)
 
 % Edit the above text to modify the response to help mprfSession_model_gui
 
-% Last Modified by GUIDE v2.5 25-May-2017 15:33:38
+% Last Modified by GUIDE v2.5 11-Jul-2017 13:25:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -117,6 +117,22 @@ if do_update_meg && do_update_rm
     
 end
 
+tmp = dir(fullfile(handles.main_dir,mprf__get_directory('meg_data'), '*.sqd'));
+
+if ~isempty(tmp)
+    set(handles.pu_temp_data,'String',{tmp.name});
+    set(handles.cb_syn_ds,'Enable','on');
+    
+elseif isempty(tmp)
+    set(handles.cb_syn_ds,'Enable','off');
+    set(handles.pu_temp_data,'String','No template data sets found');
+    
+end
+
+set(handles.txt_data_channels,'String','0:156');
+set(handles.txt_trigger_channels,'String',' 160:167');
+set(handles.txt_diode_channels,'String','191');
+
 
 % UIWAIT makes mprfSession_model_gui wait for user response (see UIRESUME)
 uiwait(handles.figure1);
@@ -134,7 +150,22 @@ stimulus = tmp.(fnames{1});
 %handles.model.params.use_roi_mask = get(handles.cb_use_roi_mask,'Value');
 
 % Get default command line output from handles structure
-varargout = {handles.model, stimulus, get(handles.cb_syn_ds,'Value');};
+if strcmpi(get(handles.pu_temp_data,'Enable'),'on')
+    syn.do = get(handles.cb_syn_ds,'Value');
+    tmp  = get(handles.pu_temp_data,'String');
+    syn.file = tmp{get(handles.pu_temp_data,'Value')};
+    
+elseif strcmpi(get(handles.pu_temp_data,'Enable'),'off')
+    syn.do = false;
+    syn.file = '';
+    
+end
+
+channels.data = eval(get(handles.txt_data_channels,'String'));
+channels.triggers = eval(get(handles.txt_trigger_channels,'String'));
+channels.diode = eval(get(handles.txt_diode_channels,'String'));
+
+varargout = {handles.model, stimulus, syn, channels};
 
 delete(hObject);
 
@@ -499,3 +530,105 @@ else
     % Hint: delete(hObject) closes the figure
     delete(hObject);
 end
+
+
+% --- Executes on selection change in pu_temp_data.
+function pu_temp_data_Callback(hObject, eventdata, handles)
+% hObject    handle to pu_temp_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns pu_temp_data contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from pu_temp_data
+
+
+% --- Executes during object creation, after setting all properties.
+function pu_temp_data_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pu_temp_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_data_channels_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_data_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_data_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_data_channels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_data_channels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_data_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_trigger_channels_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_trigger_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_trigger_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_trigger_channels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_trigger_channels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_trigger_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit4_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_diode_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_diode_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_diode_channels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_diode_channels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_diode_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_diode_channels_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_diode_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_diode_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_diode_channels as a double

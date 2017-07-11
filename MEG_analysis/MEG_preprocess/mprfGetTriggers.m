@@ -1,4 +1,7 @@
-function timing = mprfGetTriggers(meg_file, param_dir, trig_chan, diode_chan)
+function timing = mprfGetTriggers(meg_file, param_dir, trig_chan, diode_chan, do_plot)
+if ~exist('do_plot','var') || isempty(do_plot)
+    do_plot = false;
+end
 
 param_files = dir(fullfile(param_dir,'*.mat')); % Make sure this is in chronological order. I.e. first file in struct corresponds to the first stimulus run
 
@@ -45,22 +48,23 @@ for n = 1:length(param_files)
     timing.init.idx(:,n) = init.seq.seq;
     timing.init.flash_time(:,n) = init.flip_times(logical(init.seq.seq));
     
-    figure;
-    
-    % desired inter-stimulus duration
-    plot(diff(stimulus.seqtiming));
-    
-    % measured inter-stimulus duration
-    hold on; plot(diff(response.flip), 'r-');
-    
-    ylim(median(diff(response.flip)) + [-.001 .001])
-    % frames between stimuli
-    frames = round(diff(response.flip) / (1/60));
-    
-    % how many interstimulus frames differed from the median?
-    disp(sum(frames ~= median(frames)))
-    
-%     
+    if do_plot
+        figure;
+        
+        % desired inter-stimulus duration
+        plot(diff(stimulus.seqtiming));
+        
+        % measured inter-stimulus duration
+        hold on; plot(diff(response.flip), 'r-');
+        
+        ylim(median(diff(response.flip)) + [-.001 .001])
+        % frames between stimuli
+        frames = round(diff(response.flip) / (1/60));
+        
+        % how many interstimulus frames differed from the median?
+        disp(sum(frames ~= median(frames)))
+    end
+    %
     
     
 end
@@ -234,14 +238,17 @@ timing.stimulus.flip_time = timing.stimulus.flip_time(:);
 delay_sequence = timing.stimulus.flip_time - timing.stimulus.seqtime; % Difference between sequence and flips
 d_delay_sequence = [0; diff(delay_sequence)]; % Differential, the flips that were delayed
 
-fh1 = figure;
-plot(delay_sequence)
-ylabel('Delay (milliseconds)');
-
-fh2 = figure; 
-plot(timing.stimulus.flip_time(:), d_delay_sequence)
-xlabel('Stimulus frame flip time');
-ylabel('Added delay stimulus flips (ms)')
+if do_plot
+    fh1 = figure;
+    plot(delay_sequence)
+    ylabel('Delay (milliseconds)');
+    
+    fh2 = figure;
+    plot(timing.stimulus.flip_time(:), d_delay_sequence)
+    xlabel('Stimulus frame flip time');
+    ylabel('Added delay stimulus flips (ms)')
+    
+end
 % 
 % trigger_interval = diff(round(triggers(:,1)) ./ 1000);
 % flip_interval = diff(timing.trigger.flip_time(:) ./ 1000);
@@ -281,11 +288,13 @@ end
 
 delay_idx = delay_idx(~isnan(delay_idx)); % indices of the time points that 
 %were delayed. I.e. where the flip timing and sequence timing mismatch
-set(0,'CurrentFigure',fh2);
-hold on;
-plot(delay_idx, ones(size(delay_idx)) .* 100,'rx')
 
-
+if do_plot
+    set(0,'CurrentFigure',fh2);
+    hold on;
+    plot(delay_idx, ones(size(delay_idx)) .* 100,'rx')
+    
+end
 
 timing.delay = delay_sequence;
 timing.d_delay = d_delay_sequence;
