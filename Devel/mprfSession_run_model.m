@@ -51,4 +51,7 @@ if syn.do
     
 end
 
+if syn.pp
+    mprfSession_preprocess_meg_data;
+
 end
