@@ -60,7 +60,8 @@ end
 params = mprf__preprocess_meg_gui(meg_files, syn_files, stim_files);
 
 preproc = 'full'; % Full = do all steps,
-save_interim_files = true; % Save data at every intermediate step?
+
+save_interim_files = params.preproc.do.save; % Save data at every intermediate step?
 % Get the time of this run:
 cur_time = datestr(now);
 cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
