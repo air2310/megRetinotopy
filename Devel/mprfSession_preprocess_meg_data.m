@@ -353,7 +353,6 @@ end
     %design    : design matrix [epoch x nconds]
     
 
-if strcmpi(preproc,'denoise') || strcmpi(preproc,'full')
 
     if ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
         [fname, fpath] = uigetfile('*','Please select epoched filtered data file');
@@ -383,7 +382,7 @@ if strcmpi(preproc,'denoise') || strcmpi(preproc,'full')
         
         
        
-end
+
 
 
 
