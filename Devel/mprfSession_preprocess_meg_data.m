@@ -59,7 +59,6 @@ end
 
 params = mprf__preprocess_meg_gui(meg_files, syn_files, stim_files);
 
-preproc = 'full'; % Full = do all steps,
 
 save_interim_files = params.preproc.do.save; % Save data at every intermediate step?
 % Get the time of this run:
@@ -121,11 +120,10 @@ epoched_hp_filtered_preproc_file = 'epoched_data_hp_preproc.mat'; %
 epoched_hp_filt_preproc_denoised_file = 'epoched_data_hp_preproc_denoised.mat';
 
 
-
 % Channel identity:
-trig_chan = 160 : 167;
-diode_chan = 191;
-data_chan = 0:156;
+trig_chan = params.channels.triggers;
+diode_chan = params.channels.diode;
+data_chan = params.channels.data;
 
 %% Triggers
 % 1. Read the triggers from the data file. This uses subfunctions that want
@@ -207,8 +205,6 @@ else
 end
 
 
-
-
 %% Epoching
 % 3. Epoch the MEG data. Currently, epoching is done by just cutting up the
 % MEG data in chunks with the length of each epoch equal to the time of the
@@ -259,13 +255,10 @@ else
     
 end
 
-if strcmpi(preproc, 'epoch')
-    preproc = 'full';
-end
-
 
 %% FILTER THE DATA
-if strcmpi(preproc,'filter') || strcmpi(preproc,'full')
+
+if params.preproc.do.filt
     if ~exist('epoched_data','var') || isempty(epoched_data)
         [fname, fpath] = uigetfile('*','Please select epoched data file');
         
@@ -280,13 +273,9 @@ if strcmpi(preproc,'filter') || strcmpi(preproc,'full')
     
     epoched_data.data = mprfFilterDataHighPass(epoched_data.data);
     
-    epoched_filtered_data = epoched_data;
-    
-    clear epoched_data
-    
     if save_interim_files
         fprintf('Saving filtered data...\n')
-        save(fullfile(dest_dir,epoched_hp_filtered_file),'epoched_filtered_data','-v7.3');
+        save(fullfile(dest_dir,epoched_hp_filtered_file),'epoched_data','-v7.3');
         fprintf('Done.\n')
         
     else
@@ -294,35 +283,22 @@ if strcmpi(preproc,'filter') || strcmpi(preproc,'full')
         
     end
     
-    if strcmpi(preproc, 'filter')
-        preproc = 'full';
-    end
     
     
 end
 
 
-
-
-
-
-
-
-
-
-
-
 %% Preprocessing, reject bad epochs/channels without blink and first period epochs
 
 
-if strcmpi(preproc,'preproc') || strcmpi(preproc,'full')
+if params.preproc.do.preproc
     
-    if ~exist('epoched_filtered_data','var') || isempty(epoched_filtered_data)
-        [fname, fpath] = uigetfile('*','Please select epoched filtered data file');
+    if ~exist('epoched_data','var') || isempty(epoched_data)
+        [fname, fpath] = uigetfile('*','Please select epoched data file to process');
         
         load(fullfile(fpath, fname));
         
-        if  ~exist('epoched_filtered_data','var') || isempty(epoched_filtered_data)
+        if  ~exist('epoched_filtered_data','var') || isempty(epoched_data)
             error('Could not load data file');
             
         end
@@ -331,14 +307,11 @@ if strcmpi(preproc,'preproc') || strcmpi(preproc,'full')
     
     
     
-    epoched_filtered_data = mprfPreprocessWrapper(epoched_filtered_data);
-    
-    epoched_filtered_preproc_data = epoched_filtered_data;
-    clear epoched_filtered_data
+    epoched_data = mprfPreprocessWrapper(epoched_data);
     
     if save_interim_files
         fprintf('Saving preprocessed data...\n')
-        save(fullfile(dest_dir,epoched_hp_filtered_preproc_file),'epoched_filtered_preproc_data','-v7.3');
+        save(fullfile(dest_dir,epoched_hp_filtered_preproc_file),'epoched_data','-v7.3');
         fprintf('Done.\n')
         
     else
@@ -346,54 +319,75 @@ if strcmpi(preproc,'preproc') || strcmpi(preproc,'full')
         
     end
     
-    if strcmpi(preproc, 'preproc')
-        preproc = 'full';
-    end
-    
-    
-    
 end
-
-
-
-
-
-
 
 
 %% Denoise the data:
 %data      : time series [channel x time samples x epoch]
 %design    : design matrix [epoch x nconds]
 
-
-
-if ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
-    [fname, fpath] = uigetfile('*','Please select epoched filtered data file');
+if params.preproc.do.denoise
     
-    load(fullfile(fpath, fname));
-    
-    if  ~exist('epoched_filtered_preproc_data','var') || isempty(epoched_filtered_preproc_data)
-        error('Could not load data file');
+    if ~exist('epoched_data','var') || isempty(epoched_data)
+        [fname, fpath] = uigetfile('*','Please select epoched data to process');
+        
+        load(fullfile(fpath, fname));
+        
+        if  ~exist('epoched_data','var') || isempty(epoched_data)
+            error('Could not load data file');
+            
+        end
         
     end
     
+    [epoched_data, results, evalout,denoised_spec] = mprfDenoiseWrapper(epoched_data, stim_dir);
+    
+    fprintf('Saving denoised data...\n')
+    
+    if save_interim_files
+        save(fullfile(dest_dir,epoched_hp_filt_preproc_denoised_file),'epoched_data','-v7.3');
+        
+    end
+    save(fullfile(dest_dir,'denoise_results'),'results','evalout','denoised_spec','-v7.3');
+    fprintf('Done.\n')
+    
 end
 
-[epoched_filtered_preproc_data, results, evalout,denoised_spec] = mprfDenoiseWrapper(epoched_filtered_preproc_data, stim_dir);
-
-epoched_filtered_preproc_denoised_data = epoched_filtered_preproc_data;
-
-clear epoched_filtered_preproc_data
-
-fprintf('Saving denoised data...\n')
-save(fullfile(dest_dir,epoched_hp_filt_preproc_denoised_file),'epoched_filtered_preproc_denoised_data','-v7.3');
-save(fullfile(dest_dir,'denoise_results'),'results','evalout','denoised_spec','-v7.3');
-
-fprintf('Done.\n')
-
-
-
-
+if ~save_interim_files
+    out_name = 'epoched_data';
+    field_names = fieldnames(params.preproc.do);
+    
+    for n  = 1:length(field_names)
+        cur_field = field_names{n};
+        cur_val = params.preproc.do.(cur_field);
+        switch lower(cur_field)
+            
+            case 'filt'
+                if cur_val
+                   out_name = [out_name '_hp'];
+                    
+                end
+                
+            case 'preproc'
+                 if cur_val
+                   out_name = [out_name '_preproc '];
+                    
+                end
+                
+                
+                
+            case 'denoise'
+                if cur_val
+                    out_name = [out_name '_denoised '];
+                    
+                end
+                
+                
+        end
+    end
+    save(fullfile(dest_dir,[out_name, '.mat']),'epoched_data','-v7.3');
+    
+    
 
 end
 

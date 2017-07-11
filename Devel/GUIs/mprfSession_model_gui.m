@@ -22,7 +22,7 @@ function varargout = mprfSession_model_gui(varargin)
 
 % Edit the above text to modify the response to help mprfSession_model_gui
 
-% Last Modified by GUIDE v2.5 11-Jul-2017 13:25:32
+% Last Modified by GUIDE v2.5 11-Jul-2017 15:54:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -160,6 +160,8 @@ elseif strcmpi(get(handles.pu_temp_data,'Enable'),'off')
     syn.file = '';
     
 end
+
+syn.pp = get(handles.cb_pp_syn_data,'Value');
 
 channels.data = eval(get(handles.txt_data_channels,'String'));
 channels.triggers = eval(get(handles.txt_trigger_channels,'String'));
@@ -632,3 +634,12 @@ function txt_diode_channels_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of txt_diode_channels as text
 %        str2double(get(hObject,'String')) returns contents of txt_diode_channels as a double
+
+
+% --- Executes on button press in cb_pp_syn_data.
+function cb_pp_syn_data_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_pp_syn_data (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_pp_syn_data

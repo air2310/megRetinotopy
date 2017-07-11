@@ -22,7 +22,7 @@ function varargout = mprf__preprocess_meg_gui(varargin)
 
 % Edit the above text to modify the response to help mprf__preprocess_meg_gui
 
-% Last Modified by GUIDE v2.5 06-Jul-2017 16:44:23
+% Last Modified by GUIDE v2.5 11-Jul-2017 15:58:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,6 +88,11 @@ set(handles.cb_denoise_data,'Value',1);
 set(handles.epoch_lower,'String',num2str(150));
 set(handles.epoch_upper,'String',num2str(1100));
 
+set(handles.txt_data_channels,'String','0:156');
+set(handles.txt_trigger_channels,'String',' 160:167');
+set(handles.txt_diode_channel,'String','191');
+
+
 % Update handles structure
 guidata(hObject, handles);
  
@@ -127,6 +132,11 @@ end
 
 preproc.data.file = tmp{get(handles.lb_load_data,'Value')};
 preproc.stimulus = handles.stim;
+
+handles.output.channels.data = eval(get(handles.txt_data_channels,'String'));
+handles.output.channels.triggers = eval(get(handles.txt_trigger_channels,'String'));
+handles.output.channels.diode = eval(get(handles.txt_diode_channel,'String'));
+
 
 handles.output.preproc = preproc;
 % Get default command line output from handles structure
@@ -333,4 +343,73 @@ if isequal(get(handles.figure1, 'waitstatus'), 'waiting')
 else
     % Hint: delete(hObject) closes the figure
     delete(handles.figure1);
+end
+
+
+
+function txt_data_channels_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_data_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_data_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_data_channels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_data_channels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_data_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_trigger_channels_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_trigger_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_trigger_channels as text
+%        str2double(get(hObject,'String')) returns contents of txt_trigger_channels as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_trigger_channels_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_trigger_channels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_diode_channel_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_diode_channel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_diode_channel as text
+%        str2double(get(hObject,'String')) returns contents of txt_diode_channel as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_diode_channel_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_diode_channel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
