@@ -106,6 +106,11 @@ def_params.comb_lr_rois = 1;
 def_params.comb_dv_rois = 1;
 def_params.roi_mask = 1;
 
+def_params.ve_thr = 1;
+def_params.beta_thr = 1;
+def_params.ve_thr_vals = {'0.1' 'inf'};
+def_params.beta_thr_vals = {'0' '95'};
+
 def_params.beta_equal_pred = 0;
 def_params.beta_equal_beta = 1;
 

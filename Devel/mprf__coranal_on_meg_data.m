@@ -1,10 +1,18 @@
 
-
+ang_av = @(th) angle(sum(exp(th(:)*1i)));
+ang_std = @(th) sqrt(-2*log((abs(sum(exp(th(:).*1i))) ./ numel(th))));
 
 stim_freq = 10;
 harm_freq = stim_freq*2:stim_freq:stim_freq*10;
 grid_freq = 60;
 samp_rate = 1000;
+
+
+exl_freq = [harm_freq grid_freq];
+all_idx = 1:1+fix(size(epoched_data.data,1)/2);
+include_idx = setdiff(all_idx, round(mprfFreq2Index(size(epoched_data.data,1),exl_freq,1000)));
+
+
 
 sz = size(epoched_data.data);
 n_time = sz(1);
@@ -49,7 +57,7 @@ for n = 1:n_bars
              stim_amp_std(n,nn) = nanstd(tmp_amp);
              stim_amp_ste(n,nn) = stim_amp_std(n,nn) ./ sqrt(sum(~isnan(tmp_amp)));
              
-             sqrtsummagsq = sqrt(sum(sc_amp.^2));
+             sqrtsummagsq = sqrt(sum(sc_amp(include_idx,:).^2));
              
              cur_sc_amp = sc_amp(sl_idx,:) ./ sqrtsummagsq;
              
@@ -60,9 +68,11 @@ for n = 1:n_bars
              
              cur_angle = angle(ft_data(sl_idx,:));
              
-             stim_ph_av(n,nn) = nanmean(cur_angle);
-             stim_ph_std(n,nn) = nanstd(cur_angle);
-             stim_ph_ste(n,nn) = stim_ph_std(n,nn) ./ sqrt(sum(~isnan(cur_angle)));
+             is_nan = isnan(cur_angle);
+             
+             stim_ph_av(n,nn) = ang_av(cur_angle(~is_nan)); % Use average angle here, i.e. circular....
+             stim_ph_std(n,nn) = ang_std(cur_angle(~is_nan));
+             stim_ph_ste(n,nn) = stim_ph_std(n,nn) ./ sqrt(sum(~is_nan));
              
              
              
@@ -86,7 +96,7 @@ for n = 1:size(pred.meg_resp,2)
     sel = ~isnan(stim_amp_av(:,n)) & ~isnan(pred.meg_resp(:,n));
     mean(sel)
     
-    tmp = corrcoef(zscore(stim_amp_av(sel,n)),zscore(abs(pred.meg_resp(sel,n))));
+    tmp = corrcoef(stim_amp_av(sel,n),pred.meg_resp(sel,n));
     amp_r(n) = tmp(1,2);
     
 end
@@ -96,10 +106,12 @@ end
 fh = figure;
 megPlotMap(amp_r,[-1 1],fh, jet(256),'Correlation Prediction - Gain');
 
+not_nan = ~isnan(stim_ph_av) & ~isnan(pred.meg_resp);
 
+X = [pred.meg_resp(not_nan) ones(size(pred.meg_resp(not_nan)))];
+X\stim_ph_av(not_nan)
 
-
-
+[r, p] = corrcoef(pred.meg_resp(not_nan), stim_ph_av(not_nan))
 
 
 

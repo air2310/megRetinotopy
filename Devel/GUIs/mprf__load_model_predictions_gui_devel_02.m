@@ -115,6 +115,37 @@ x0_opts = handles.tmp.model.prf.x0;
 y0_opts = handles.tmp.model.prf.y0;
 sigma_opts = handles.tmp.model.prf.sigma;
 
+thr_opts.roi_mask.vals = 'no';
+thr_opts.beta.vals = 'None';
+thr_opts.ve.vals = 'None';
+
+
+if isfield(handles.tmp.model.model.params,'roi_mask')
+    thr_opts.roi_mask.do = handles.tmp.model.model.params.roi_mask;
+    
+    if thr_opts.roi_mask.do
+        thr_opts.roi_mask.vals = 'yes';
+    
+    end
+end
+
+if isfield(handles.tmp.model.model.params,'beta_thr')
+    thr_opts.beta.do = handles.tmp.model.model.params.beta_thr;
+    
+    if thr_opts.beta.do    
+        thr_opts.beta.vals = num2str(handles.tmp.model.model.params.beta_thr_vals);
+    end
+end
+
+if isfield(handles.tmp.model.model.params,'beta_thr')
+    thr_opts.ve.do = handles.tmp.model.model.params.ve_thr;
+
+    if thr_opts.ve.do
+        thr_opts.ve.vals = num2str(handles.tmp.model.model.params.ve_thr_vals);
+        
+    end
+end
+
 
 set(handles.txt_x0_par,'String',handles.tmp.model.model.params.x0);
 set(handles.txt_y0_par,'String',handles.tmp.model.model.params.y0);
@@ -125,6 +156,11 @@ set(handles.txt_beta_range,'String',get_prf_par_val(handles, beta_opts, 'beta'))
 set(handles.txt_y0_range,'String',get_prf_par_val(handles, y0_opts, 'y0'));
 set(handles.txt_x0_range,'String',get_prf_par_val(handles, x0_opts, 'x0'));
 set(handles.txt_sigma_range,'String',get_prf_par_val(handles, sigma_opts, 'sigma'));
+
+set(handles.txt_ve_thr,'String',thr_opts.ve.vals)
+set(handles.txt_beta_thr,'String',thr_opts.beta.vals)
+set(handles.txt_roi_mask,'String',thr_opts.roi_mask.vals)
+
 
 if isfield(handles.tmp.model.roi,'idx');
    roi_list = fieldnames(handles.tmp.model.roi.idx);

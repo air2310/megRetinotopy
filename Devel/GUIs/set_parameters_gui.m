@@ -22,7 +22,7 @@ function varargout = set_parameters_gui(varargin)
 
 % Edit the above text to modify the response to help set_parameters_gui
 
-% Last Modified by GUIDE v2.5 25-May-2017 16:06:23
+% Last Modified by GUIDE v2.5 13-Jul-2017 12:38:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -680,6 +680,18 @@ for cur_field = fnames'
         case 'n_iterations_scramble'
             set(handles.txt_scramble_iterations,'String',def_params.(cur_field{1}));
             
+        case 've_thr'
+            set(handles.cb_ve_thr,'Value',def_params.(cur_field{1}));
+            
+        case 'beta_thr'
+            set(handles.cb_beta_thr,'Value',def_params.(cur_field{1}));
+            
+        case 've_thr_vals'
+            set(handles.txt_ve_thr_min,'String',def_params.(cur_field{1})(1))
+            set(handles.txt_ve_thr_max,'String',def_params.(cur_field{1})(2))
+        case 'beta_thr_vals'
+            set(handles.txt_beta_thr_min,'String',def_params.(cur_field{1})(1))
+            set(handles.txt_beta_thr_max,'String',def_params.(cur_field{1})(2))
             
             
     end
@@ -881,6 +893,21 @@ for cur_field = fnames'
             
         case 'n_iterations_scramble'
             data.(cur_field{1}) = str2double(get(handles.txt_scramble_iterations,'String'));
+            
+            
+        case 've_thr'
+            data.(cur_field{1}) = get(handles.cb_ve_thr,'Value');
+            
+        case 'beta_thr'
+            data.(cur_field{1}) = get(handles.cb_beta_thr,'Value');
+            
+        case 've_thr_vals'
+            data.(cur_field{1}) = [str2double(get(handles.txt_ve_thr_min,'String')) ...
+                str2double(get(handles.txt_ve_thr_max,'String'))];
+            
+        case 'beta_thr_vals'
+            data.(cur_field{1}) = [str2double(get(handles.txt_beta_thr_min,'String')) ...
+                str2double(get(handles.txt_beta_thr_max,'String'))];
             
             
             
@@ -1303,6 +1330,116 @@ function txt_scramble_iterations_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function txt_scramble_iterations_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to txt_scramble_iterations (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in cb_ve_thr.
+function cb_ve_thr_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_ve_thr (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_ve_thr
+
+
+% --- Executes on button press in cb_beta_thr.
+function cb_beta_thr_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_beta_thr (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_beta_thr
+
+
+
+function txt_ve_thr_min_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_ve_thr_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_ve_thr_min as text
+%        str2double(get(hObject,'String')) returns contents of txt_ve_thr_min as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_ve_thr_min_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_ve_thr_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_ve_thr_max_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_ve_thr_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_ve_thr_max as text
+%        str2double(get(hObject,'String')) returns contents of txt_ve_thr_max as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_ve_thr_max_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_ve_thr_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_beta_thr_max_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_beta_thr_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_beta_thr_max as text
+%        str2double(get(hObject,'String')) returns contents of txt_beta_thr_max as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_beta_thr_max_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_beta_thr_max (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_beta_thr_min_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_beta_thr_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_beta_thr_min as text
+%        str2double(get(hObject,'String')) returns contents of txt_beta_thr_min as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_beta_thr_min_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_beta_thr_min (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

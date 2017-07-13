@@ -25,6 +25,28 @@ for nn = 1:length(rois)
         cur_in = roi.idx_out == roi.idx.(rois{nn}).idx;
         
     end
+    
+    if model.params.beta_thr
+        if model.params.beta_thr_vals(1) == 0            
+            range = [prctile(prf.beta.val,0) - 1 prctile(prf.beta.val,model.params.beta_thr_vals(2))];
+            
+        else
+            range = [prctile(prf.beta.val,model.params.beta_thr_vals(1)) prctile(prf.beta.val,model.params.beta_thr_vals(2))];
+            
+        end
+        cur_in = cur_in & prf.beta.val > range(1) & prf.beta.val < range(2);
+        
+    end
+    
+    if model.params.ve_thr
+        range = [model.params.ve_thr_vals(1) model.params.ve_thr_vals(2)];
+        cur_in = cur_in & prf.ve.val > range(1) & prf.ve.val < range(2);
+        
+        
+    end
+    
+    
+ 
     orig_idx = zeros(size(cur_in));
     orig_idx(cur_in) = find(cur_in);
     

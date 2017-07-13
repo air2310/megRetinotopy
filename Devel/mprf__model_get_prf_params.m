@@ -34,23 +34,25 @@ x_type = get_type(model.params.x0);
 sigma_type = get_type(model.params.sigma);
 y_type = get_type(model.params.y0);
 b_type = get_type(model.params.beta);
+ve_type = get_type('varexplained');
 
 beta_fname = get_file_name(b_type);
 x_fname = get_file_name(x_type);
 y_fname = get_file_name(y_type);
 sigma_fname = get_file_name(sigma_type);
-
+ve_fname = get_file_name(ve_type);
 
 beta_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix beta_fname]);
 x_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix x_fname]);
 y_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix y_fname]);
 sigma_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix sigma_fname]);
-
+ve_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix ve_fname]);
 
 prf.x0.val = get_prf_val(x_type, model, x_fpath, 'x0');
 prf.y0.val = get_prf_val(y_type, model, y_fpath, 'y0');
 prf.sigma.val = get_prf_val(sigma_type, model, sigma_fpath, 'sigma');
 prf.beta.val = get_prf_val(b_type, model, beta_fpath, 'beta');
+prf.ve.val = get_prf_val(ve_type, model, ve_fpath,'ve');
 
 prf.x0.file = x_fpath;
 prf.x0.type = x_type;
@@ -60,6 +62,8 @@ prf.sigma.file = sigma_fpath;
 prf.sigma.type = sigma_type;
 prf.beta.file = beta_fpath;
 prf.beta.type = b_type;
+prf.ve.file = ve_fpath;
+prf.ve.type = ve_type;
 
 bs.model_file = bs_file;
 
@@ -184,6 +188,9 @@ type.proportional  = any(strfind(param, 'proportional'));
 if any(strfind(param,'mresp'))
     type.ftype = 'mresp';
     
+elseif any(strfind(param,'varexplained'))
+    type.ftype = 'varexplained';
+    
 elseif any(strfind(param,'x')) && ~any(strfind(param,'sigma')) && ...
         ~any(strfind(param,'y')) && ~any(strfind(param,'beta'))
     type.ftype = 'x';
@@ -199,6 +206,8 @@ elseif any(strfind(param,'beta')) && any(strfind(param,'recomp_beta'))
     
 elseif any(strfind(param,'sigma'))
     type.ftype = 'sigma';
+    
+    
     
 else
     error('Not implemented option')
@@ -269,7 +278,9 @@ else
         elseif type.range && type.proportional
             val = val * model.params.([cur_par '_range']);
             
-        elseif type.smoothed || type.scrambled || strcmpi(type.ftype,'recomp_beta')
+        elseif type.smoothed || type.scrambled || ...
+                strcmpi(type.ftype,'recomp_beta') || ...
+                strcmpi(type.ftype,'varexplained')
             
         else
             error('Not implemented option')
