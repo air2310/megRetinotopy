@@ -1,4 +1,4 @@
-function mprf__make_synthetic_data_set(syn, meg_resp, cur_time, channels)
+function [save_name, channels] = mprf__make_synthetic_data_set(syn, meg_resp, cur_time, channels)
 
 main_dir = mprf__get_directory('main_dir');
 meg_ddir = mprf__get_directory('meg_data');
@@ -33,9 +33,15 @@ n = 1300; % time points per epoch
 t = (1:n)/1000;
 stim_locked_signal = sin(t*2*pi*10);
 
-noise_s = .2*10^4.75;
-sl_s    = 5*10^4.75;
-bb_s    = 1*10^4.75;
+% noise_s = .2*10^4.75;
+% sl_s    = 5*10^4.75;
+% bb_s    = 1*10^4.75;
+
+noise_s = 0.0001;
+sl_s    = 5;
+bb_s    = 0;
+
+
 
 
 % for generation of pink noise
@@ -50,7 +56,7 @@ num_chan = 157;
 num_runs = 19;
 num_stims = size(meg_resp,1);
 
-data157 = randn(num_chan, hdr.nSamples)*10^2.5;
+data157 = zeros(num_chan, hdr.nSamples)*10^2.5;
 
 
 for ii = 1:num_runs
@@ -65,7 +71,10 @@ for ii = 1:num_runs
         bb      = bsxfun(@times, bb, meg_resp(jj,:))' *  bb_s;
         noise   = noise' * noise_s;
         
-        data157(:,idx) = sl + bb + noise;
+        comb_data = sl+bb+noise;
+        comb_data = bsxfun(@rdivide, comb_data, max(comb_data,[],2)) .* 10^4;
+        
+        data157(:,idx) = comb_data;
     end
 end
 

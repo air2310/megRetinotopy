@@ -86,7 +86,7 @@ for n = 1:size(pred.meg_resp,2)
     sel = ~isnan(stim_amp_av(:,n)) & ~isnan(pred.meg_resp(:,n));
     mean(sel)
     
-    tmp = corrcoef(stim_amp_av(sel,n),abs(pred.meg_resp(sel,n)));
+    tmp = corrcoef(zscore(stim_amp_av(sel,n)),zscore(abs(pred.meg_resp(sel,n))));
     amp_r(n) = tmp(1,2);
     
 end

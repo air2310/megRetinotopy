@@ -1,4 +1,20 @@
-function mprfSession_preprocess_meg_data
+function mprfSession_preprocess_meg_data(do_syn, syn_fname_in)
+
+if ~exist('do_syn','var') || isempty(do_syn)
+    do_syn = false;
+end
+
+if do_syn
+    if ~exist('syn_fname_in','var') || isempty(syn_fname_in)
+        error('Need synthetic data file name')
+    end
+    
+    if ~exist(syn_fname_in,'file')
+        error('Synthetic data file does not exist')
+    end
+    
+end
+
 
 global mprfSESSION
 
@@ -20,25 +36,31 @@ meg_files = {};
 syn_files = {};
 stim_files = {};
 
-if exist(meg_ddir,'dir')
-    in_meg_dir = dir(fullfile(meg_ddir, '*.sqd'));
-    if ~isempty(in_meg_dir)
-        has_meg_file = true;
-        meg_files = {in_meg_dir.name};
-        
+if do_syn
+    
+    syn_files = {syn_fname_in};
+    has_syn_file = true;
+else
+    if exist(meg_ddir,'dir')
+        in_meg_dir = dir(fullfile(meg_ddir, '*.sqd'));
+        if ~isempty(in_meg_dir)
+            has_meg_file = true;
+            meg_files = {in_meg_dir.name};
+            
+        end
     end
-end
-
-if exist(syn_ddir,'dir')
-    in_syn_dir = dir(fullfile(syn_ddir, '*.sqd'));
-    if ~isempty(in_syn_dir)
-        has_syn_file = true;
-        syn_files = {in_syn_dir.name};
-        
-        
+    
+    if exist(syn_ddir,'dir')
+        in_syn_dir = dir(fullfile(syn_ddir, '*.sqd'));
+        if ~isempty(in_syn_dir)
+            has_syn_file = true;
+            syn_files = {in_syn_dir.name};
+            
+            
+        end
     end
+    
 end
-
 
 if exist(stim_dir,'dir')
     in_stim_dir = dir(fullfile(stim_dir, '*.mat'));
@@ -57,7 +79,7 @@ else
 end
 
 
-params = mprf__preprocess_meg_gui(meg_files, syn_files, stim_files);
+params = mprf__preprocess_meg_gui(meg_files, syn_files, stim_files, do_syn);
 
 
 save_interim_files = params.preproc.do.save; % Save data at every intermediate step?

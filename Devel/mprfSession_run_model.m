@@ -1,4 +1,4 @@
-function mprfSession_run_model
+%function mprfSession_run_model
 
 % % %% TO DO:
 % % - Add options to the GUI that allow to combine ROIs
@@ -47,11 +47,11 @@ save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
     'prf','bs','roi','model','stimulus','pred_resp','syn','meg_resp','channels');
 
 if syn.do
-    mprf__make_synthetic_data_set(syn, meg_resp, cur_time,channels);
+    out_name = mprf__make_synthetic_data_set(syn, meg_resp, cur_time,channels);
     
 end
 
 if syn.pp
-    mprfSession_preprocess_meg_data;
+    mprfSession_preprocess_meg_data(true,out_name);
 
 end

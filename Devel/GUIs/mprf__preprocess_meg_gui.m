@@ -55,13 +55,28 @@ function mprf__preprocess_meg_gui_OpeningFcn(hObject, eventdata, handles, vararg
 % Choose default command line output for mprf__preprocess_meg_gui
 handles.output = hObject;
 handles.files.meg = varargin{1};
-handles.files.syn = varargin{2};
 handles.files.stim = varargin{3};
+handles.do_syn = varargin{4};
 
 handles.dir.main = mprf__get_directory('main_dir');
 handles.dir.meg_data = mprf__get_directory('meg_data');
 handles.dir.stim = mprf__get_directory('meg_imported_stim');
-handles.dir.syn_data = mprf__get_directory('syn_data');
+
+if handles.do_syn
+   [fpath, fname, fext] = fileparts(varargin{2}{1});
+   handles.files.syn = {[fname fext]};
+   handles.dir.syn_data = fpath;
+   set(handles.uipanel1,'SelectedObject',handles.rb_syn);
+   set(handles.lb_load_data,'Value',1);
+
+   
+   
+else
+    handles.files.syn = varargin{2};
+    handles.dir.syn_data = mprf__get_directory('syn_data');
+    
+end
+
 
 tmp = load(fullfile(handles.dir.main, handles.dir.stim, handles.files.stim{1}));
 fname = fieldnames(tmp);
