@@ -33,25 +33,35 @@ end
 main_dir = mprf__get_directory('main_dir');
 
 [model, stimulus, syn, channels] = mprfSession_model_gui;
-[prf, bs, roi] = mprf__model_get_prf_params(model);
 
-bs = mprf__get_lead_field(bs);
-pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi);
-meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
-
-cur_time = datestr(now);
-cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
-
-save_dir = mprf__get_directory('model_predictions');
-save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
-    'prf','bs','roi','model','stimulus','pred_resp','syn','meg_resp','channels');
-
-if syn.do
-    out_name = mprf__make_synthetic_data_set(syn, meg_resp, cur_time,channels);
+if strcmpi(model.type,'reliability check')
     
-end
-
-if syn.pp
-    mprfSession_preprocess_meg_data(true,out_name);
-
+    
+    
+    
+    
+else
+    
+    [prf, bs, roi] = mprf__model_get_prf_params(model);
+    
+    bs = mprf__get_lead_field(bs);
+    pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi);
+    meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
+    
+    cur_time = datestr(now);
+    cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
+    
+    save_dir = mprf__get_directory('model_predictions');
+    save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
+        'prf','bs','roi','model','stimulus','pred_resp','syn','meg_resp','channels');
+    
+    if syn.do
+        out_name = mprf__make_synthetic_data_set(syn, meg_resp, cur_time,channels);
+        
+    end
+    
+    if syn.pp
+        mprfSession_preprocess_meg_data(true,out_name);
+        
+    end
 end

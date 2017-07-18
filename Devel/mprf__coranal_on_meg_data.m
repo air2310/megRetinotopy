@@ -13,7 +13,6 @@ all_idx = 1:1+fix(size(epoched_data.data,1)/2);
 include_idx = setdiff(all_idx, round(mprfFreq2Index(size(epoched_data.data,1),exl_freq,1000)));
 
 
-
 sz = size(epoched_data.data);
 n_time = sz(1);
 n_bars = sz(2);
