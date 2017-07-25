@@ -36,8 +36,15 @@ main_dir = mprf__get_directory('main_dir');
 
 if strcmpi(model.type,'reliability check')
     if model.params.reliability_scans || model.params.reliability_split_half
-            mprf__do_reliability_analysis(model);
-    
+        
+        if model.params.do_sl
+            mprf__do_reliability_analysis(model,'stimulus_locked');
+        end
+        
+        if model.params.do_bb
+            mprf__do_reliability_analysis(model,'broadband');
+            
+        end
     end
     
 else

@@ -1,5 +1,13 @@
-function mprf__do_reliability_analysis(model)
+function mprf__do_reliability_analysis(model,type)
 % Keep fpath and fname for storage, i.e. keep track of input data set.
+
+if ~exist('type','var') || isempty(type)
+    type = 'stimulus_locked';
+    fprintf('No type defined, defaulting to stimulus locked\n')
+end
+
+do_sl = false;
+do_bb = false;
 
 n_it = model.params.n_iterations_rel;
 n_cores = model.params.n_cores;
@@ -34,7 +42,30 @@ n_bars = sz(2);
 n_reps = sz(3);
 n_chan = sz(4);
 
-stim_idx = round(mprfFreq2Index(n_time,stim_freq,samp_rate));
+
+if strcmpi(type, 'stimulus_locked')
+    stim_idx = round(mprfFreq2Index(n_time,stim_freq,samp_rate));
+    do_sl = true;
+    
+elseif strcmpi(type, 'broadband')    
+    line_freq = 60;
+    tol = 1.5;
+    f_lim = 150;
+    
+    f = 1:f_lim;
+    sl_drop = f(mod(f, stim_freq) <= tol | mod(f, stim_freq) > stim_freq - tol);
+    ln_drop     = f(mod(f, line_freq) <= tol | mod(f, line_freq) > line_freq - tol);
+    lf_drop     = f(f<line_freq);
+
+    [~, bb_freq] =  setdiff(f, [sl_drop ln_drop lf_drop]);
+    bb_idx = round(mprfFreq2Index(n_time,bb_freq,samp_rate));
+    
+    do_bb = true;
+    
+    
+else
+    error('Type not recognized')
+end
 
 
 base_sel = false(1,n_bars);
@@ -46,8 +77,18 @@ for this_chnl = 1:n_chan
     for this_bar = 1:n_bars
         tmp = fft(data.data(:,this_bar,:,this_chnl));
         tmp = tmp(1:1+fix(n_time/2),:,:,:);
-        all_amp(this_bar,:,this_chnl) =  2*(abs(tmp(stim_idx,:,:)))/n_time;
         
+        if do_sl
+            all_amp(this_bar,:,this_chnl) =  2*(abs(tmp(stim_idx,:,:)))/n_time;
+            
+        elseif do_bb
+            tmp = 2*(abs(tmp(stim_idx,:,:)))/n_time;            
+            all_amp(this_bar,:,this_chnl) =  exp(nanmean(log(tmp.^2)));
+
+            
+            
+            
+        end
         
     end
 end
