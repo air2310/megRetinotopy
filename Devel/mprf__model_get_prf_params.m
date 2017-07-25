@@ -183,7 +183,7 @@ type.scrambled = any(strfind(param, 'scrambled'));
 type.range = any(strfind(param, 'range'));
 type.fixed  = any(strfind(param, 'fixed'));
 type.absolute  = any(strfind(param, 'absolute'));
-type.proportional  = any(strfind(param, 'proportional'));
+type.proportional  = any(strfind(param, 'proportion'));
 
 if any(strfind(param,'mresp'))
     type.ftype = 'mresp';

@@ -1,5 +1,6 @@
 function [fH,ch] = megPlotMap(sensor_data,clims,fH,cm,ttl,data_hdr,cfg, varargin)
 
+
 if notDefined('cm'),       cm = 'parula';    end  % colormap
 if notDefined('ttl');      ttl = '';      end  % title string
 if notDefined('fH'),       fH = gcf;      end

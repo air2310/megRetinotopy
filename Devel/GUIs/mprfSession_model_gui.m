@@ -22,7 +22,7 @@ function varargout = mprfSession_model_gui(varargin)
 
 % Edit the above text to modify the response to help mprfSession_model_gui
 
-% Last Modified by GUIDE v2.5 11-Jul-2017 15:54:26
+% Last Modified by GUIDE v2.5 25-Jul-2017 12:00:00
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -508,6 +508,8 @@ function pb_cancel_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles.model.canceled= true;
+figure1_CloseRequestFcn(handles.figure1, eventdata, handles);
 
 % --- Executes on button press in cb_syn_ds.
 function cb_syn_ds_Callback(hObject, eventdata, handles)

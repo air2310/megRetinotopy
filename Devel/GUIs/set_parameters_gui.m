@@ -1167,8 +1167,7 @@ switch lower(handles.ch_model.type)
         
     case 'prf size range'
         
-        if ~isempty(params_out.sigma_range) && ~isnan(params_out.sigma_range) ...
-                && ~isempty(params_out.sigma_range)
+        if ~isempty(params_out.sigma_range) && ~any(isnan(params_out.sigma_range))
         else
             cnt = cnt+1;
             missing{cnt} = 'pRF sigma range';
