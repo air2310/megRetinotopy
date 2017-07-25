@@ -35,10 +35,10 @@ main_dir = mprf__get_directory('main_dir');
 [model, stimulus, syn, channels] = mprfSession_model_gui;
 
 if strcmpi(model.type,'reliability check')
+    if model.params.reliability_scans || model.params.reliability_split_half
+            mprf__do_reliability_analysis(model);
     
-    
-    
-    
+    end
     
 else
     

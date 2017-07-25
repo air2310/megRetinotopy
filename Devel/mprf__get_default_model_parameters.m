@@ -115,6 +115,7 @@ def_params.beta_equal_pred = 0;
 def_params.beta_equal_beta = 1;
 
 def_params.n_iterations_scramble = '';
-
+def_params.n_cores = '1';
+def_params.samp_rate = '1000';
 
 end

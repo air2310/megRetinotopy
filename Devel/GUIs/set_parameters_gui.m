@@ -22,7 +22,7 @@ function varargout = set_parameters_gui(varargin)
 
 % Edit the above text to modify the response to help set_parameters_gui
 
-% Last Modified by GUIDE v2.5 13-Jul-2017 12:38:22
+% Last Modified by GUIDE v2.5 20-Jul-2017 12:25:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -693,6 +693,11 @@ for cur_field = fnames'
             set(handles.txt_beta_thr_min,'String',def_params.(cur_field{1})(1))
             set(handles.txt_beta_thr_max,'String',def_params.(cur_field{1})(2))
             
+        case 'n_cores'
+            set(handles.txt_cores,'String',def_params.(cur_field{1}));
+            
+        case 'samp_rate'
+            set(handles.txt_samp_rate,'String',def_params.(cur_field{1}));
             
     end
     
@@ -909,8 +914,11 @@ for cur_field = fnames'
             data.(cur_field{1}) = [str2double(get(handles.txt_beta_thr_min,'String')) ...
                 str2double(get(handles.txt_beta_thr_max,'String'))];
             
-            
-            
+        case 'n_cores'
+            data.(cur_field{1}) = str2double(get(handles.txt_cores,'String'));
+
+        case 'samp_rate'
+            data.(cur_field{1}) = str2double(get(handles.txt_samp_rate,'String'));
             
             
     end
@@ -1440,6 +1448,52 @@ function txt_beta_thr_min_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function txt_beta_thr_min_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to txt_beta_thr_min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_cores_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_cores (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_cores as text
+%        str2double(get(hObject,'String')) returns contents of txt_cores as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_cores_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_cores (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_samp_rate_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_samp_rate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_samp_rate as text
+%        str2double(get(hObject,'String')) returns contents of txt_samp_rate as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_samp_rate_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_samp_rate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
