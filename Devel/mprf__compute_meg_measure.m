@@ -1,4 +1,4 @@
-function out = mprf__compute_meg_measure(data, opts)
+function out = mprf__compute_meg_measure(ft_data, opts)
 out.measure = [];
 out.av = [];
 out.std = [];

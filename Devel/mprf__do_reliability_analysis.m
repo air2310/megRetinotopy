@@ -9,10 +9,20 @@ end
 do_sl = false;
 do_bb = false;
 
+if strcmpi(type,'stimulus_locked')
+    plot_title = 'Stimulus locked';
+    do_sl = true;
+elseif strcmpi(type, 'broadband')
+    plot_title = 'Broadband';
+    do_bb = true;
+    
+end
+
+
 n_it = model.params.n_iterations_rel;
 n_cores = model.params.n_cores;
-samp_rate = model.params.samp_rate;
-stim_freq = model.params.stim_freq;
+opts.samp_rate = model.params.samp_rate;
+opts.stim_freq = model.params.stim_freq;
 do_split_half = model.params.reliability_split_half;
 do_scans = model.params.reliability_scans;
 
@@ -41,16 +51,19 @@ end
 
 cur_dir = pwd;
 
-if fname == 0
-    fprintf('No file selected, quitting\n');
-    return
-    
-end
 
 if ~exist('data','var') || isempty(data)
     preproc_dir =  mprf__get_directory('meg_preproc');
     cd(preproc_dir)
     [fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
+    
+    
+    if fname == 0
+        fprintf('No file selected, quitting\n');
+        return
+        
+    end
+    
     fprintf('Loading raw data...\n')
     tmp = load(fullfile(fpath, fname));
     var_name = fieldnames(tmp);
@@ -70,53 +83,25 @@ n_time = sz(1);
 n_bars = sz(2);
 n_reps = sz(3);
 n_chan = sz(4);
-
-
-if strcmpi(type, 'stimulus_locked')
-    stim_idx = round(mprfFreq2Index(n_time,stim_freq,samp_rate));
-    plot_title = 'stimulus locked';
-    do_sl = true;
-    
-elseif strcmpi(type, 'broadband')
-    line_freq = 60;
-    tol = 1.5;
-    f_lim = 150;
-    
-    f = 1:f_lim;
-    sl_drop = f(mod(f, stim_freq) <= tol | mod(f, stim_freq) > stim_freq - tol);
-    ln_drop     = f(mod(f, line_freq) <= tol | mod(f, line_freq) > line_freq - tol);
-    lf_drop     = f(f<line_freq);
-    
-    [~, bb_freq] =  setdiff(f, [sl_drop ln_drop lf_drop]);
-    bb_idx = round(mprfFreq2Index(n_time,bb_freq,samp_rate));
-    plot_title = 'broadband';
-    do_bb = true;
-    
-    
-else
-    error('Type not recognized')
-end
-
+opts.n_time = n_time;
 
 base_sel = false(1,n_bars);
 base_sel(periods.stim) = true;
+
+[stim_idx, bb_idx] = mprf__get_freq_indices(true, true, opts);
+
+ft_data = mprf__fft_on_meg_data(data.data);
 
 all_amp = nan(n_bars, n_reps, n_chan);
 fprintf('Computing raw amplitudes\n')
 for this_chnl = 1:n_chan
     for this_bar = 1:n_bars
-        tmp = fft(data.data(:,this_bar,:,this_chnl));
-        tmp = tmp(1:1+fix(n_time/2),:,:,:);
-        
         if do_sl
-            all_amp(this_bar,:,this_chnl) =  2*(abs(tmp(stim_idx,:,:)))/n_time;
+            all_amp(this_bar,:,this_chnl) =  2*(abs(ft_data(stim_idx,this_bar,:,this_chnl)))/n_time;
             
         elseif do_bb
-            tmp = 2*(abs(tmp(bb_idx,:,:)))/n_time;
+            tmp = 2*(abs(ft_data(bb_idx,this_bar,:,this_chnl)))/n_time;
             all_amp(this_bar,:,this_chnl) =  exp(nanmean(log(tmp.^2)));
-            
-            
-            
             
         end
         
@@ -494,7 +479,7 @@ elseif n_cores > 1
     
 end
 
-
+stop = 'here'
 
 
 end

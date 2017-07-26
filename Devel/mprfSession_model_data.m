@@ -1,82 +1,148 @@
 
 
+opts.stim_freq = model.params.stim_freq;
+opts.samp_rate = model.params.samp_rate;
+
+cur_dir = pwd;
 
 
-pred = mprf__load_model_predictions;
-[fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
-% 
-tmp = load(fullfile(fpath, fname));
-var_name = fieldnames(tmp);
-epoched_data = tmp.(var_name{1});
-clear tmp
-
+if ~exist('data','var') || isempty(data)
+    preproc_dir =  mprf__get_directory('meg_preproc');
+    cd(preproc_dir)
+    [fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
+    
+    
+    if fname == 0
+        fprintf('No file selected, quitting\n');
+        return
+        
+    end
+    
+    fprintf('Loading raw data...\n')
+    tmp = load(fullfile(fpath, fname));
+    var_name = fieldnames(tmp);
+    data = tmp.(var_name{1});
+    clear tmp
+    
+    cd(cur_dir)
+end
 periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
 periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137];
 periods.stim = setdiff(1:140,[periods.blink periods.blank]);
 
-%mprf__coranal_on_meg_data
+sz = size(data.data);
+opts.n_time = sz(1);
+opts.n_bars = sz(2);
+opts.n_reps = sz(3);
+opts.n_chan = sz(4);
 
-sz = size(epoched_data.data);
-n_time = sz(1);
-n_bars = sz(2);
-n_reps = sz(3);
-n_chan = sz(4);
 
-fprintf('Processing %d stimulus periods:\n',sz(2));
+tmp = sum([model.params.do_sl model.params.do_bb]);
+opts.metric = model.params.metric;
+opts.idx = cell(1,tmp);
 
-opts.measure = 'stim_amp';
-opts.do_av = true;
-opts.do_std = true;
-opts.do_ste = true;
-
-samp_rate = 1000;
-stim_freq = 10;
-opts.stim_idx = round(mprfFreq2Index(n_time,stim_freq,samp_rate));
-
-for n = 1:n_bars
-    fprintf('%d.',n)
+if model.params.do_sl && model.params.do_bb
+    [opts.idx{1}, opts.idx{2}] = mprf__get_freq_indices(true, true, opts);
     
-    for nn = 1:n_chan
-        cur_data = squeeze(epoched_data.data(:,n,:,nn));
-        
-        tmp = mprf__compute_meg_measure(cur_data,opts);
-        
-        measure.raw(:,n,nn) = tmp.raw;
-        
-        if opts.do_av
-            if n == 1 && nn ==1
-                measure.av = nan(n_bars, n_chan);
-            end
-            measure.av(n,nn) = tmp.av;
+elseif model.params.do_sl && ~model.params.do_bb
+    opts.idx{1} = mprf__get_freq_indices(true, false, opts);
+    
+elseif model.params.do_bb && ~model.params.do_sl
+    [~, opts.idx{1}] = mprf__get_freq_indices(false, true, opts);
+    
+else
+    error('Unknown option')
+    
+end
+
+ft_data = mprf__fft_on_meg_data(data.data);
+
+
+tseries_av = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+
+fprintf('Processing %d stimulus periods:\n',opts.n_bars);
+
+for this_metric = 1:size(opts.idx,2)
+    cur_idx = opts.idx{this_metric};
+    
+    for this_bar = 1:opts.n_bars
+        if mod(this_bar,10) == 0
+            fprintf('%d.',this_bar)
         end
-        
-        
-        if opts.do_std
+        for this_chan = 1:opts.n_chan
+            cur_data = squeeze(ft_data(:,this_bar,:,this_chan));
             
-            if n == 1 && nn ==1
-                measure.std = nan(n_bars, n_chan);
+            if strcmpi(opts.metric,'amplitude')
+                
+                if length(cur_idx) == 1
+                    tmp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
+                    n_nan = sum(isnan(tmp));
+                    
+                elseif length(cur_idx) > 1
+                    tmp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
+                    tmp = squeeze(exp(nanmean(log(tmp.^2))));
+                    n_nan = sum(isnan(tmp));
+                    
+                end
+                
+                tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp);
+                tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp);
+                tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
+                
+            elseif strcmpi(opts.metric, 'coherence')
+                error('Not implemented')
+                
+            elseif strcmpi(opts.metric, 'phase')
+                error('Not implemented')
+                
+                
+            else
+                error('Not implemented')
             end
-            measure.std(n,nn) = tmp.std;
-            
             
         end
-        
-        
-        if opts.do_ste
-            
-            if n == 1 && nn ==1
-                measure.ste = nan(n_bars, n_chan);
+    end
+    fprintf('\n')
+    
+end
+
+n_it = size(meg_resp,2);
+n_chan = size(meg_resp{1},2);
+n_roi = size(meg_resp{1},3);
+n_metric = size(tseries_av,3);
+
+
+all_corr = nan(n_it, n_chan, n_roi, n_metric); 
+
+for this_it = 1:n_it
+    for this_chan = 1:n_chan
+        for this_roi = 1:n_roi
+            for this_metric = 1:n_metric
+                
+                cur_pred = meg_resp{this_it}(:,this_chan);
+                cur_data = tseries_av(:,this_chan,this_metric);
+                not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
+                
+                tmp = corrcoef(abs(cur_pred(not_nan)), cur_data(not_nan));
+                
+                all_corr(this_it, this_chan, this_roi, this_metric) = tmp(2);
             end
-            measure.ste(n,nn) = tmp.ste;
-            
-            
         end
-        
-        
     end
 end
-fprintf('\n')
 
+
+one_idx = find(model.params.sigma_range == 1);
+
+max_corr = squeeze(max(all_corr,[],1));
+corr_at_one = squeeze(all_corr(one_idx,:,:,:));
+
+corr_diff = abs(max_corr - corr_at_one);
+to_plot = 1;
+fh = figure;
+megPlotMap(corr_diff(:,to_plot),[0 ceil(max(corr_diff(:,to_plot)) ./ 0.05) .* 0.05],fh,'jet')
 
 
 

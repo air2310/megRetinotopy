@@ -276,7 +276,15 @@ else
             
             
         elseif type.range && type.proportional
-            val = val * model.params.([cur_par '_range']);
+            tmp = model.params.([cur_par '_range']);
+            
+            if min(tmp) < 0;
+                val = bsxfun(@minus, val, tmp);
+                
+            else
+                val = val * tmp;
+                
+            end
             
         elseif type.smoothed || type.scrambled || ...
                 strcmpi(type.ftype,'recomp_beta') || ...
