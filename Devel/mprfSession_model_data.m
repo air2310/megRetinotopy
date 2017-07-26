@@ -1,4 +1,8 @@
 
+pred = mprf__load_model_predictions;
+model = pred.model;
+pred_resp = pred.pred_resp;
+meg_resp = pred.meg_resp;
 
 opts.stim_freq = model.params.stim_freq;
 opts.samp_rate = model.params.samp_rate;
@@ -134,9 +138,17 @@ for this_it = 1:n_it
 end
 
 
-one_idx = find(model.params.sigma_range == 1);
+if min(model.params.sigma_range) < 0;
+    one_idx = find(model.params.sigma_range == 0);
+else
+    one_idx = find(model.params.sigma_range == 1);
+end
 
-max_corr = squeeze(max(all_corr,[],1));
+[max_corr, midx] = max(all_corr,[],1);
+
+max_corr = squeeze(max_corr);
+midx = squeeze(midx);
+
 corr_at_one = squeeze(all_corr(one_idx,:,:,:));
 
 corr_diff = abs(max_corr - corr_at_one);
@@ -145,6 +157,12 @@ fh = figure;
 megPlotMap(corr_diff(:,to_plot),[0 ceil(max(corr_diff(:,to_plot)) ./ 0.05) .* 0.05],fh,'jet')
 
 
+fh1 = figure;
+megPlotMap(model.params.sigma_range(midx(:,to_plot)),...
+    [min(model.params.sigma_range) max(model.params.sigma_range)],fh1,'jet')
 
+
+fh2 = figure;
+megPlotMap(corr_at_one(:,to_plot),[0 1],fh2,'jet')
 
 

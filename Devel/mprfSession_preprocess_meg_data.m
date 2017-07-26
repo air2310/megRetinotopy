@@ -89,7 +89,7 @@ cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
 
 % Main paths:
 if ~exist('denoisedata','file')
-    tbUse('knk')
+    tbUse({'retMEG','knk'})
     add_dirs('denoise')
     
 end
