@@ -9,6 +9,10 @@ end
 do_sl = false;
 do_bb = false;
 
+fh_half =[];
+fh_map = [];
+fh_scans =[];
+
 if strcmpi(type,'stimulus_locked')
     plot_title = 'Stimulus locked';
     do_sl = true;
@@ -150,6 +154,7 @@ if n_cores == 1
             
         end
         
+        results.split_half.corr_mat = cor_stuff;
         med_corr = nanmedian(cor_stuff,2);
         
         figure;
@@ -285,6 +290,8 @@ if n_cores == 1
             
         end
         
+        results.scans.corr_mat = scan_corr_02;
+        
         for nn = 2:n_reps
             for  this_chnl = 1:n_chan
                 scan_med_corr_02(this_chnl,nn-1) = median(scan_corr_02{nn}(this_chnl,:));
@@ -334,16 +341,18 @@ elseif n_cores > 1
             
         end
         
+        results.split_half.corr_mat = cor_stuff;
+        
         med_corr = nanmedian(cor_stuff,2);
         
-        figure;
+        fh_half = figure;
         plot(med_corr)
         ylabel('Split-half correlation')
         xlabel('Channel')
         title(plot_title)
         
-        fh = figure;
-        megPlotMap(med_corr,[0 1],fh,'jet', ['Split-half correlations ('  plot_title ')']);
+        fh_map = figure;
+        megPlotMap(med_corr,[0 1],fh_map,'jet', ['Split-half correlations ('  plot_title ')']);
         
        
     end
@@ -459,6 +468,7 @@ elseif n_cores > 1
             
         end
         
+        results.scans.corr_mat = scan_corr_02;
         
         
         for nn = 2:n_reps
@@ -468,7 +478,7 @@ elseif n_cores > 1
             end
         end
         
-        figure;
+        fh_scans = figure;
         plot(scan_med_corr_02')
         ylabel('Split-half correlation')
         xlabel('N scans')
@@ -479,7 +489,27 @@ elseif n_cores > 1
     
 end
 
-stop = 'here'
+res_dir = mprf__get_directory('model_results');
+main_dir = mprf__get_directory('main_dir');
+rel_dir = 'reliability_checks';
+
+cur_time = mprf__get_cur_time;
+save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' cur_time]);
+mkdir(save_dir);
+
+if ~isempty(fh_half)
+   hgsave(fh_half,fullfile(save_dir,'Split_half'));
+end
+
+if ~isempty(fh_map)
+   hgsave(fh_map,fullfile(save_dir,'Split_half_scalp_map'));
+end
+
+if ~isempty(fh_scans)
+   hgsave(fh_scans,fullfile(save_dir,'Split_half_scans'));
+end
+
+save(fullfile(save_dir, 'Results'),'results','model')
 
 
 end
