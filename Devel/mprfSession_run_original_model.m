@@ -6,6 +6,8 @@ end
 
 fh_sl = [];
 fh_bb = [];
+fh_sl_map = [];
+fh_bb_map = [];
 
 if ~exist('pred','var') || isempty(pred)
     pred = mprf__load_model_predictions;
@@ -253,10 +255,16 @@ if model.params.do_sl && model.params.do_bb
     title('Broad band')
     ylabel('Correlation')
     xlabel('Channel')
-    
-    
-    
     type = 'both';
+    
+    fh_sl_map = figure;
+    megPlotMap(results.corr_ci_sl(1,:),[0 1],fh_sl_map,'jet','Correlation stimulus locked');
+    
+    
+    fh_bb_map = figure;
+    megPlotMap(results.corr_ci_bb(1,:),[0 1],fh_bb_map,'jet','Correlation broad band');
+    
+    
     
 elseif ~model.params.do_sl && model.params.do_bb
     
@@ -324,6 +332,15 @@ end
 if ~isempty(fh_bb)
    hgsave(fh_bb,fullfile(save_dir,'Broad_band'));
 end
+
+if ~isempty(fh_sl_map)
+   hgsave(fh_sl_map,fullfile(save_dir,'Stimulus_locked_map'));
+end
+
+if ~isempty(fh_bb_map)
+   hgsave(fh_bb_map,fullfile(save_dir,'Broad_band_map'));
+end
+
 
 save(fullfile(save_dir, 'Results'),'results','model')
 

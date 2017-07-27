@@ -144,6 +144,9 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         
             mprfSession_run_original_model(pred);
         
+        elseif strcmpi(model.type,'prf size range')
+            
+            
         
         end
         
