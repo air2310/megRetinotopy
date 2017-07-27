@@ -1,5 +1,6 @@
 function out = mprfSession_run_original_model(pred)
 
+out = [];
 if isnan(pred.model.params.n_iterations)
     pred.model.params.n_iterations = 1;
 end
@@ -110,6 +111,7 @@ for this_metric = 1:size(opts.idx,2)
                 if model.params.n_iterations > 1
                     tseries_raw(this_bar,:,this_chan,this_metric) = tmp;
                 end
+                
                 tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp);
                 tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp);
                 tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
@@ -258,11 +260,11 @@ if model.params.do_sl && model.params.do_bb
     type = 'both';
     
     fh_sl_map = figure;
-    megPlotMap(results.corr_ci_sl(1,:),[0 1],fh_sl_map,'jet','Correlation stimulus locked');
+    megPlotMap(results.corr_ci_sl(2,:),[0 1],fh_sl_map,'jet','Correlation stimulus locked');
     
     
     fh_bb_map = figure;
-    megPlotMap(results.corr_ci_bb(1,:),[0 1],fh_bb_map,'jet','Correlation broad band');
+    megPlotMap(results.corr_ci_bb(2,:),[0 1],fh_bb_map,'jet','Correlation broad band');
     
     
     
@@ -281,6 +283,11 @@ elseif ~model.params.do_sl && model.params.do_bb
     
     type = 'Broadband';
     
+        
+    fh_bb_map = figure;
+    megPlotMap(results.corr_ci_bb(2,:),[0 1],fh_bb_map,'jet','Correlation broad band');
+    
+    
 elseif model.params.do_sl && ~model.params.do_bb
     results.corr_ci_sl = corr_ci(:,:,:,1);
     
@@ -294,13 +301,18 @@ elseif model.params.do_sl && ~model.params.do_bb
     
     type = 'Stimulus_locked';
     
+    
+    fh_sl_map = figure;
+    megPlotMap(results.corr_ci_sl(2,:),[0 1],fh_sl_map,'jet','Correlation stimulus locked');
+    
+    
 else
     
     
 end
 
 
-if isfield(pred,'cur_time') || ~isempty(pred.cur_time)
+if isfield(pred,'cur_time') && ~isempty(pred.cur_time)
     cur_time = pred.cur_time;
     
 else
