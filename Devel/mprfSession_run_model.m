@@ -30,7 +30,7 @@ else
     error('Could not find mprfSESSION file. Please run from session folder')
 end
 
-if ~exist('notDefined','file')
+if ~exist('read_curv','file')
     tbUse({'vistasoft','retMEG'})
 end
 
@@ -113,15 +113,48 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
     % THESE FUNCTIONS ACTUALLY STORE THE PREDICTIONS, WHICH IS FINE IF
     % THERE ARE ONLY 15 OF THEM, NOT WHEN THERE ARE A THOUSAND...
     
-    pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi, iter);
-    meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
+    if strcmpi(model.type,'run original model') || ...
+            strcmpi(model.type,'prf size range') || ...
+            strcmpi(model.type,'fix prf size')
+        
+        pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi, iter);
+        meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
+
+        cur_time = datestr(now);
+        cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
+        
+        save_dir = mprf__get_directory('model_predictions');
+        save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
+            'prf','bs','roi','model','stimulus','pred_resp','syn','meg_resp','channels');
+        
+        pred.pred_resp = pred_resp;
+        pred.prf = prf;
+        pred.bs = bs;
+        pred.roi = roi;
+        pred.model = model;
+        pred.stimulus = stimulus;
+        pred.syn = syn;
+        pred.meg_resp = meg_resp;
+        pred.channels = channels;
+        pred.cur_time = cur_time;
+        
+        
+        if strcmpi(model.type,'run original model') || ...
+            strcmpi(model.type,'fix prf size')
+        
+            mprfSession_run_original_model(pred);
+        
+        
+        end
+        
+        
+    end
     
-    cur_time = datestr(now);
-    cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
     
-    save_dir = mprf__get_directory('model_predictions');
-    save(fullfile(main_dir, save_dir, ['model_predictions_' cur_time]),...
-        'prf','bs','roi','model','stimulus','pred_resp','syn','meg_resp','channels');
+    
+    
+    
+    
     
     if syn.do
         out_name = mprf__make_synthetic_data_set(syn, meg_resp, cur_time,channels);

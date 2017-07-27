@@ -22,7 +22,7 @@ function varargout = set_parameters_gui(varargin)
 
 % Edit the above text to modify the response to help set_parameters_gui
 
-% Last Modified by GUIDE v2.5 20-Jul-2017 12:25:48
+% Last Modified by GUIDE v2.5 27-Jul-2017 12:35:51
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -677,8 +677,8 @@ for cur_field = fnames'
             set(handles.cb_use_roi_mask,'Value',def_params.(cur_field{1}));
             
 
-        case 'n_iterations_scramble'
-            set(handles.txt_scramble_iterations,'String',def_params.(cur_field{1}));
+        case 'n_iterations'
+            set(handles.txt_n_iterations,'String',def_params.(cur_field{1}));
             
         case 've_thr'
             set(handles.cb_ve_thr,'Value',def_params.(cur_field{1}));
@@ -896,8 +896,8 @@ for cur_field = fnames'
         case 'roi_mask'
             data.(cur_field{1}) = get(handles.cb_use_roi_mask,'Value');
             
-        case 'n_iterations_scramble'
-            data.(cur_field{1}) = str2double(get(handles.txt_scramble_iterations,'String'));
+        case 'n_iterations'
+            data.(cur_field{1}) = str2double(get(handles.txt_n_iterations,'String'));
             
             
         case 've_thr'
@@ -1084,12 +1084,12 @@ if any(strfind(params_out.sigma, 'scrambled')) || ...
         any(strfind(params_out.y0, 'scrambled')) || ...
         any(strfind(params_out.beta, 'scrambled'))
     
-    if ~isempty(params_out.n_iterations_scramble) ..., 
+    if ~isempty(params_out.n_iterations) ..., 
             && ~any(isnan(params_out.metric_nbour_range))
         
     else
         cnt = cnt+1;
-        missing{cnt} = 'Scramble iterations';
+        missing{cnt} = 'N iterations';
     end
     
     
@@ -1325,26 +1325,13 @@ end
 
 
 
-function txt_scramble_iterations_Callback(hObject, eventdata, handles)
-% hObject    handle to txt_scramble_iterations (see GCBO)
+function txt_n_iterations_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_n_iterations (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of txt_scramble_iterations as text
-%        str2double(get(hObject,'String')) returns contents of txt_scramble_iterations as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function txt_scramble_iterations_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to txt_scramble_iterations (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+% Hints: get(hObject,'String') returns contents of txt_n_iterations as text
+%        str2double(get(hObject,'String')) returns contents of txt_n_iterations as a double
 
 
 % --- Executes on button press in cb_ve_thr.
@@ -1493,6 +1480,19 @@ function txt_samp_rate_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function txt_samp_rate_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to txt_samp_rate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_n_iterations_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_n_iterations (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

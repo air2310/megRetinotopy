@@ -11,9 +11,12 @@ else
     
 end
 
-if ~exist('iter','var') && isempty(iter)
+if ~exist('iter','var') || isempty(iter)
     pred_resp = {zeros(size(stimulus.im,2), size(roi.mask,1),numel(rois))};
     iter.n = 1;
+    iter.var = 'x0';
+    orig_val = prf.(iter.var).val;
+    
 else
     if strcmpi(iter.method, 'range')
         pred_resp = cell(1,iter.n);

@@ -24,7 +24,7 @@ switch lower(model_type)
         def_params.x0 = 'x_smoothed (scrambled)';
         def_params.y0 = 'y_smoothed (scrambled)';
         def_params.beta = 'recomp_beta (scrambled)'; % Recomputed beta, max response, beta etc etc... fixed beta
-        def_params.n_iterations_scramble = '1000';
+        def_params.n_iterations = '1000';
         
     case 'fix prf size'
         
@@ -114,7 +114,7 @@ def_params.beta_thr_vals = {'0' '95'};
 def_params.beta_equal_pred = 0;
 def_params.beta_equal_beta = 1;
 
-def_params.n_iterations_scramble = '';
+def_params.n_iterations = '';
 def_params.n_cores = '1';
 def_params.samp_rate = '1000';
 
