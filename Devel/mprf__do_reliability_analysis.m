@@ -120,13 +120,13 @@ if n_cores == 1
         fprintf('Starting split half test\n')
         
         fprintf('Doing %d iterations:\n',n_it)
-        cor_stuff = nan(n_chan, n_it);
+        cor_stuff = nan(n_chan, n_it*2);
         
         n_01 = ceil(n_reps/2);
         
-        fb = n_it .* (0.1:0.1:1);
+        fb = n_it .* (0.1:0.1:1) .*2;
         nfb = 0;
-        for n = 1:n_it%model.params.n_iterations_rel
+        for n = 1:2:(n_it*2)%model.params.n_iterations_rel
             
             if n > fb(1)
                 nfb = nfb+1;
@@ -147,10 +147,22 @@ if n_cores == 1
             for this_chnl = 1:n_chan
                 sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
                     ~isnan(av_amp_02(:,this_chnl))';
-                tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                    av_amp_02(sel,this_chnl));
                 
-                cor_stuff(this_chnl,n) = tmp_r(2);
+                
+                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
+                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+                
+                
+                B_02 = X_01 \ X_02(:,2);
+                B_01 = X_02 \ X_01(:,2);
+                
+                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                
+                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
+                 %   av_amp_02(sel,this_chnl));
+                
+                cor_stuff(this_chnl,[n n+1]) = [cod_01 cod_02];
                 
             end
             
@@ -275,6 +287,26 @@ if n_cores == 1
                 for this_chnl = 1:n_chan
                     sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
                         ~isnan(av_amp_02(:,this_chnl))';
+                    
+                    
+                    
+                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
+                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+                
+                
+                B_02 = X_01 \ X_02(:,2);
+                B_01 = X_02 \ X_01(:,2);
+                
+                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                
+                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
+                 %   av_amp_02(sel,this_chnl));
+                
+                cor_stuff(this_chnl,[n n+1]) = [cod_01 cod_02];
+                    
+                    
+                    
                     tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
                         av_amp_02(sel,this_chnl));
                     
@@ -316,13 +348,14 @@ elseif n_cores > 1
     
     
     cor_stuff = nan(n_chan, n_it);
+    cor_stuff2 = nan(size(cor_stuff));
     
     n_01 = ceil(n_reps/2);
     if do_split_half
         fprintf('Starting split half test\n')
         fprintf('Doing %d iterations:\n',n_it)
         
-        parfor n = 1:n_it%model.params.n_iterations_rel
+        parfor n = 1:2:(n_it*2)%model.params.n_iterations_rel
             
             tmp = randperm(n_reps);
             cur_idx_01 = tmp(1:n_01);
@@ -334,15 +367,28 @@ elseif n_cores > 1
             for this_chnl = 1:n_chan
                 sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
                     ~isnan(av_amp_02(:,this_chnl))';
-                tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                    av_amp_02(sel,this_chnl));
+              
+                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
+                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
                 
-                cor_stuff(this_chnl,n) = tmp_r(2);
+                
+                B_02 = X_01 \ X_02(:,2);
+                B_01 = X_02 \ X_01(:,2);
+                
+                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                
+                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
+                 %   av_amp_02(sel,this_chnl));
+                
+                cor_stuff(this_chnl,n) = cod_01;
+                cor_stuff2(this_chnl,n) = cod_02;
+                
                 
             end
             
         end
-        
+        cor_stuff = [cor_stuff cor_stuff2];
         results.split_half.corr_mat = cor_stuff;
         
         med_corr = nanmedian(cor_stuff,2);
