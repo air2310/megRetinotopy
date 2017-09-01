@@ -113,6 +113,8 @@ for this_chnl = 1:n_chan
         
     end
 end
+warning('off','all')
+
 
 if n_cores == 1
     
@@ -261,13 +263,13 @@ if n_cores == 1
             fprintf('N repetitions %d\n',nn);
             fprintf('\nDoing %d iterations\n',length(perms))
             
-            fb = length(perms) .* (0.1:0.1:1);
+            fb = length(perms) .* (0.1:0.1:1) .*2;
             nfb = 0;
             
             
-            scan_corr_02{nn} = nan(n_chan,size(perms,1));
+            scan_corr_02{nn} = nan(n_chan,size(perms,1).*2);
             
-            for nnn = 1:size(perms,1)
+            for nnn = 1:2:(size(perms,1)*2)
                 if nnn > fb(1)
                     nfb = nfb+1;
                     fprintf('.%d %%.',10.*nfb)
@@ -278,8 +280,8 @@ if n_cores == 1
                 end
                 n_01 = ceil(nn/2);
                 
-                cur_idx_01 = perms(nnn,1:n_01);
-                cur_idx_02 = perms(nnn,n_01+1:end);
+                cur_idx_01 = perms(ceil(nnn/2),1:n_01);
+                cur_idx_02 = perms(ceil(nnn/2),n_01+1:end);
                 
                 av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
                 av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
@@ -300,20 +302,12 @@ if n_cores == 1
                 cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
                 cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
                 
-                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                 %   av_amp_02(sel,this_chnl));
                 
-                cor_stuff(this_chnl,[n n+1]) = [cod_01 cod_02];
-                    
-                    
-                    
-                    tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                        av_amp_02(sel,this_chnl));
-                    
-                    
-                    scan_corr_02{nn}(this_chnl,nnn) = tmp_r(2);
-                    
-                    
+                
+                
+                scan_corr_02{nn}(this_chnl,[nnn nnn+1]) = [cod_01 cod_02];
+                
+                
                 end
                 
                 
@@ -345,7 +339,8 @@ if n_cores == 1
 elseif n_cores > 1
     
     mpool = parpool(n_cores);
-    
+    pctRunOnAll warning('off','all')
+
     
     cor_stuff = nan(n_chan, n_it);
     cor_stuff2 = nan(size(cor_stuff));
@@ -355,7 +350,7 @@ elseif n_cores > 1
         fprintf('Starting split half test\n')
         fprintf('Doing %d iterations:\n',n_it)
         
-        parfor n = 1:2:(n_it*2)%model.params.n_iterations_rel
+        parfor n = 1:n_it%model.params.n_iterations_rel
             
             tmp = randperm(n_reps);
             cur_idx_01 = tmp(1:n_01);
@@ -473,13 +468,13 @@ elseif n_cores > 1
         parfor nn = 2:n_reps
             perms = mprf__get_unique_permutations(n_reps,nn,1000);
             
-            fb = length(perms) .* (0.1:0.1:1);
+            fb = length(perms) .* (0.1:0.1:1) .* 2;
             nfb = 0;
             
             
-            scan_corr_02{nn} = nan(n_chan,size(perms,1));
+            scan_corr_02{nn} = nan(n_chan,size(perms,1).*2);
             
-            for nnn = 1:size(perms,1)
+            for nnn = 1:2:(size(perms,1)*2)
                 if nnn > fb(1)
                     nfb = nfb+1;
                     fprintf('.%d %%.',10.*nfb)
@@ -490,8 +485,8 @@ elseif n_cores > 1
                 end
                 n_01 = ceil(nn/2);
                 
-                cur_idx_01 = perms(nnn,1:n_01);
-                cur_idx_02 = perms(nnn,n_01+1:end);
+                cur_idx_01 = perms(ceil(nnn/2),1:n_01);
+                cur_idx_02 = perms(ceil(nnn/2),n_01+1:end);
                 
                 av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
                 av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
@@ -499,11 +494,22 @@ elseif n_cores > 1
                 for this_chnl = 1:n_chan
                     sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
                         ~isnan(av_amp_02(:,this_chnl))';
-                    tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                        av_amp_02(sel,this_chnl));
+                    
+                    X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
+                    X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
                     
                     
-                    scan_corr_02{nn}(this_chnl,nnn) = tmp_r(2);
+                    B_02 = X_01 \ X_02(:,2);
+                    B_01 = X_02 \ X_01(:,2);
+                    
+                    cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+                    cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                    
+                    
+                    
+                    
+                    scan_corr_02{nn}(this_chnl,[nnn nnn+1]) = [cod_01 cod_02];
+                    
                     
                     
                 end
@@ -532,10 +538,13 @@ elseif n_cores > 1
         xlabel('N scans')
         title(plot_title)
     end
+    
+    pctRunOnAll warning('on','all')
     delete(mpool)
     
     
 end
+warning('on','all')
 
 res_dir = mprf__get_directory('model_results');
 main_dir = mprf__get_directory('main_dir');
