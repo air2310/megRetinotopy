@@ -80,7 +80,9 @@ end
 periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
 periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137];
 periods.stim = setdiff(1:140,[periods.blink periods.blank]);
-
+%upr = [73:81 115:123];
+%lwr = [60:69 127:135];
+%periods.stim = setdiff([upr lwr],[periods.blink periods.blank]);
 
 sz = size(data.data);
 n_time = sz(1);
