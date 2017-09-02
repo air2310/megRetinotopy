@@ -47,16 +47,16 @@ if strcmpi(model.type,'reliability check')
             data = [];
             data = mprf__do_reliability_analysis(model,'stimulus_locked',data);
             mprf__do_reliability_analysis(model,'broadband',data);
-
+            
             
         elseif  model.params.do_sl && ~model.params.do_bb
             fprintf('Running reliability for stimiulus locked only\n')
             mprf__do_reliability_analysis(model,'stimulus_locked');
-                    
+            
         elseif  ~model.params.do_sl && model.params.do_bb
             fprintf('Running reliability for broad band only\n')
             mprf__do_reliability_analysis(model,'broadband');
-  I
+            I
         end
     end
     
@@ -66,7 +66,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         strcmpi(model.type, 'prf size range')
     
     [prf, bs, roi] = mprf__model_get_prf_params(model);
-
+    
     
     n_range = sum([prf.sigma.type.range
         prf.x0.type.range
@@ -81,10 +81,10 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
     iter = [];
     
     if n_range >= 1 && n_scramble >= 1
-       error('Both a range manipulation and a scrambling is not implemented') 
-       
+        error('Both a range manipulation and a scrambling is not implemented')
+        
     elseif n_range == 0 && n_scramble == 0
-            
+        
     elseif n_range == 1 && n_scramble == 0
         tmp_fields = fieldnames(prf);
         iter.method = 'range';
@@ -98,7 +98,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         end
         
     elseif n_scramble >= 1 && n_range == 0;
-       iter.method = 'scramble';        
+        iter.method = 'scramble';
     elseif n_range > 1
         error('Range not implemented for multiple variables')
         
@@ -119,7 +119,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         
         pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi, iter);
         meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
-
+        
         cur_time = datestr(now);
         cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
         
@@ -140,15 +140,136 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         
         
         if strcmpi(model.type,'run original model') || ...
-            strcmpi(model.type,'fix prf size')
-        
+                strcmpi(model.type,'fix prf size')
+            
             mprfSession_run_original_model(pred);
-        
+            
         elseif strcmpi(model.type,'prf size range')
             
             mprfSession_run_prf_size_range_model(pred);
-        
+            
         end
+        
+    elseif strcmpi(model.type, 'scramble prf parameters');
+        model.params.do_sl = true;
+        model.params.do_bb = false;
+        
+        pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi);
+        
+        
+        n_cores = model.params.n_cores;
+        n_it = model.params.n_iterations;
+                
+        meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
+        
+        pred.pred_resp = pred_resp;
+        pred.model = model;
+        pred.meg_resp = meg_resp;
+        pred.channels = channels;
+        
+        data_in.first_iteration = true;
+        orig_data = mprfSession_run_original_model(pred,data_in);
+        
+        data_in = orig_data;
+        data_in = rmfield(data_in,'cur_corr');
+        scramble_corr = nan(size(meg_resp{1},2),n_it);
+        roi_idx = find(roi.mask);
+        
+        
+        if n_cores > 1
+            
+            
+            if isempty(gcp('nocreate'))
+                fprintf('No open pool found\n')
+            else
+                answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
+                    'Open Matlab pool found','Close','Single core','Cancel','Close');
+                
+                switch lower(answer)
+                    
+                    case 'close'
+                        delete(gcp);
+                        
+                    case 'single core'
+                        pred.model.params.n_cores = 1;
+                        mprfSession_run_original_model(pred);
+                        
+                    case 'cancel'
+                        return
+                end
+            end
+            
+            mpool = parpool(n_cores);
+            pctRunOnAll warning('off','all');
+            
+            parfor this_it = 1:n_it
+                this_prf = prf;
+                this_data_in = data_in;
+                this_pred = pred;
+                
+                cur_idx = roi_idx(randperm(size(roi_idx,1)));
+                
+                this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
+                this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                
+                this_pred_resp = mprf__predicted_prf_response(model, stimulus, this_prf, roi);
+                
+                this_meg_resp = mprf__compute_predicted_meg_response(bs, this_pred_resp, channels);
+                this_pred.meg_resp = this_meg_resp;
+                
+                
+                this_data_in = mprfSession_run_original_model(this_pred,this_data_in);
+                scramble_corr(:,this_it) = this_data_in.cur_corr;
+                this_data_in = rmfield(this_data_in,'cur_corr');
+                
+            end
+            
+        elseif n_cores == 1;
+            
+            this_prf = prf;
+            this_data_in = data_in;
+            this_pred = pred;
+            
+            for this_it = 1:n_it
+                
+                cur_idx = roi_idx(randperm(size(roi_idx,1)));
+                
+                this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
+                this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                
+                this_pred_resp = mprf__predicted_prf_response(model, stimulus, this_prf, roi);
+                
+                this_meg_resp = mprf__compute_predicted_meg_response(bs, this_pred_resp, channels);
+                this_pred.meg_resp = this_meg_resp;
+                
+                
+                this_data_in = mprfSession_run_original_model(this_pred,this_data_in);
+                scramble_corr(:,this_it) = this_data_in.cur_corr;
+                this_data_in = rmfield(this_data_in,'cur_corr');
+                
+            end
+        end
+        
+        
+        
+        res_dir = mprf__get_directory('model_results');
+        main_dir = mprf__get_directory('main_dir');
+        rel_dir = 'scramble_prfs';
+        cur_time = mprf__get_cur_time;
+        
+        save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_stimulus_locked_' cur_time]);
+        mkdir(save_dir);
+
+        results.orig_corr = orig_data.cur_corr;
+        results.scrambled_corr = scramble_corr;
+        
+        save(fullfile(save_dir, 'Results'),'results','model');
         
         
     end
