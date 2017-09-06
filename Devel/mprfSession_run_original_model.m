@@ -155,11 +155,46 @@ end
 n_it = model.params.n_iterations;
 n_cores = model.params.n_cores;
 
+n_bars = size(meg_resp{1},1);
 n_chan = size(meg_resp{1},2);
 n_roi = size(meg_resp{1},3);
 n_metric = size(tseries_av,3);
 
 warning('off','all');
+
+if strcmpi(model.type,'run original model')
+    
+    preds = nan(n_bars, n_chan, n_roi, n_metric);
+    mean_ve = nan(n_chan, n_roi, n_metric);
+    
+    for this_it = 1:n_it
+        for this_chan = 1:n_chan
+            for this_roi = 1:n_roi
+                for this_metric = 1:n_metric
+                    
+                    cur_pred = meg_resp{1}(:,this_chan);
+                    cur_data = tseries_av(:,this_chan,this_metric);
+                    
+                    not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
+                    
+                    
+                    X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                    B = X \ cur_data(not_nan);
+                    
+                    preds(not_nan, this_chan, this_roi, this_metric) =  X * B;
+                    
+                    cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
+                    mean_ve(this_it, this_chan, this_roi, this_metric) = cod_01;
+                end
+            end
+        end
+    end
+    
+    results.orig_model.preds = preds;
+    results.orig_model.mean_ve = mean_ve;
+    
+end
+
 
 if strcmpi(model.type,'run original model') || ...
         strcmpi(model.type,'prf size range') || ...
