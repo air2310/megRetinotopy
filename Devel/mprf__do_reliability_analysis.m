@@ -171,6 +171,8 @@ if n_cores == 1
         end
         
         results.split_half.corr_mat = cor_stuff;
+        results.raw.amplitude = all_amp;
+
         med_corr = nanmedian(cor_stuff,2);
         
         figure;
@@ -319,7 +321,8 @@ if n_cores == 1
         end
         
         results.scans.corr_mat = scan_corr_02;
-        
+        results.raw.amplitude = all_amp;
+
         for nn = 2:n_reps
             for  this_chnl = 1:n_chan
                 scan_med_corr_02(this_chnl,nn-1) = median(scan_corr_02{nn}(this_chnl,:));
@@ -385,7 +388,7 @@ elseif n_cores > 1
         end
         cor_stuff = [cor_stuff cor_stuff2];
         results.split_half.corr_mat = cor_stuff;
-        
+        results.raw.amplitude = all_amp;
         med_corr = nanmedian(cor_stuff,2);
         
         fh_half = figure;
@@ -523,7 +526,7 @@ elseif n_cores > 1
         end
         
         results.scans.corr_mat = scan_corr_02;
-        
+        results.raw.amplitude = all_amp;
         
         for nn = 2:n_reps
             for  this_chnl = 1:n_chan
