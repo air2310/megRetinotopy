@@ -15,6 +15,7 @@ else
     error('Unrecognized export, use ''prf'' ,''wang'' or ''roi'' only')
 end
 
+% I guess we do not need these checks anymore...
 if exist('mrmMapVerticesToGray','file');
     
 else
@@ -40,16 +41,21 @@ else
 end
 
 
-
+% Load the brainstorm head model file, as we need to know on which surface
+% it is defined:
 load(bs_model_file);
 bs_head_model_surf = bs_model.SurfaceFile;
+% Load the anatomy imported by brainstorm. This file has a transformation
+% maxtrix that is applied to the freesurfer surfaces when they are imported
+% by brainstorm, so we need to apply the same transformation to the surface
+% data as well:
 bs_mri = load(fullfile(main_dir, mprf__get_file('bs_anat')));
 
 clear bs_model
 
 hs_to_load = {'lh','rh'};        % In this order as BS concatenates the hemispheres like this
 
-
+% Check surface:
 if any(strcmpi('pial',strsplit(bs_head_model_surf,'_')))
     surfaces_to_load = {'pial'};
     
@@ -66,23 +72,29 @@ fprintf('Exporting surface data:\n')
 for n = 1:length(surfaces_to_load)
     verts = [];
     
-    
+    % Loop over all (2, left and right) surfaces:
     for nn = 1:length(hs_to_load)
         cur_surf = [hs_to_load{nn} '.' surfaces_to_load{n}];
         surf_file = fullfile(main_dir,mprf__get_directory('fs_surface'),cur_surf);
-        tmp_verts = mne_read_surface(surf_file); % Use the same routine as Brainstorm uses, otherwise the vertices are slightly off and intersectCols does not find all the matching vertices.
+        % Use the same routine as Brainstorm uses, otherwise the vertices 
+        % are slightly off and intersectCols does not find all the matching 
+        % vertices.
+        tmp_verts = mne_read_surface(surf_file); 
         
+        % Transformations applied by brainstorm:
         tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);
         tmp_verts = [tmp_verts'; ones(1,size(tmp_verts,1))]; %% Actually verts)
         tmp_verts = [bs_mri.SCS.R, bs_mri.SCS.T./1000; 0 0 0 1] * tmp_verts;
         tmp_verts = tmp_verts(1:3,:)';
         
+        % Concatenate left and right: 
         verts = [verts; tmp_verts]; %#ok<AGROW>
         
     end
     
     surf_path = fullfile(main_dir, mprf__get_directory('bs_anat'));
     
+    % Load the brainstorm surface file:
     bs_surf_files = dir(fullfile(surf_path,'*tess_cortex*.mat'));
     this_bs_file = find(~cellfun(@isempty,strfind({bs_surf_files.name},surfaces_to_load{n})));
     
@@ -91,6 +103,13 @@ for n = 1:length(surfaces_to_load)
     end
     load(fullfile(surf_path,bs_surf_files(this_bs_file).name),'Vertices');
     
+    % Find the vertices that we computed in verts in the Vertices generated
+    % by Brainstorm. Brainstorm downsamples the surfaces (15002 vertices)
+    % using Matlab's reduce_patch function. This routine does not change
+    % anything about the vertices, but just selects the most informative
+    % ones. Therefore, intersectCols should be able to find all 15002
+    % vertices of the brainstorm surface in our own verts variable. If not,
+    % possibly something went wrong in the transformations above.
     [~, bs_vert_idx, bs_vert_idx2] = intersectCols(verts', Vertices');
     
     if numel(bs_vert_idx) == size(Vertices,1);
@@ -109,6 +128,7 @@ for n = 1:length(surfaces_to_load)
         end
     end
     
+    % Export prfs or rois?
     if strcmpi(w_export,'prf')
         pname = mprf__get_directory('fs_surf_prf_data');
 
@@ -119,7 +139,7 @@ for n = 1:length(surfaces_to_load)
     end
     
     lh_files = dir(fullfile(pname,'lh.*'));
-    
+    % Loop over the LHs files (i.e. all the parameters on the lh surfaces):
     for nn = 1:length(lh_files)
         
         cur_lh_file = lh_files(nn).name;
@@ -129,15 +149,20 @@ for n = 1:length(surfaces_to_load)
             
         else
             par_name = par_name(2:end);
+            % Find the corresponding rh file:
             cur_rh_file = ['rh.' par_name];
             
-            
+            % load and concatenate:
             both_data = [read_curv(fullfile(pname,cur_lh_file));...
                 read_curv(fullfile(pname,cur_rh_file))];
             
+            % preallocate the output variable:
             both_bs_data_out = nan(size(bs_vert_idx2));
+            
+            % Select to correct parameters:
             both_bs_data_out(bs_vert_idx2) = both_data(bs_vert_idx);
             
+            % Store the results:
             cur_out_file = [surfaces_to_load{n} '.' par_name];
             
             if strcmpi(w_export,'prf')

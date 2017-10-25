@@ -1,16 +1,24 @@
 function mprfSession_prepare_session
 
-
+% Load the mprfSESSION variable and declare it global
 load(fullfile(pwd,'mprfSESSION.mat'))
 global mprfSESSION
 
+% Get main directory
 main_dir = mprf__get_directory('main_dir');
 
+% Check if all the necessary files are imported correctly. In order to
+% prepare the RM model we need:
+% 1. a RM model (surprise!)
+% 2. the segmentation file on which the RM model is based
+% 3. access to the mrVista session directory for which the RM model was
+% created
 if mprfSESSION.has.rm_model && ...
         mprfSESSION.has.vista_class && ...
         ~isempty(mprfSESSION.orig.paths.vista_path) && ...
         exist(mprfSESSION.orig.paths.vista_path,'dir');
     
+    % If prfs have already been exported, skip it...
     if isfield(mprfSESSION.has,'prf_exported') && exist(fullfile(mprf__get_directory('main_dir'),...
             mprf__get_file('prf_export_mat')),'file') && mprfSESSION.has.prf_exported
         
@@ -18,8 +26,10 @@ if mprfSESSION.has.rm_model && ...
 
     else        
         
+        % We need the RM stimulus as well, if it is not imported we do that
+        % here
         if mprfSESSION.has.rm_stim_imported
-            
+            % Smooth the pRF parameters:
             mprf__smooth_export_prf_parameters;
             
             
@@ -49,7 +59,7 @@ else
     
     
 end
-
+% Export the selected ROIs and data from mrVista to the freesurfer surfaces
 success = mprf__export_roi_and_data_to_freesurfer_surface('both');
 
 if success

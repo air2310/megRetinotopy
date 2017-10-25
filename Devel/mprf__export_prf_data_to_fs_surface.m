@@ -68,6 +68,7 @@ for n = 1:length(surfaces_to_load)
     % that are closest to the mesh nodes/vertices. However, cur_v2gmap contains
     % zeros, so we need to deal with them:
     
+    % Loop over the parameters:
     for nn = 1:length(par_names)
         
         cur_par_name = par_names{nn};
@@ -81,7 +82,7 @@ for n = 1:length(surfaces_to_load)
             tmp(good_mapping) = prf_par_exp.(cur_par_name)(cur_v2gmap(good_mapping));
             
         end
-        
+        % Check if we have x, y, x_smoothed or y_smoothed:
         if regexp(cur_par_name,'x\>');
             has_x = true;
             x_pos = tmp;
@@ -101,7 +102,8 @@ for n = 1:length(surfaces_to_load)
             
             
         end
-        
+        % If we have the necessary data to compute polar angle and
+        % eccentricity, to that as well and store the results:
         if has_x && has_y
             [tmp_ang, tmp_ecc] = cart2pol(x_pos, y_pos);
             
@@ -117,7 +119,7 @@ for n = 1:length(surfaces_to_load)
             
         end
         
-        
+        % Same for smoothed versions:
         if has_x_sm && has_y_sm
             [tmp_ang, tmp_ecc] = cart2pol(x_pos_sm, y_pos_sm);
             
@@ -135,7 +137,7 @@ for n = 1:length(surfaces_to_load)
             has_y_sm = false;
             
         end
-        
+        % output the results:
         fname = fullfile(main_dir, mprf__get_directory('fs_surf_prf_data'),[cur_hs '.' cur_par_name]);
         write_curv(fname,tmp, fnum);
         fprintf('%s\n', cur_par_name)
@@ -151,6 +153,8 @@ else
     mprfSESSION.has.fs_surf_data = false;
     
 end
+
+% Clean up:
 success = true;
 cd(main_dir);
 save(fullfile(mprfSESSION.init.main_dir,'mprfSESSION'),'mprfSESSION')

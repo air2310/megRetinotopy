@@ -126,7 +126,8 @@ for nn = 1:length(surfaces_to_load)
         % much cleaner than when mapping the other way around.
         cur_mapping = mrmMapGrayToVertices(roi_nodes, mrv_msh.vertices, mmPerVox, 2);
         
-        
+        % Not all voxels can be mapped, give a warning of more than 25% but
+        % less than 95% could not be mapped. 
         missing = mean(cur_mapping == 0);
         if missing  > .25 && missing < .95
             warning('Could not map %0.2f percent of voxels to surface for %s',...
@@ -142,6 +143,8 @@ for nn = 1:length(surfaces_to_load)
         end
         
         fprintf('%s\n',r_name);
+        % ROIs can look patchy on a cortical surface, so dilate them a
+        % little be to remove holes in the ROI
         % Keep the orignal and dilated ROI indices
         roiVertInds = unique(cur_mapping(cur_mapping > 0));
         roiVertInds2 = adjustPerimeter(roiVertInds, 0, hvol, prefs);
@@ -155,7 +158,8 @@ for nn = 1:length(surfaces_to_load)
     
     fprintf('Pruning ROIs\n')
     
-    % Prune the ROIs to remove overlap:
+    % Prune the ROIs to remove overlap due to dilate, keeping the orignal 
+    % boundaries between ROIS:
     pruned_roi_inds = mprfResolveDilatedROIOverlap(roi_vert_inds_all2, roi_vert_inds_all);
     fprintf('Done.\n')
     

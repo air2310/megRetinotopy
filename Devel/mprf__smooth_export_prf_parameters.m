@@ -29,7 +29,7 @@ if exist('niftiRead','file');
     
 else
     try
-        tbUse('vistasoft');
+        tbUse({'retMEG','vistasoft','knk'}); 
     catch ME
         error('Vistasoft is not on your Matlab path')
         

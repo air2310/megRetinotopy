@@ -1,13 +1,22 @@
 function mprf__update_session(do_stim)
-
+% Called by:
+%   - mprfSession_init
+% Check if we want to do the stimulus here, or later on. I do not know why
+% this is here, but the stimulus is imported later on by the
+% mprfSession_init routine.
 if ~exist('do_stim','var') || isempty(do_stim)
     do_stim.rm_stim = false;
     do_stim.meg_stim = false;
 end
 
-
+% Declare mprfSESSION as global. It Assumes that a 
 global mprfSESSION
+
+% The mprf__session_init_gui routine adds an 'updated' field to the
+% mprfSESSION variable. This field marks which paths have changed and so
+% which part of the session need updating. 
 if isfield(mprfSESSION,'updated')
+    % Get all the fields from the updated field:
     to_update = getAllFieldsFromStruct(mprfSESSION.updated);
     
 else
@@ -15,15 +24,33 @@ else
     return
 end
 
+% Loop over the fields that need updating:
 for n = 1:length(to_update)
     fname = '';
     fext = '';
     cur_update = to_update{n};
-    
+    % If an original paths needs updating:
     if any(strfind(cur_update,'.orig.paths'))
         orig_path = eval(['mprfSESSION' cur_update]);
         
-        % Update original path and import data again
+        % Update original path and import data again. Generally, this
+        % follows the following simple logic:
+        % 1. Create the source path (orig_path)
+        % 2. Determine the file type
+        % 3. create the output file name
+        % 4. set the yes to all variable to false
+        
+        % This becomes the input for the mprf__import_data function. This
+        % function checks if the already exists and asks if you want to
+        % overwrite the existing data (if yes_to_all = true, then it wont
+        % bother you with this, it just overwrites it).
+        % mprf__import_data copies the data and returns the yes_to_all
+        % variable, as changes when you request it through the dialogue. It
+        % also returns a success variable, which tells you if the output
+        % filename is indeed created or not.
+        % For some data types it set the file name in the mprfSESSION
+        % variable by using mprf__session_set_file. This way,
+        % mprf__session_get_file can be used to get the file directly.
         
         if (any(strfind(cur_update, 'vista_t1')) || any(strfind(cur_update, 'vista_class')))
             
