@@ -22,7 +22,7 @@ function varargout = mprf__prf_pred_mesh_gui(varargin)
 
 % Edit the above text to modify the response to help mprf__prf_pred_mesh_gui
 
-% Last Modified by GUIDE v2.5 05-Jul-2017 14:58:15
+% Last Modified by GUIDE v2.5 02-Nov-2017 13:11:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -108,7 +108,32 @@ colormap('gray');
 handles = updateStim(hObject, handles);
 handles = initMesh(handles);
 handles.cb_nums = cb_nums(1:nn);
+
+if iscell(handles.data.pred_resp)
+    model_range = [1 size(handles.data.pred_resp,2)];
+    if model_range(2) > model_range(1)
+    
+    set(handles.model_slider,...
+        'Min',model_range(1),...
+        'Max',model_range(2),...
+        'SliderStep',  [(1/(model_range(2) - model_range(1))) (10/(model_range(2) - model_range(1)))],...
+        'Value',1,...
+        'Enable','on');
+    
+    else
+        
+        
+    end
+    
+else
+    
+    
+end
+
 guidata(hObject, handles);
+
+
+
 
 updateMesh(hObject, handles);
 
@@ -129,14 +154,23 @@ cur_im = ceil(get(handles.stim_slider,'Value'));
 % Get ROIs
 cur_cbs = handles.cb_nums;
 
-[n_im, n_vert, n_roi] = size(handles.data.pred_resp);
 
 all_rois = zeros(size(cur_cbs));
 ctr = 0;
 
+if iscell(handles.data.pred_resp)
+    cur_model = ceil(get(handles.model_slider,'Value'));
+    pred = handles.data.pred_resp{cur_model};
+else
+    pred = handles.data.pred_resp;
+end
+
+[n_im, n_vert, n_roi] = size(pred);
+
+
 if length(cur_cbs) == 1
     
-    pred = handles.data.pred_resp(cur_im,:);
+    pred = pred(cur_im,:);
     mask = logical(handles.data.roi.mask);
     
 elseif length(cur_cbs) > 1
@@ -598,3 +632,26 @@ function roi_checkbox61_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of roi_checkbox61
 updateMesh(hObject, handles)
+
+
+% --- Executes on slider movement.
+function model_slider_Callback(hObject, eventdata, handles)
+% hObject    handle to model_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+pause(0.1)
+updateMesh(hObject, handles);
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function model_slider_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to model_slider (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
