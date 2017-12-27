@@ -1,4 +1,6 @@
 function mprfSession_preprocess_meg_data(do_syn, syn_fname_in)
+% Preprocessing MEG data 
+% 
 
 if ~exist('do_syn','var') || isempty(do_syn)
     do_syn = false;
