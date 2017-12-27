@@ -292,8 +292,9 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
             this_pred = pred;
             
             for this_it = 1:n_it
-                
-               switch lower(w_iter_var)
+                cur_idx = roi_idx(randperm(size(roi_idx,1)));
+               
+                switch lower(w_iter_var)
                     
                     case 'sigma'
                         this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
