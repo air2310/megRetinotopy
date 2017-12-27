@@ -335,7 +335,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         rel_dir = 'scramble_prfs';
         cur_time = mprf__get_cur_time;
         
-        save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_stimulus_locked_' cur_time]);
+        save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_stimulus_locked_' w_iter_var '_' cur_time]);
         mkdir(save_dir);
 
         results.orig_corr = orig_data.cur_corr;
