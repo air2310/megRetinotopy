@@ -36,6 +36,7 @@ end
 
 main_dir = mprf__get_directory('main_dir');
 
+% Get the model options 
 [model, stimulus, syn, channels] = mprfSession_model_gui;
 
 if strcmpi(model.type,'reliability check')

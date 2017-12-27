@@ -302,12 +302,21 @@ if strcmpi(model.type,'run original model') || ...
     elseif n_cores == 1
         
         for this_it = 1:n_it
+            cur_idx = ceil(rand(1,opts.n_reps) .* opts.n_reps); % Get random sample
+            
             for this_chan = 1:n_chan
                 for this_roi = 1:n_roi
                     for this_metric = 1:n_metric
                         
+                        if model.params.n_iterations > 1
+                            cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric),2);
+                            
+                        else
+                            cur_data = tseries_av(:,this_chan,this_metric);
+                        end
+                        
+                        
                         cur_pred = meg_resp{1}(:,this_chan);
-                        cur_data = tseries_av(:,this_chan,this_metric);
                         
                         not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                         
