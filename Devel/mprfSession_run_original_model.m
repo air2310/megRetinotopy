@@ -223,9 +223,9 @@ if strcmpi(model.type,'run original model')
         end
     end
     % Store results:
-    results.orig_model.fit_data = fit_data;
-    results.orig_model.preds = preds;
-    results.orig_model.mean_ve = mean_ve;
+    results.orig_model.fit_data = fit_data; %% The raw data that was fitted
+    results.orig_model.preds = preds; %% Scaled predictions that have been estimated
+    results.orig_model.mean_ve = mean_ve; %% averaged Variance explained
     
 end
 

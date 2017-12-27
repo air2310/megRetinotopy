@@ -38,7 +38,9 @@ main_dir = mprf__get_directory('main_dir');
 
 % Get the model options 
 [model, stimulus, syn, channels] = mprfSession_model_gui;
-
+% If we want to do the reliability check, run that one for the type of
+% metric selected. See comments in the respective files for more
+% explanation
 if strcmpi(model.type,'reliability check')
     
     if model.params.reliability_scans || model.params.reliability_split_half
@@ -61,19 +63,22 @@ if strcmpi(model.type,'reliability check')
         end
     end
     
+% If scramble, original, fixed pRF size of pRF size range:
 elseif strcmpi(model.type,'scramble pRF parameters') || ...
         strcmpi(model.type,'run original model') || ...
         strcmpi(model.type,'fix prf size') || ...
         strcmpi(model.type, 'prf size range')
     
+    % Get the modeling parameters from the model variable:
     [prf, bs, roi] = mprf__model_get_prf_params(model);
     
-    
+    % Check for how many variables we want to use a range:
     n_range = sum([prf.sigma.type.range
         prf.x0.type.range
         prf.y0.type.range
         prf.beta.type.range]);
     
+    % Check how many variables we want to scramble:
     n_scramble = sum([prf.sigma.type.scrambled
         prf.x0.type.scrambled
         prf.y0.type.scrambled
@@ -85,7 +90,8 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         error('Both a range manipulation and a scrambling is not implemented')
         
     elseif n_range == 0 && n_scramble == 0
-        
+    
+    % If only one range variable
     elseif n_range == 1 && n_scramble == 0
         tmp_fields = fieldnames(prf);
         iter.method = 'range';
@@ -98,8 +104,37 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
             end
         end
         
+   % if only 1 scramble parameter
     elseif n_scramble >= 1 && n_range == 0;
         iter.method = 'scramble';
+       
+        if prf.x0.type.scrambled
+            w_iter_var = 'x0';
+            
+        elseif prf.y0.type.scrambled
+            w_iter_var = 'y0';
+            
+        elseif prf.sigma.type.scrambled
+            w_iter_var = 'sigma';
+            
+        else
+            error('Could not determine scramble parameter');
+        end
+        
+        
+    elseif n_scramble == 3;
+        iter.method = 'scramble';
+
+        if prf.sigma.type.scrambled && ...
+        prf.x0.type.scrambled && ...
+        prf.y0.type.scrambled
+    
+            w_iter_var = 'all';
+        
+        else
+            error('Could not determine scramble parameter');
+            
+        end
     elseif n_range > 1
         error('Range not implemented for multiple variables')
         
@@ -150,17 +185,21 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
             mprfSession_run_prf_size_range_model(pred);
             
         end
-        
+    
+    % if we are scrambling pRF parameters:
     elseif strcmpi(model.type, 'scramble prf parameters');
         model.params.do_sl = true;
         model.params.do_bb = false;
-        
+        % Run the original model first to get a baseline measure of the
+        % quality of the fit
+        % Get predicted pRF responses for main model:
         pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi);
         
         
         n_cores = model.params.n_cores;
         n_it = model.params.n_iterations;
-                
+        
+        % Get predicted MEG responses for main model
         meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
         
         pred.pred_resp = pred_resp;
@@ -169,6 +208,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         pred.channels = channels;
         
         data_in.first_iteration = true;
+        % Do an intial fit and return the data
         orig_data = mprfSession_run_original_model(pred,data_in);
         
         data_in = orig_data;
@@ -176,7 +216,8 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         scramble_corr = nan(size(meg_resp{1},2),n_it);
         roi_idx = find(roi.mask);
         
-        
+        % Now, create different pRF and MEG response predictions based on
+        % the scrambled pRF parameter
         if n_cores > 1
             
             
@@ -193,8 +234,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
                         
                     case 'single core'
                         pred.model.params.n_cores = 1;
-                        mprfSession_run_original_model(pred);
-                        
+                        n_cores = 1;
                     case 'cancel'
                         return
                 end
@@ -210,12 +250,29 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
                 
                 cur_idx = roi_idx(randperm(size(roi_idx,1)));
                 
-                this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
-                this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
-                this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
-                this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
-                this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                switch lower(w_iter_var)
+                    
+                    case 'sigma'
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                    
+                    case 'y0'
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+
+                    case 'x0'
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                    
+                    case 'all'                        
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                        this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
+                        this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                        
+                    otherwise 
+                        error('Did not recognize scramble parameter');
+                end
                 
+                   
                 this_pred_resp = mprf__predicted_prf_response(model, stimulus, this_prf, roi);
                 
                 this_meg_resp = mprf__compute_predicted_meg_response(bs, this_pred_resp, channels);
@@ -236,13 +293,27 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
             
             for this_it = 1:n_it
                 
-                cur_idx = roi_idx(randperm(size(roi_idx,1)));
-                
-                this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
-                this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
-                this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
-                this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
-                this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+               switch lower(w_iter_var)
+                    
+                    case 'sigma'
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                    
+                    case 'y0'
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+
+                    case 'x0'
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                    
+                    case 'all'                        
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                        this_prf.ve.val(roi_idx) = this_prf.ve.val(cur_idx);
+                        this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                        
+                    otherwise 
+                        error('Did not recognize scramble parameter');
+               end
                 
                 this_pred_resp = mprf__predicted_prf_response(model, stimulus, this_prf, roi);
                 
