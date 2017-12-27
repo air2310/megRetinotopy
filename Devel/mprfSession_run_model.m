@@ -105,7 +105,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         end
         
    % if only 1 scramble parameter
-    elseif n_scramble >= 1 && n_range == 0;
+    elseif n_scramble == 1 && n_range == 0;
         iter.method = 'scramble';
        
         if prf.x0.type.scrambled
