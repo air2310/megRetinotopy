@@ -284,6 +284,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
                 this_data_in = rmfield(this_data_in,'cur_corr');
                 
             end
+            delete(gcp);
             
         elseif n_cores == 1;
             
