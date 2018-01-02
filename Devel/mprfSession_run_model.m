@@ -338,7 +338,11 @@ elseif strcmpi(model.type, 'scramble prf parameters');
             this_data_in = rmfield(this_data_in,'cur_corr');
             
         end
-        delete(gcp);
+        if isempty(gcp('nocreate'))
+            fprintf('?? no open pool found ??');
+        else
+            delete(gcp);
+        end
         
     elseif n_cores == 1;
         
