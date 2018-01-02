@@ -252,8 +252,10 @@ elseif strcmpi(model.type, 'scramble prf parameters');
         % and beta thresholds to the parameters before we scramble. We do
         % this here. This is only implemented when assessing all ROIs
         % simultaneously, not for ROI specific models
-        if strcmpi(rois{nn},'all')
+        
+        if ~isfield(roi,'idx') && ~model.params.roi_specific
             cur_in = logical(roi.mask); % These parameters are included
+            
         else
             error('Scrambling not implemented for separate ROIs');
             
@@ -344,8 +346,10 @@ elseif strcmpi(model.type, 'scramble prf parameters');
         % and beta thresholds to the parameters before we scramble. We do
         % this here. This is only implemented when assessing all ROIs
         % simultaneously, not for ROI specific models
-        if strcmpi(rois{nn},'all')
+       
+        if ~isfield(roi,'idx') && ~model.params.roi_specific
             cur_in = logical(roi.mask); % These parameters are included
+            
         else
             error('Scrambling not implemented for separate ROIs');
             
