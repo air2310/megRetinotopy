@@ -305,7 +305,7 @@ elseif strcmpi(model.type, 'scramble prf parameters');
             
             for this_var = 1:length(w_iter_var)
                 cur_iter_var = w_iter_var{this_var};
-                switch lower(w_iter_var)
+                switch lower(cur_iter_var)
                     
                     case 'sigma'
                         this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
@@ -397,7 +397,7 @@ elseif strcmpi(model.type, 'scramble prf parameters');
             
             for this_var = 1:length(w_iter_var)
                 cur_iter_var = w_iter_var{this_var};
-                switch lower(w_iter_var)
+                switch lower(cur_iter_var)
                     
                     case 'sigma'
                         this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
