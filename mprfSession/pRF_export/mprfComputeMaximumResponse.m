@@ -1,4 +1,4 @@
-25711function mresp = mprfComputeMaximumResponse(stim, sigma, X, Y, beta, mask)
+function mresp = mprfComputeMaximumResponse(stim, sigma, X, Y, beta, mask)
 
 % Preallocate output variable:
 mresp = nan(size(sigma));
