@@ -148,11 +148,16 @@ end
 preproc.data.file = tmp{get(handles.lb_load_data,'Value')};
 preproc.stimulus = handles.stim;
 
+if ~isprop(handles.output,'channels')
+    addprop(handles.output,'channels');
+end
 handles.output.channels.data = eval(get(handles.txt_data_channels,'String'));
 handles.output.channels.triggers = eval(get(handles.txt_trigger_channels,'String'));
 handles.output.channels.diode = eval(get(handles.txt_diode_channel,'String'));
 
-
+if ~isprop(handles.output,'preproc')
+    addprop(handles.output,'preproc');
+end
 handles.output.preproc = preproc;
 % Get default command line output from handles structure
 varargout{1} = handles.output;
@@ -347,6 +352,9 @@ if ~exist('do_go','var') || isempty(do_go)
     do_go = false;
 end
 
+if ~isprop(handles.output,'do_go')
+    addprop(handles.output,'do_go');
+end
 handles.output.do_go = do_go;
 
 guidata(hObject, handles);

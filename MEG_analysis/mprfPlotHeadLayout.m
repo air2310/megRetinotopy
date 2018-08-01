@@ -20,7 +20,7 @@ fh = figure; hold on;
 
 
 load(which('meg160_example_hdr.mat'))
-layout = ft_prepare_layout(hdr);
+layout = ft_prepare_layout([],hdr);
 
 xpos = layout.pos(1:157,1);
 ypos = layout.pos(1:157,2);

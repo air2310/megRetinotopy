@@ -55,7 +55,16 @@ switch lower(model_type)
 
         def_params.fit_cross_validate = 1;
         def_params.fit_n_iterations_cv = '1000';
-
+        
+    case 'position (x,y) range'    
+        def_params.x0 = 'x range (proportion)';
+        def_params.y0 = 'y range (proportion)';
+        def_params.X_range = '0.2:0.2:3'; % Range of prf sizes, either absolute or proportional
+        def_params.Y_range = '0.2:0.2:3'; 
+        
+        def_params.sigma = 'sigma_smoothed'; % sigma smoothed, sigma, fixed sigma (absolute), fixed sigma (proportion), sigma range (absolute), sigma range (proportion)
+        def_params.beta = 'recomp_beta';
+                
     otherwise
         error('Unknown model type %s.\n',model_type)
         

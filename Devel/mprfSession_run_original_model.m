@@ -121,6 +121,14 @@ if prepare_meg_data;
     end
     fprintf('Processing %d stimulus periods:\n',opts.n_bars);
     
+    
+    % for phase ref amplitude/ for computing the most reliable phase per
+    % channel
+    if strcmpi(opts.metric, 'phase ref amplitude')
+        [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model);
+    end
+    
+    
     % Loop over the metric(s) we want:
     for this_metric = 1:size(opts.idx,2)
         cur_idx = opts.idx{this_metric};
@@ -132,7 +140,8 @@ if prepare_meg_data;
             end
             % Loop over channels
             for this_chan = 1:opts.n_chan
-                cur_data = squeeze(ft_data(:,this_bar,:,this_chan));
+                cur_data = squeeze(ft_data(:,this_bar,:,this_chan));                
+                
                 % If we want amplitude:
                 if strcmpi(opts.metric,'amplitude')
                     % If we want the amplitude from a single frequency
@@ -170,6 +179,46 @@ if prepare_meg_data;
                     % ang_std = @(th) sqrt(-2*log((abs(sum(exp(th(:).*1i))) ./ numel(th))));
                     % Look in mprf__coranal_on_meg_data.m for usage
                     %
+                elseif strcmpi(opts.metric, 'phase ref amplitude')    
+                  % compute the phase of individual sensor and set it to
+                  % the reference phase
+                  if length(cur_idx) == 1
+                    tmp = angle(cur_data(cur_idx,:)); % take the phase at stimulus frequency, for all repeats. Should be 1 X 19
+                    tmp2 = angle(nansum(exp(tmp(:)*1i))); % averages the phases across repeats, single value
+                    if sum(isnan(tmp(:))) == opts.n_reps
+                        tmp2 = NaN;
+                    end
+                    n_nan = sum(~isnan(tmp));
+                  end
+                  mst_rel_ang = PH_opt(this_chan);
+                  diff_ang = tmp2 - mst_rel_ang; 
+                  diff_amp = cos(diff_ang);
+                  
+                  % compute the new amplitude by considering the phase
+                  if length(cur_idx) == 1
+                      tmp_amp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
+                      tmp2_amp = diff_amp .* tmp_amp;
+                      n_nan = sum(isnan(tmp_amp));
+                      % If we want the amplitude averaged across multiple
+                      % frequencies (broad band):
+                  elseif length(cur_idx) > 1
+                      tmp_amp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
+                      tmp_amp = squeeze(exp(nanmean(log(tmp_amp.^2))));
+                      tmp2_amp = diff_amp .* tmp_amp;
+                      n_nan = sum(isnan(tmp_amp));
+                      
+                  end
+                  % If we need the data for multiple iterations:
+                  if model.params.n_iterations > 1
+                      tseries_raw(this_bar,:,this_chan,this_metric) = tmp2_amp;
+                  end
+                  
+                  % Store the average amplitude, it's standard deviation
+                  % and standard error across repetitions:
+                  tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp2_amp);
+                  tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp2_amp);
+                  tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
+                           
                 else
                     error('Not implemented')
                 end
@@ -209,7 +258,11 @@ if strcmpi(model.type,'run original model')
                 not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                 
                 % Make X matrix (predictor)
-                X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                if strcmpi(opts.metric, 'amplitude')
+                    X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                elseif strcmpi(opts.metric,'phase ref amplitude')
+                    X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                end
                 % Compute Beta's:
                 B = X \ cur_data(not_nan);
                 % Store the predicted times series:
@@ -286,8 +339,13 @@ if strcmpi(model.type,'run original model') || ...
                         cur_pred = meg_resp{1}(:,this_chan);
                         not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                         
+                        % Make X matrix (predictor)
+                        if strcmpi(opts.metric, 'amplitude')
+                            X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                        elseif strcmpi(opts.metric,'phase ref amplitude')
+                            X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                        end
                         
-                        X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
                         B = X \ cur_data(not_nan);
                         
                         cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
@@ -321,7 +379,12 @@ if strcmpi(model.type,'run original model') || ...
                         not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                         
                         
-                        X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                        % Make X matrix (predictor)
+                        if strcmpi(opts.metric, 'amplitude')
+                            X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                        elseif strcmpi(opts.metric,'phase ref amplitude')
+                            X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                        end
                         B = X \ cur_data(not_nan);
                         
                         cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
@@ -473,7 +536,12 @@ elseif strcmpi(model.type,'scramble prf parameters')
                 not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                 
                 
-                X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                % Make X matrix (predictor)
+                if strcmpi(opts.metric, 'amplitude')
+                    X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                elseif strcmpi(opts.metric,'phase ref amplitude')
+                    X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                end
                 B = X \ cur_data(not_nan);
                 
                 cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));

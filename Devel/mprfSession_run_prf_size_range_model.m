@@ -87,6 +87,25 @@ end
 
 fprintf('Processing %d stimulus periods:\n',opts.n_bars);
 
+
+% for phase ref amplitude/ for computing the most reliable phase per
+% channel
+n_par_it = size(meg_resp,2);
+n_it = model.params.n_iterations;
+n_chan = size(meg_resp{1},2);
+n_roi = size(meg_resp{1},3);
+n_metric = size(tseries_av,3);
+
+PH_opt = nan(n_par_it,n_chan);
+VE_opt = nan(n_par_it,n_chan);
+if strcmpi(opts.metric, 'phase ref amplitude')
+    for this_par=1:n_par_it
+        meg_resp_par{1} = meg_resp{this_par};
+        [PH_opt(this_par,:),VE_opt(this_par,:)] = mprf_mostreliablephase(ft_data,meg_resp_par,opts,model);
+    end
+end
+
+
 for this_metric = 1:size(opts.idx,2)
     cur_idx = opts.idx{this_metric};
     
@@ -124,7 +143,48 @@ for this_metric = 1:size(opts.idx,2)
             elseif strcmpi(opts.metric, 'phase')
                 error('Not implemented')
                 
+            elseif strcmpi(opts.metric, 'phase ref amplitude')
                 
+              for this_par =1:n_par_it
+                % compute the phase of individual sensor and set it to
+                % the reference phase
+                if length(cur_idx) == 1
+                    tmp = angle(cur_data(cur_idx,:)); % take the phase at stimulus frequency, for all repeats. Should be 1 X 19
+                    tmp2 = angle(nansum(exp(tmp(:)*1i))); % averages the phases across repeats, single value
+                    if sum(isnan(tmp(:))) == opts.n_reps
+                        tmp2 = NaN;
+                    end
+                    n_nan = sum(~isnan(tmp));
+                end
+                mst_rel_ang = PH_opt(this_par,this_chan);
+                diff_ang = tmp2 - mst_rel_ang;
+                diff_amp = cos(diff_ang);
+                
+                % compute the new amplitude by considering the phase
+                if length(cur_idx) == 1
+                    tmp_amp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
+                    tmp2_amp = diff_amp .* tmp_amp;
+                    n_nan = sum(isnan(tmp_amp));
+                    % If we want the amplitude averaged across multiple
+                    % frequencies (broad band):
+                elseif length(cur_idx) > 1
+                    tmp_amp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
+                    tmp_amp = squeeze(exp(nanmean(log(tmp_amp.^2))));
+                    tmp2_amp = diff_amp .* tmp_amp;
+                    n_nan = sum(isnan(tmp_amp));
+                    
+                end
+                % If we need the data for multiple iterations:
+                if model.params.n_iterations > 1
+                    tseries_raw(this_bar,:,this_chan,this_metric,this_par) = tmp2_amp;
+                end
+                
+                % Store the average amplitude, it's standard deviation
+                % and standard error across repetitions:
+                tseries_av(this_bar,this_chan,this_metric,this_par) = nanmean(tmp2_amp);
+                tseries_std(this_bar,this_chan,this_metric,this_par) = nanstd(tmp2_amp);
+                tseries_ste(this_bar,this_chan,this_metric,this_par) = tseries_std(this_bar,this_chan,this_metric,this_par) ./ sqrt(n_nan);
+              end
             else
                 error('Not implemented')
             end
@@ -160,12 +220,6 @@ if  n_cores > 1
     
     
 end
-
-n_it = model.params.n_iterations;
-n_par_it = size(meg_resp,2);
-n_chan = size(meg_resp{1},2);
-n_roi = size(meg_resp{1},3);
-n_metric = size(tseries_av,3);
 
 
 all_corr = nan(n_it, n_par_it,n_chan, n_roi, n_metric);
@@ -221,18 +275,33 @@ elseif n_cores == 1
                     for this_metric = 1:n_metric
                         
                         if model.params.n_iterations > 1
-                            cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric),2);
+                            cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric,this_par),2);
                             
                         else
-                            cur_data = tseries_av(:,this_chan,this_metric);
+                            cur_data = tseries_av(:,this_chan,this_metric,this_par);
                         end
                         
                         cur_pred = meg_resp{this_par}(:,this_chan);
                         not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
                         
-                        tmp = corrcoef(abs(cur_pred(not_nan)), cur_data(not_nan));
+                        % Make X matrix (predictor)
+                        if strcmpi(opts.metric, 'amplitude')
+                            X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                        elseif strcmpi(opts.metric,'phase ref amplitude')
+                            X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                        end
+                        % Compute Beta's:
+                        B = X \ cur_data(not_nan);
+                        % Store the predicted times series:
+                        preds(not_nan, this_chan, this_roi, this_metric) =  X * B;
+                        % Compute coefficient of determination (i.e. R square /
+                        % variance explained):
+                        tmp = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
+                        all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp;
                         
-                        all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp(2);
+                        
+                        %tmp = corrcoef(abs(cur_pred(not_nan)), cur_data(not_nan));
+                        %all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp(2);
                     end
                 end
             end
@@ -244,8 +313,7 @@ elseif n_cores == 1
 end
 
 corr_ci = prctile(all_corr, [2.5 50 97.5],1);
-[max_corr, mc_idx] = max(corr_ci(2,:,:,:,:),[],2);
-
+[max_corr, mc_idx] = max(corr_ci(1,:,:,:,:),[],2);
 
 if min(model.params.sigma_range) < 0;
     one_idx = find(model.params.sigma_range == 0);
@@ -257,7 +325,7 @@ corr_at_one = squeeze(corr_ci(2,one_idx,:,:,:));
 range = [min(model.params.sigma_range) max(model.params.sigma_range)];
 
 
-m_sigma_val = squeeze(model.params.sigma_range(mc_idx));
+m_sigma_val = squeeze(model.params.sigma_range(mc_idx))';
 
 results.corr_mat = all_corr;
 
@@ -277,7 +345,7 @@ if model.params.do_sl && model.params.do_bb
     
     
     fh_sl_map = figure;
-    megPlotMap(results.best_sigma_sl,range,fh_sl_map,'jet','Best sigma difference stimulus locked');
+    megPlotMap(results.best_sigma_sl,range,fh_sl_map,'jet','Best sigma difference stimulus locked',[],[],'interpmethod','nearest');
 
     
     results.corr_ci_bb = corr_ci(:,:,:,:,2);
@@ -327,7 +395,7 @@ elseif ~model.params.do_sl && model.params.do_bb
     
     
 elseif model.params.do_sl && ~model.params.do_bb
-  results.corr_ci_sl = corr_ci(:,:,:,:,1);
+    results.corr_ci_sl = corr_ci(:,:,:,:,1);
     results.best_sigma_sl = m_sigma_val(:,1);
     results.best_corr_sl = squeeze(max_corr(:,:,:,:,1));
     results.corr_at_one_sl = corr_at_one(:,1);
@@ -345,6 +413,51 @@ elseif model.params.do_sl && ~model.params.do_bb
     fh_sl_map = figure;
     megPlotMap(results.best_sigma_sl,range,fh_sl_map,'jet','Best sigma difference stimulus locked');
 
+    
+%     corr_tmp=squeeze(all_corr);
+%     for tmp_cnt=1:n_par_it
+%         fh_sl_map=figure;
+%         megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
+%             'Phase ref fit stimulus locked',[],[],'interpmethod','nearest');
+%         
+%         saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
+%     end
+    
+    load(which('meg160_example_hdr.mat'))
+    layout = ft_prepare_layout([],hdr);
+    xpos = layout.pos(1:157,1);
+    ypos = layout.pos(1:157,2);
+    %chan_occ = find(ypos<1 & xpos<1);
+    chan_occ = find(ypos<0 & xpos<1);
+    % fh_allchan = mprfPlotHeadLayout(chan_occ);
+    % saveas(fh_allchan,'Occchan_hp.jpg');
+    
+    tmp_corr = nan(n_par_it,size(chan_occ,1));
+    for i=1:n_par_it
+        tmp_corr(i,:) = squeeze(all_corr(1,i,chan_occ));
+    end
+    corr_avg = nanmean(tmp_corr,2);
+    corr_std = nanstd(tmp_corr,0,2);
+    corr_ste = corr_std ./ sqrt(size(tmp_corr,2));
+    corr_CI = 1.96 .* corr_ste;
+    corr_ci_occ = prctile(tmp_corr,[5 50 95],2);
+    
+    fh_sl_occ = figure;
+    %plot(1:n_par_it,corr_ci_occ(:,2),'r','Linewidth',3);
+    plot(1:n_par_it,corr_avg,'r','Linewidth',3);
+    %hold on; stem(1:n_par_it,[corr_ci_occ(:,1),corr_ci_occ(:,3)],'b')
+    %hold on; stem(1:n_par_it,corr_avg,'k');
+    %lb = corr_ci_occ(:,2) - corr_ci_occ(:,1);
+    %ub = -corr_ci_occ(:,2) + corr_ci_occ(:,3);
+    %hold on; errorbar(1:n_par_it,corr_ci_occ(:,2),lb,ub);
+    hold on; errorbar(1:n_par_it,corr_avg,corr_CI);
+    grid on;
+    ylim([0.05 0.14]);
+    set(gca,'XTick',1:n_par_it);
+    set(gca,'XTickLabel',model.params.sigma_range);
+    title('Variance explained per sigma ratio');
+    xlabel('Sigma ratio');
+    ylabel('Variance explained');
     
 else
     
@@ -384,6 +497,10 @@ end
 
 if ~isempty(fh_bb_map)
     hgsave(fh_bb_map,fullfile(save_dir,'Broad_band_map'));
+end
+
+if ~isempty(fh_sl_occ)
+    hgsave(fh_sl_occ,fullfile(save_dir,'Stimulus_locked_VEvsSig_occ'));
 end
 
 
