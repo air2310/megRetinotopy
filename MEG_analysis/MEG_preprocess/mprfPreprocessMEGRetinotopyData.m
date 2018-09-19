@@ -1,6 +1,4 @@
 tic % Timing
-% At NYU or not:
-nyu = true;
 
 % start preprocessing after which step ?. I.e. which data to load and work
 % with?
@@ -12,38 +10,8 @@ save_interim_files = true; % Save data at every intermediate step?
 cur_time = datestr(now);
 cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
 
-% Main paths:
-if nyu
-    %data_dir = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wl_subj040/wl_subj040_20170406';   % Subject's data directory    
-
-    if ~exist('denoisedata','file');
-        fprintf('Adding denoise toolbox to path.\n')
-        addpath(genpath('/Users/winawerlab/matlab/git/denoiseproject/'))
-    end
-    
-    if ~exist('mprfEpochMEGData','file') || ~exist('ft_read_data','file')
-        fprintf('Adding mprf and fieldtrip to path.\n')
-        tbUse('retMEG')
-    end
-    
-else
-    %data_dir = '/Users/bpklein/Documents/Server_offline_folder/Data/MEG/wl_subj040/wl_subj040_20170406'; % If from home, add paths 'manually'
-    %addpath(genpath('/Users/bpklein/Documents/Server_offline_folder/Code'));                             % Be sure to add field trip to you path as well
-    
-    if ~exist('denoisedata','file');
-        fprintf('Adding denoise toolbox to path.\n')
-        addpath(genpath('/Users/bpklein/Documents/MATLAB/toolboxes/denoiseproject/'))
-    end
-    
-    if ~exist('mprfEpochMEGData','file') || ~exist('ft_read_data','file')
-        fprintf('Adding mprf and fieldtrip to path.\n')
-        tbUse('retMEG')
-    end
-    
-end
-
 project_dir = mprfRootPath;
-project_dir = project_dir(1:strfind(project_dir, '/Code/mprfSession'));
+project_dir = project_dir(1:strfind(project_dir, '/mprfSession'));
 
 cur_dir = pwd;
 cd(project_dir);
