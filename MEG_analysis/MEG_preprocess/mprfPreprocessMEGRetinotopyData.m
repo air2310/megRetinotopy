@@ -11,7 +11,6 @@ cur_time = datestr(now);
 cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
 
 project_dir = mprfRootPath;
-project_dir = project_dir(1:strfind(project_dir, '/mprfSession'));
 
 cur_dir = pwd;
 cd(project_dir);
