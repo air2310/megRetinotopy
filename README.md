@@ -7,7 +7,8 @@ This project is an MEG retinotopy project, as a collaboration between
 NYU (Noah Benson, Eline Kupers and Jon Winawer) and the Amsterdam Spinoza Center 
 (Akhil Edadan, Wietske Zuiderbaan, Serge Dumoulin).
 
-(Historically, this project was initiated by Barrie Klein, Serge Dumoulin, and Jon Winawer).
+(Historically, this project was initiated by Barrie Klein, Serge Dumoulin, and Jon Winawer.
+The code from Barrie Klein is archived in this repository under archive/archive_master).
 
 ## GOAL
 The aim of this project is to see if we can fit a population receptive field (pRF) 
