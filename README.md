@@ -23,11 +23,11 @@ space. We can do the same transformation for ROIs defined either using mrVista
 
 ## FOLDER STRUCTURE
 This code repository contains 5 subfolders specific for this project:
-	1. Devel 		(old versions of Barrie's code, should not be used)
-	2. MEG_analysis		(preprocessing scripts for MEG data)
-	3. mprfSession		(scripts to compare preprocessed MEG and MRI data)
-	4. MRI_analysis		(preprocessing scripts for MRI data)
-	5. Stimuli 		(used stimulus files for fMRI and MEG sessions)
+1. Devel (old versions of Barrie's code, should not be used)
+2. MEG_analysis (preprocessing scripts for MEG data)
+3. mprfSession (scripts to compare preprocessed MEG and MRI data)
+4. MRI_analysis (preprocessing scripts for MRI data)
+5. Stimuli (used stimulus files for fMRI and MEG sessions)
 
 ## DATA 
 Raw and derivatives of MRI and MEG data are on the Winawerlab server Acadia 
