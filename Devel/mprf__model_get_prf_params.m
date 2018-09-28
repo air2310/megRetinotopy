@@ -48,8 +48,15 @@ y_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix y_fname]);
 sigma_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix sigma_fname]);
 ve_fpath = fullfile(main_dir, bs_surf_dir, [file_prefix ve_fname]);
 
-prf.x0.val = get_prf_val(x_type, model, x_fpath, 'x0');
-prf.y0.val = get_prf_val(y_type, model, y_fpath, 'y0');
+if strcmp(model.type,'position (x,y) range')
+    xy_fpath{1} = x_fpath;
+    xy_fpath{2} = y_fpath;
+    prf.x0.val = get_prf_val(x_type, model, xy_fpath, 'x0');
+    prf.y0.val = get_prf_val(y_type, model, xy_fpath, 'y0');
+else
+    prf.x0.val = get_prf_val(x_type, model, x_fpath, 'x0');
+    prf.y0.val = get_prf_val(y_type, model, y_fpath, 'y0');
+end
 prf.sigma.val = get_prf_val(sigma_type, model, sigma_fpath, 'sigma');
 prf.beta.val = get_prf_val(b_type, model, beta_fpath, 'beta');
 prf.ve.val = get_prf_val(ve_type, model, ve_fpath,'ve');
@@ -180,6 +187,7 @@ function type = get_type(param)
 
 type.smoothed = any(strfind(param, 'smoothed'));
 type.scrambled = any(strfind(param, 'scrambled'));
+type.grouped = any(strfind(param, 'grouped'));
 type.range = any(strfind(param, 'range'));
 type.fixed  = any(strfind(param, 'fixed'));
 type.absolute  = any(strfind(param, 'absolute'));
@@ -269,8 +277,15 @@ elseif type.range && type.absolute
     val = model.params.([cur_par '_range']);
     
 else
-    if exist(fpath,'file')
-        val = read_curv(fpath);
+    %if exist(fpath,'file')    ***** find a way to be able to check in both
+    %the cases (while fpath is a cell or just a string). For now we assume
+    %that the file exist 
+        if iscell(fpath)
+           val1 = read_curv(fpath{1});
+           val2 = read_curv(fpath{2});
+        else
+           val = read_curv(fpath);
+        end
         if type.fixed && type.proportional
             val = val .* model.params.([cur_par '_fix']);
             
@@ -278,12 +293,28 @@ else
         elseif type.range && type.proportional
             tmp = model.params.([cur_par '_range']);
             
-            if min(tmp) < 0;
-                val = bsxfun(@minus, val, tmp);
-                
+            if strcmp(model.type,'position (x,y) range')
+                %if min(tmp) < 0;
+                 %   val = bsxfun(@minus, val, tmp);
+                    
+                %else
+                    if strcmp(cur_par,'x0')
+                        val1 = ((val1*cos(tmp))-(val2*sin(tmp)));
+                        val = val1;
+                    elseif strcmp(cur_par,'y0')
+                        val2 = ((val1*sin(tmp))+(val2*cos(tmp)));
+                        val = val2;
+                    end
+                %end
             else
-                val = val * tmp;
                 
+                if min(tmp) < 0;
+                    val = bsxfun(@minus, val, tmp);
+                    
+                else
+                    val = val * tmp;
+                    
+                end
             end
             
         elseif type.smoothed || type.scrambled || ...
@@ -296,10 +327,10 @@ else
             
         end
         
-    else
-        error('Could not find file: %s', fpath)
+    %else
+    %    error('Could not find file: %s', fpath)
         
-    end
+    %end
 end
 
 

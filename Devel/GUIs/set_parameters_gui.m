@@ -22,7 +22,7 @@ function varargout = set_parameters_gui(varargin)
 
 % Edit the above text to modify the response to help set_parameters_gui
 
-% Last Modified by GUIDE v2.5 27-Jul-2017 12:35:51
+% Last Modified by GUIDE v2.5 04-Sep-2018 17:14:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -698,6 +698,17 @@ for cur_field = fnames'
             
         case 'samp_rate'
             set(handles.txt_samp_rate,'String',def_params.(cur_field{1}));
+          
+        case 'phase_fit'
+            props = get(handles.pu_phase_fit_type);
+            set(handles.pu_phase_fit_type,'Value',find_pu_val(props, def_params.(cur_field{1})));
+        
+        case 'phase_fit_loo'    
+            set(handles.cb_loo,'Value',def_params.(cur_field{1}));
+            
+        case 'loo_type'  
+            props = get(handles.pu_loo_type);
+            set(handles.pu_loo_type,'Value',find_pu_val(props, def_params.(cur_field{1})));         
             
     end
     
@@ -919,7 +930,17 @@ for cur_field = fnames'
 
         case 'samp_rate'
             data.(cur_field{1}) = str2double(get(handles.txt_samp_rate,'String'));
+        
+        case 'phase_fit'
+            tmp = get(handles.pu_phase_fit_type,'String');
+            data.(cur_field{1}) = tmp{get(handles.pu_phase_fit_type,'Value')};
+        
+        case 'phase_fit_loo'    
+            data.(cur_field{1}) = get(handles.cb_loo,'Value');
             
+        case 'loo_type'  
+            tmp = get(handles.pu_loo_type,'String');
+            data.(cur_field{1}) = tmp{get(handles.pu_loo_type,'Value')}; 
             
     end
     
@@ -1497,6 +1518,130 @@ function txt_n_iterations_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit22_Callback(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit22 as text
+%        str2double(get(hObject,'String')) returns contents of edit22 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit22_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function phase_Callback(hObject, eventdata, handles)
+% hObject    handle to phase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of phase as text
+%        str2double(get(hObject,'String')) returns contents of phase as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function phase_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to phase (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function txt_phase_fit_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_phase_fit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_phase_fit as text
+%        str2double(get(hObject,'String')) returns contents of txt_phase_fit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_phase_fit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_phase_fit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in pu_phase_fit_type.
+function pu_phase_fit_type_Callback(hObject, eventdata, handles)
+% hObject    handle to pu_phase_fit_type (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns pu_phase_fit_type contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from pu_phase_fit_type
+
+
+% --- Executes during object creation, after setting all properties.
+function pu_phase_fit_type_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pu_phase_fit_type (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in cb_loo.
+function cb_loo_Callback(hObject, eventdata, handles)
+% hObject    handle to cb_loo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of cb_loo
+
+
+% --- Executes on selection change in pu_loo_type.
+function pu_loo_type_Callback(hObject, eventdata, handles)
+% hObject    handle to pu_loo_type (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns pu_loo_type contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from pu_loo_type
+
+
+% --- Executes during object creation, after setting all properties.
+function pu_loo_type_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to pu_loo_type (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');

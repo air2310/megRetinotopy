@@ -38,6 +38,8 @@ main_dir = mprf__get_directory('main_dir');
 
 % Get the model options
 [model, stimulus, syn, channels] = mprfSession_model_gui;
+
+
 % If we want to do the reliability check, run that one for the type of
 % metric selected. See comments in the respective files for more
 % explanation
@@ -59,7 +61,7 @@ if strcmpi(model.type,'reliability check')
         elseif  ~model.params.do_sl && model.params.do_bb
             fprintf('Running reliability for broad band only\n')
             mprf__do_reliability_analysis(model,'broadband');
-            I
+      
         end
     end
     
@@ -85,6 +87,13 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         prf.y0.type.scrambled
         prf.beta.type.scrambled]);
     
+    % Check how many variables to be scramble are grouped:
+    n_grouped = sum([prf.sigma.type.grouped
+        prf.x0.type.grouped
+        prf.y0.type.grouped
+        prf.beta.type.grouped]);
+    
+    
     iter = [];
     
     if n_range >= 1 && n_scramble >= 1
@@ -105,54 +114,102 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
             end
         end
         
+        % If more than one range variable (example position (x and y))
+    elseif n_range >= 1 && n_scramble == 0
+        tmp_fields = fieldnames(prf);
+        iter.method = 'range';
+        nc=1;
+        for n = 1:length(tmp_fields)
+            if prf.(tmp_fields{n}).type.range
+                
+                iter.var{nc} = tmp_fields{n};
+                iter.n = size(prf.(tmp_fields{n}).val,2);
+                nc =nc+1;
+            end
+        end
+        
         % if only 1 scramble parameter
     elseif n_scramble >= 1 && n_range == 0;
-        iter.method = 'scramble';
-        w_iter_var = cell(1,n_scramble);
-        w_iter_var2 = '';
-        nc = 0;
-        
-        if prf.x0.type.scrambled
-            nc = nc+1;
-            w_iter_var{nc} = 'x0';
-            w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
-        end
-        
-        if prf.y0.type.scrambled
-            nc = nc+1;
-            w_iter_var{nc} = 'y0';
-            w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+        if n_grouped >=1
+            iter.method = 'scramble';
+            w_iter_var = cell(1,1);
+            w_iter_var2 = '';
+            nc = 1;
+            
+            if prf.x0.type.scrambled
+                %nc = nc+1;
+                w_iter_var{nc} = 'grouped';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+            end
+            
+            if prf.y0.type.scrambled
+                %nc = nc+1;
+                w_iter_var{nc} = 'grouped';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
+            
+            if prf.sigma.type.scrambled
+                %nc = nc+1;
+                w_iter_var{nc} = 'grouped';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
+            
+            if prf.beta.type.scrambled
+                %nc = nc+1;
+                w_iter_var{nc} = 'grouped';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
+            
+        else
+            iter.method = 'scramble';
+            w_iter_var = cell(1,n_scramble);
+            w_iter_var2 = '';
+            nc = 0;
+            
+            if prf.x0.type.scrambled
+                nc = nc+1;
+                w_iter_var{nc} = 'x0';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+            end
+            
+            if prf.y0.type.scrambled
+                nc = nc+1;
+                w_iter_var{nc} = 'y0';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
+            
+            if prf.sigma.type.scrambled
+                nc = nc+1;
+                w_iter_var{nc} = 'sigma';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
+            
+            if prf.beta.type.scrambled
+                nc = nc+1;
+                w_iter_var{nc} = 'beta';
+                w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
+                
+            end
             
         end
-        
-        if prf.sigma.type.scrambled
-            nc = nc+1;
-            w_iter_var{nc} = 'sigma';
-            w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
-            
-        end
-        
-        if prf.beta.type.scrambled
-            nc = nc+1;
-            w_iter_var{nc} = 'beta';
-            w_iter_var2 = [w_iter_var2 '_' w_iter_var{nc}];
-            
-        end
-        
-        
     else
         error('Could not determine scramble parameter');
+        %end
+        
+    %elseif n_range > 1
+        %error('Range not implemented for multiple variables')
+        
+    %else
+        %error('Unknown option')
     end
-    
-elseif n_range > 1
-    error('Range not implemented for multiple variables')
-    
-else
-    error('Unknown option')
-    
-    
+    bs = mprf__get_lead_field(bs);
 end
-bs = mprf__get_lead_field(bs);
+%bs = mprf__get_lead_field(bs);
 
 % BASICALLY WE SHOULD DO SOMETHING DIFFERENT IF WE'RE SCRAMBLING HERE.
 % THESE FUNCTIONS ACTUALLY STORE THE PREDICTIONS, WHICH IS FINE IF
@@ -160,7 +217,9 @@ bs = mprf__get_lead_field(bs);
 
 if strcmpi(model.type,'run original model') || ...
         strcmpi(model.type,'prf size range') || ...
-        strcmpi(model.type,'fix prf size')
+        strcmpi(model.type,'fix prf size') ||...
+        strcmpi(model.type,'position (x,y) range') 
+
     
     pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi, iter);
     meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
@@ -189,9 +248,13 @@ if strcmpi(model.type,'run original model') || ...
         
         mprfSession_run_original_model(pred);
         
-    elseif strcmpi(model.type,'prf size range')
+    elseif strcmpi(model.type,'prf size range') 
         
         mprfSession_run_prf_size_range_model(pred);
+    
+    elseif strcmpi(model.type,'position (x,y) range')
+        
+       mprfSession_run_prf_position_range_model(pred);
         
     end
     
@@ -320,6 +383,12 @@ elseif strcmpi(model.type, 'scramble prf parameters');
                     case 'beta'
                         this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
                         print_str = [print_str ' beta'];
+                    case 'grouped'
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                        this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                        print_str = [print_str ' grouped'];
                     otherwise
                         error('Did not recognize scramble parameter');
                 end
@@ -416,6 +485,12 @@ elseif strcmpi(model.type, 'scramble prf parameters');
                     case 'beta'
                         this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
                         print_str = [print_str ' beta'];
+                    case 'grouped'
+                        this_prf.sigma.val(roi_idx) = this_prf.sigma.val(cur_idx);
+                        this_prf.y0.val(roi_idx) = this_prf.y0.val(cur_idx);
+                        this_prf.x0.val(roi_idx) = this_prf.x0.val(cur_idx);
+                        this_prf.beta.val(roi_idx) = this_prf.beta.val(cur_idx);
+                        print_str = [print_str ' grouped'];
                     otherwise
                         error('Did not recognize scramble parameter');
                 end
@@ -434,15 +509,21 @@ elseif strcmpi(model.type, 'scramble prf parameters');
             
         end
     end
-    
-    
-    
+
+    phase_fit_type = [];
+    phase_fit_loo = [];
+    if strcmp(model.params.metric,'phase ref amplitude') 
+        phase_fit_type = model.params.phase_fit;
+        if model.params.phase_fit_loo == 1
+            phase_fit_loo = 'loo';
+        end
+    end
     res_dir = mprf__get_directory('model_results');
     main_dir = mprf__get_directory('main_dir');
     rel_dir = 'scramble_prfs';
     cur_time = mprf__get_cur_time;
     
-    save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_stimulus_locked_' w_iter_var2 '_' cur_time]);
+    save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_stimulus_locked_' w_iter_var2 '_' phase_fit_type '_' phase_fit_loo '_' cur_time]);
     mkdir(save_dir);
     
     results.orig_corr = orig_data.cur_corr;

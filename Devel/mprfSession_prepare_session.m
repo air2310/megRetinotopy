@@ -13,6 +13,10 @@ main_dir = mprf__get_directory('main_dir');
 % 2. the segmentation file on which the RM model is based
 % 3. access to the mrVista session directory for which the RM model was
 % created
+
+% Use setVAnatomyPath('.../t1.nii.gz') when using model ran from a
+% different system
+
 if mprfSESSION.has.rm_model && ...
         mprfSESSION.has.vista_class && ...
         ~isempty(mprfSESSION.orig.paths.vista_path) && ...

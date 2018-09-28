@@ -26,7 +26,14 @@ else
             
         end
         
-        orig_val = prf.(iter.var).val;
+        if iscell(iter.var) % for the position (x,y) where the number of parameters changing are 2 (x,y)
+            orig_val = zeros(size(roi.mask,1),iter.n,size(iter.var,2));
+            for idx_itervar = 1:size(iter.var,2)
+                orig_val(:,:,idx_itervar) = prf.(iter.var{idx_itervar}).val;
+            end
+        else
+            orig_val = prf.(iter.var).val;
+        end
         
     elseif strcmpi(iter.method,'scramble')
         
@@ -36,7 +43,16 @@ else
 end
 
 for nnn = 1:iter.n
-    prf.(iter.var).val = orig_val(:,nnn);
+    
+    if iscell(iter.var)
+        for idx_itervar = 1:size(iter.var,2)
+            prf.(iter.var{idx_itervar}).val = orig_val(:,nnn,idx_itervar);
+        end
+    else
+        prf.(iter.var).val = orig_val(:,nnn);
+    end
+    
+    
     fprintf('Iteration %d\n',nnn)
     
     for nn = 1:length(rois)

@@ -1,32 +1,34 @@
-function [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model)
+function [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,opts,meg_resp)
+% mprf_mostreliablephase - Determining the most reliable phase for
+% every channel purely from the MEG data and the predicted response as the phase that gives highest variance explained for that channel
+%
+% input -
+%       ft_data : Fourier transformed MEG data (4D data - Eg: 551 (frequency)x 140 (epochs) x 19 (repeats) x 157 (channels))
+%       meg_resp : predicted MEG response (Eg: 140 (epochs) x 157 (channels))
+%       opts : structure with information about, number of channels,
+%              epochs, repeats, sampling rate, stimulus frequency, index of
+%              stimulus frequency, metric
+%
 
-ph_range = -3.14:0.0314:3.14;
+ph_range = -3.14:0.314:3.14; % range of values to search for the reference phase
 VE_fit_alang = nan(size(ph_range,2),opts.n_chan);
 ang_opt = nan(1,opts.n_chan);
 PH_opt = nan(1,opts.n_chan);
 VE_opt = nan(1,opts.n_chan);
 
 for idx_ch = 1:opts.n_chan
-    %tseries_av_rel_ph_ch =  tseries_av_ph(:,idx_ch);
-    %tseries_av_rel_amp_ch =  tseries_av_amp(:,idx_ch)./max(tseries_av_rel_amp(:,idx_ch));
-    
-    %figPoint_2_2 = figure;
-    %eval(strcat('figPoint_2_2_',num2str(idx_ch), '= figure'));
-    %mprf_polarplot(tseries_av_rel_amp_ch, tseries_av_rel_ph_ch);
-    %pause();
-    
     cur_ch = idx_ch;
     count_ang = 1;
     clear opt_ve VE_fit_opt;
     
     for idx_ang = ph_range
+        tic;
         ref_ph = idx_ang;
-        %opts.metric = 'amplitude';
-        [tseries_av, tseries_std, tseries_ste] = mprf_computemetric(ft_data(:,:,:,cur_ch),opts,model,ref_ph);
+        
+        % Determine the phase reference amplitude for every channel
+        [tseries_av, ~ , ~ ] = mprf_computemetric(ft_data(:,:,:,cur_ch),opts,ref_ph);
         
         % Compute the signed prediction
-        % check where the prediction is, remove the abs
-        
         % Fit the MEG predictions on the time series extracted above
         % Sizes (again...)
         n_bars = size(meg_resp{1},1);
@@ -90,7 +92,13 @@ for idx_ch = 1:opts.n_chan
             preds_opt(:,idx_ch) = nan(n_bars,1);
         end
         
-        
+        if count_ang == 1 && idx_ch == 1
+            tmp_time = toc;
+            tot_time = tmp_time * length(ph_range) * opts.n_looreps * n_chan;
+            t_hms = datevec(tot_time./(60*60*24));
+            fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
+            fprintf('\n');
+        end
         VE_fit_alang(count_ang,idx_ch) = mean_ve(idx_ch);
         count_ang = count_ang+1;
     end
@@ -98,8 +106,9 @@ for idx_ch = 1:opts.n_chan
     ang_opt(idx_ch) = count_opt;
     PH_opt(idx_ch) = ref_ph_opt;
     VE_opt(idx_ch) = VE_fit_opt;
-    %hold on;
     
+    % for plotting the phase values on polar cordinates
+    %hold on;
     %x = (VE_fit_opt./max(VE_fit_opt)).*cos(ph_range);
     %y = (VE_fit_opt./max(VE_fit_opt)).*sin(ph_range);
     %plot(x,y,'ko-','MarkerSize',1);

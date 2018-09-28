@@ -90,6 +90,9 @@ for n = 1:length(varargin)
         case 'syn_preproc'
             varargout{n}  = 'modeling/synthetic/preproc';
             
+        case 'model_plots'    
+            varargout{n}  = 'modeling/plots';
+            
         otherwise
             
             fprintf('ERROR: unknow type %s\n',varargin{n})

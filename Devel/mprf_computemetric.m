@@ -1,5 +1,14 @@
-function [tseries_av, tseries_std, tseries_ste, tseries_av_rep] = mprf_computemetric(ft_data,opts,model,mst_rel_ang)
-% Computes the metric
+function [tseries_av, tseries_std, tseries_ste, tseries_av_rep] = mprf_computemetric(ft_data,opts,ref_ang)
+% mprf_computemetric - Computes the metric (Amplitude/ Phase/ Phase referenced amplitude)
+%
+% inputs -
+%       ft_data : Fourier transformed MEG data (4D data - Eg: 551 (frequency)x 140 (epochs) x 19 (repeats) x 157 (channels))
+%       opts : structure with information about, number of channels,
+%              epochs, repeats, sampling rate, stimulus frequency, index of
+%              stimulus frequency, metric
+%       mst_rel_ang : Used for the computation of the most reliable phase
+%                     for model fit
+
 opts.n_bars = size(ft_data,2);
 opts.n_reps = size(ft_data,3);
 opts.n_chan = size(ft_data,4);
@@ -8,20 +17,22 @@ tseries_av = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
 tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
 tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
 tseries_av_rep = nan(opts.n_bars,opts.n_reps, opts.n_chan,size(opts.idx,2));
- for this_metric = 1:size(opts.idx,2)
-        cur_idx = opts.idx{this_metric};
+
+% Loop over the stimulus locked / Broadband
+for this_metric = 1:size(opts.idx,2)
+    cur_idx = opts.idx{this_metric};
     % Loop over stimulus frames
     for this_bar = 1:opts.n_bars
         if mod(this_bar,10) == 0
-            fprintf('%d.',this_bar)
+            %    fprintf('%d.',this_bar)
         end
         % Loop over channels
         for this_chan = 1:opts.n_chan
-%        for this_chan = mst_rel_channel    
+            %        for this_chan = mst_rel_channel
             if ndims(ft_data)==4
-               cur_data = squeeze(ft_data(:,this_bar,:,this_chan));
+                cur_data = squeeze(ft_data(:,this_bar,:,this_chan));
             elseif ndims(ft_data)==3
-               cur_data = squeeze(ft_data(:,this_bar,:));
+                cur_data = squeeze(ft_data(:,this_bar,:));
             end
             % If we want amplitude:
             if strcmpi(opts.metric,'amplitude')
@@ -39,7 +50,7 @@ tseries_av_rep = nan(opts.n_bars,opts.n_reps, opts.n_chan,size(opts.idx,2));
                     
                 end
                 % If we need the data for multiple iterations:
-                if model.params.n_iterations > 1
+                if opts.n_iter > 1
                     tseries_raw(this_bar,:,this_chan,this_metric) = tmp;
                 end
                 
@@ -75,50 +86,61 @@ tseries_av_rep = nan(opts.n_bars,opts.n_reps, opts.n_chan,size(opts.idx,2));
                 % Look in mprf__coranal_on_meg_data.m for usage
                 %
             elseif strcmpi(opts.metric,'phase ref amplitude')
-                  % compute the phase of individual sensor and set it to
-                  % the reference phase
-                  if length(cur_idx) == 1
+                % compute the phase of individual sensor and set it to
+                % the reference phase
+                if length(cur_idx) == 1
                     tmp = angle(cur_data(cur_idx,:)); % take the phase at stimulus frequency, for all repeats. Should be 1 X 19
                     tmp2 = angle(nansum(exp(tmp(:)*1i))); % averages the phases across repeats, single value
                     if sum(isnan(tmp(:))) == opts.n_reps
                         tmp2 = NaN;
                     end
                     n_nan = sum(~isnan(tmp));
-                  end
-                  diff_ang = tmp2 - mst_rel_ang; 
-                  diff_amp = cos(diff_ang);
-                  
-                  % compute the new amplitude by considering the phase
-                  if length(cur_idx) == 1
-                      tmp_amp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
-                      tmp2_amp = diff_amp .* tmp_amp;
-                      n_nan = sum(isnan(tmp_amp));
-                      % If we want the amplitude averaged across multiple
-                      % frequencies (broad band):
-                  elseif length(cur_idx) > 1
-                      tmp_amp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
-                      tmp_amp = squeeze(exp(nanmean(log(tmp_amp.^2))));
-                      tmp2_amp = diff_amp .* tmp_amp;
-                      n_nan = sum(isnan(tmp_amp));
-                      
-                  end
-                  % If we need the data for multiple iterations:
-                  if model.params.n_iterations > 1
-                      tseries_raw(this_bar,:,this_chan,this_metric) = tmp2_amp;
-                  end
-                  
-                  % Store the average amplitude, it's standard deviation
-                  % and standard error across repetitions:
-                  tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp2_amp);
-                  tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp2_amp);
-                  tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
-                  
+                end
+                % for the fitting of reference phase, ref_ang is a single
+                % value whereas while using the reference phase to
+                % calculate the phase referenced amplitude fit, it's a
+                % 1x157 vector
+                if size(ref_ang,2) > 1
+                    mst_rel_ang = ref_ang(this_chan);
+                else
+                    mst_rel_ang = ref_ang;
+                end
+                
+                diff_ang = tmp - mst_rel_ang; % Difference between the observed phase value and reference phase
+                diff_amp = cos(diff_ang);
+                
+                % compute the new amplitude by considering the phase
+                if length(cur_idx) == 1
+                    tmp_amp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
+                    tmp2_amp = diff_amp .* tmp_amp;
+                    n_nan = sum(isnan(tmp_amp));
+                    % If we want the amplitude averaged across multiple
+                    % frequencies (broad band):
+                elseif length(cur_idx) > 1
+                    tmp_amp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
+                    tmp_amp = squeeze(exp(nanmean(log(tmp_amp.^2))));
+                    tmp2_amp = diff_amp .* tmp_amp;
+                    n_nan = sum(isnan(tmp_amp));
+                    
+                end
+                % If we need the data for multiple iterations:
+                if opts.n_iter > 1
+                    tseries_raw(this_bar,:,this_chan,this_metric) = tmp2_amp;
+                end
+                
+                % Store the average amplitude, it's standard deviation
+                % and standard error across repetitions:
+                tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp2_amp);
+                tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp2_amp);
+                tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
+                
             else
                 error('Not implemented')
             end
             
         end
     end
-    fprintf('\n')
- end
+    %fprintf('\n')
+end
+
 end

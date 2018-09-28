@@ -34,7 +34,7 @@ switch lower(model_type)
     case 'prf size range'
         
         def_params.sigma = 'sigma range (proportion)'; % sigma smoothed, sigma, fixed sigma (absolute), fixed sigma (proportion), sigma range (absolute), sigma range (proportion)
-        def_params.sigma_range = '0.2:0.2:3'; % Range of prf sizes, either absolute or proportional
+        def_params.sigma_range = 'round(logspace(log10(0.2),log10(10),20),1)'; % Range of prf sizes, either absolute or proportional
         
         def_params.x0 = 'x_smoothed';
         def_params.y0 = 'y_smoothed';
@@ -59,8 +59,8 @@ switch lower(model_type)
     case 'position (x,y) range'    
         def_params.x0 = 'x range (proportion)';
         def_params.y0 = 'y range (proportion)';
-        def_params.X_range = '0.2:0.2:3'; % Range of prf sizes, either absolute or proportional
-        def_params.Y_range = '0.2:0.2:3'; 
+        def_params.x0_range = '0:(pi/4):2*pi'; % Range of prf sizes, either absolute or proportional
+        def_params.y0_range = '0:(pi/4):2*pi'; 
         
         def_params.sigma = 'sigma_smoothed'; % sigma smoothed, sigma, fixed sigma (absolute), fixed sigma (proportion), sigma range (absolute), sigma range (proportion)
         def_params.beta = 'recomp_beta';
@@ -127,4 +127,7 @@ def_params.n_iterations = '';
 def_params.n_cores = '1';
 def_params.samp_rate = '1000';
 
+def_params.phase_fit = '-';
+def_params.phase_fit_loo = 0;
+def_params.loo_type = 'Amp';
 end

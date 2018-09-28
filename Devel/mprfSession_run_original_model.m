@@ -15,6 +15,8 @@ else
     else
         prepare_meg_data = false;
         tseries_av = use_meg_data.tseries_av;
+        model = pred.model;
+        opts.metric = model.params.metric;
     end
     
 end
@@ -84,6 +86,15 @@ if prepare_meg_data;
     opts.n_bars = sz(2);
     opts.n_reps = sz(3);
     opts.n_chan = sz(4);
+    opts.n_iter = model.params.n_iterations;
+    
+    % params for the phase fitting
+    
+    opts.phs_metric = model.params.phase_fit; % for choosing between model or data based fit
+    phase_fit_loo.do = model.params.phase_fit_loo;
+    phase_fit_loo.type = model.params.loo_type; %'amp' or 'VE';
+    phfittype = '';
+    opts.n_looreps = 1;
     
     % Check if we want both the stimulus locked and broad band signals
     tmp = sum([model.params.do_sl model.params.do_bb]);
@@ -93,7 +104,7 @@ if prepare_meg_data;
     opts.idx = cell(1,tmp);
     
     % Get the indices from the MEG epochs that correspond to the
-    % frequencies we need. 
+    % frequencies we need.
     if model.params.do_sl && model.params.do_bb
         [opts.idx{1}, opts.idx{2}] = mprf__get_freq_indices(true, true, opts);
         
@@ -111,10 +122,26 @@ if prepare_meg_data;
     % FFT on meg data
     ft_data = mprf__fft_on_meg_data(data.data);
     
+    % Separate the ft_data to train and test data set to do a leave one out
+    % analysis
+    idx_train = nan(opts.n_reps,opts.n_reps-1);
+    idx_test = nan(opts.n_reps,1);
+    if phase_fit_loo.do == 1
+        opts.n_looreps = opts.n_reps;
+        for this_loorep = 1:opts.n_looreps
+            idx_test(this_loorep,1) = this_loorep;
+            idx_train(this_loorep,:) = setdiff(1:opts.n_reps,idx_test(this_loorep));
+            
+        end
+    else
+        idx_test = 1:opts.n_reps;
+        idx_train = 1:opts.n_reps;
+    end
+    
     % Preallocate variables:
-    tseries_av = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
-    tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
-    tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+    tseries_av = nan(opts.n_bars,opts.n_chan,size(opts.idx,2),opts.n_looreps);
+    tseries_std = nan(opts.n_bars,opts.n_chan,size(opts.idx,2),opts.n_looreps);
+    tseries_ste = nan(opts.n_bars,opts.n_chan,size(opts.idx,2),opts.n_looreps);
     
     if model.params.n_iterations > 1
         tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
@@ -122,112 +149,63 @@ if prepare_meg_data;
     fprintf('Processing %d stimulus periods:\n',opts.n_bars);
     
     
-    % for phase ref amplitude/ for computing the most reliable phase per
-    % channel
+    % For phase ref amplitude/ for computing the most reliable phase per channel
     if strcmpi(opts.metric, 'phase ref amplitude')
-        [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model);
-    end
-    
-    
-    % Loop over the metric(s) we want:
-    for this_metric = 1:size(opts.idx,2)
-        cur_idx = opts.idx{this_metric};
-        
-        % Loop over stimulus frames
-        for this_bar = 1:opts.n_bars
-            if mod(this_bar,10) == 0
-                fprintf('%d.',this_bar)
+        if strcmpi(opts.phs_metric,'data_fit')
+            % Determining the reference phase from MEG data alone, as the
+            % phase that gives maximum variance for phase referenced
+            % amplitudes for 140 epochs for that particular channel.
+            
+            [PH_opt,VE_opt] = mprf_mostreliablephase_data(ft_data,opts);
+            
+        elseif strcmpi(opts.phs_metric,'model_fit')
+            % Determing the reference phase from MEG data and the predicted
+            % repsonses, as the phase that gives highest variance explained
+            % for a particular channel
+            
+            PH_opt = nan(opts.n_looreps,opts.n_chan);
+            VE_opt = nan(opts.n_looreps,opts.n_chan);
+            for this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
+                fprintf('leave one out repetition # %d',this_loorep)
+                fprintf('\n');
+                [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
             end
-            % Loop over channels
-            for this_chan = 1:opts.n_chan
-                cur_data = squeeze(ft_data(:,this_bar,:,this_chan));                
-                
-                % If we want amplitude:
-                if strcmpi(opts.metric,'amplitude')
-                    % If we want the amplitude from a single frequency
-                    % (i.e. stimulus locked)
-                    if length(cur_idx) == 1
-                        tmp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
-                        n_nan = sum(isnan(tmp));
-                    % If we want the amplitude averaged across multiple
-                    % frequencies (broad band):
-                    elseif length(cur_idx) > 1
-                        tmp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
-                        tmp = squeeze(exp(nanmean(log(tmp.^2))));
-                        n_nan = sum(isnan(tmp));
-                        
-                    end
-                    % If we need the data for multiple iterations:
-                    if model.params.n_iterations > 1
-                        tseries_raw(this_bar,:,this_chan,this_metric) = tmp;
-                    end
-                    
-                    % Store the average amplitude, it's standard deviation
-                    % and standard error across repetitions:
-                    tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp);
-                    tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp);
-                    tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
-                    
-                elseif strcmpi(opts.metric, 'coherence')
-                    error('Not implemented')
-                    
-                elseif strcmpi(opts.metric, 'phase')
-                    error('Not implemented')
-                    % If you are implementing this, be sure to use the
-                    % circular/angular average and standard deviation:
-                    % ang_av = @(th) angle(sum(exp(th(:)*1i)));
-                    % ang_std = @(th) sqrt(-2*log((abs(sum(exp(th(:).*1i))) ./ numel(th))));
-                    % Look in mprf__coranal_on_meg_data.m for usage
-                    %
-                elseif strcmpi(opts.metric, 'phase ref amplitude')    
-                  % compute the phase of individual sensor and set it to
-                  % the reference phase
-                  if length(cur_idx) == 1
-                    tmp = angle(cur_data(cur_idx,:)); % take the phase at stimulus frequency, for all repeats. Should be 1 X 19
-                    tmp2 = angle(nansum(exp(tmp(:)*1i))); % averages the phases across repeats, single value
-                    if sum(isnan(tmp(:))) == opts.n_reps
-                        tmp2 = NaN;
-                    end
-                    n_nan = sum(~isnan(tmp));
-                  end
-                  mst_rel_ang = PH_opt(this_chan);
-                  diff_ang = tmp2 - mst_rel_ang; 
-                  diff_amp = cos(diff_ang);
-                  
-                  % compute the new amplitude by considering the phase
-                  if length(cur_idx) == 1
-                      tmp_amp =  squeeze(2*(abs(cur_data(cur_idx,:)))/opts.n_time);
-                      tmp2_amp = diff_amp .* tmp_amp;
-                      n_nan = sum(isnan(tmp_amp));
-                      % If we want the amplitude averaged across multiple
-                      % frequencies (broad band):
-                  elseif length(cur_idx) > 1
-                      tmp_amp = 2*(abs(cur_data(cur_idx,:)))/opts.n_time;
-                      tmp_amp = squeeze(exp(nanmean(log(tmp_amp.^2))));
-                      tmp2_amp = diff_amp .* tmp_amp;
-                      n_nan = sum(isnan(tmp_amp));
-                      
-                  end
-                  % If we need the data for multiple iterations:
-                  if model.params.n_iterations > 1
-                      tseries_raw(this_bar,:,this_chan,this_metric) = tmp2_amp;
-                  end
-                  
-                  % Store the average amplitude, it's standard deviation
-                  % and standard error across repetitions:
-                  tseries_av(this_bar,this_chan,this_metric) = nanmean(tmp2_amp);
-                  tseries_std(this_bar,this_chan,this_metric) = nanstd(tmp2_amp);
-                  tseries_ste(this_bar,this_chan,this_metric) = tseries_std(this_bar,this_chan,this_metric) ./ sqrt(n_nan);
-                           
-                else
-                    error('Not implemented')
-                end
-                
+            if phase_fit_loo.do == 1
+                phfittype = 'lo';
+                % for switching the angle for a leave one out iteration
+                % by 180 degrees
+%                 for cur_chan =1:opts.n_chan
+%                     xbins = -3.14:0.314:3.14-0.314;
+%                     [N,x] = hist(PH_opt(:,cur_chan),xbins);
+%                     idx_max = find(N == max(N));
+%                     idx_close = (x(idx_max(1))-0.1745 < PH_opt(:,cur_chan)') & (PH_opt(:,cur_chan)' < x(idx_max(1))+0.1745);
+%                     PH_opt(~idx_close,cur_chan) = wrapToPi(PH_opt(~idx_close,cur_chan) + 3.14);
+%                 end
+                PH_opt_loo = PH_opt;
             end
         end
-        fprintf('\n')
+        results.PH_opt = PH_opt;
+        results.VE_opt = VE_opt;
+    end
+    
+    % to check something for the leave one out condition, its better to load
+    % the precomputed reference phases.
+    %load('modeling/results/original_model/Run_Stimulus_locked_Model_fit_lo_21_Sep_2018_13_54_12/Results.mat');
+    %PH_opt_loo = results.PH_opt;
+    for this_loorep = 1:opts.n_looreps % For leave one out computation of the phases
+        if strcmpi(opts.metric, 'phase ref amplitude') && phase_fit_loo.do == 1
+            PH_opt = PH_opt_loo(this_loorep,:);
+        end
+        
+        [tseries_av(:,:,:,this_loorep), tseries_std(:,:,:,this_loorep) , tseries_ste(:,:,:,this_loorep)] = mprf_computemetric(ft_data(:,:,idx_test(this_loorep,:),:),opts,PH_opt);
         
     end
+    if strcmpi(phase_fit_loo.type,'Amp')
+        tseries_av = nanmean(tseries_av,4);
+        opts.n_looreps = size(tseries_av,4);
+    end
+    
+    
 end
 
 % Fit the MEG predictions on the time series extracted above
@@ -246,32 +224,33 @@ if strcmpi(model.type,'run original model')
     preds = nan(n_bars, n_chan, n_roi, n_metric);
     mean_ve = nan(n_chan, n_roi, n_metric);
     fit_data = nan(n_bars,n_chan,n_roi,n_metric);
-    
-    for this_chan = 1:n_chan
-        for this_roi = 1:n_roi
-            for this_metric = 1:n_metric
-                % Get MEG predictions:
-                cur_pred = meg_resp{1}(:,this_chan);
-                % Get current data:
-                cur_data = tseries_av(:,this_chan,this_metric);
-                % Exclude NANs
-                not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
-                
-                % Make X matrix (predictor)
-                if strcmpi(opts.metric, 'amplitude')
-                    X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
-                elseif strcmpi(opts.metric,'phase ref amplitude')
-                    X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+    for this_loorep = 1:opts.n_looreps
+        for this_chan = 1:n_chan
+            for this_roi = 1:n_roi
+                for this_metric = 1:n_metric
+                    % Get MEG predictions:
+                    cur_pred = meg_resp{1}(:,this_chan);
+                    % Get current data:
+                    cur_data = tseries_av(:,this_chan,this_metric,this_loorep);
+                    % Exclude NANs
+                    not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
+                    
+                    % Make X matrix (predictor)
+                    if strcmpi(opts.metric, 'amplitude')
+                        X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                    elseif strcmpi(opts.metric,'phase ref amplitude')
+                        X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                    end
+                    % Compute Beta's:
+                    B = X \ cur_data(not_nan);
+                    % Store the predicted times series:
+                    preds(not_nan, this_chan, this_roi, this_metric, this_loorep) =  X * B;
+                    % Compute coefficient of determination (i.e. R square /
+                    % variance explained):
+                    cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
+                    mean_ve( this_chan, this_roi, this_metric, this_loorep) = cod_01;
+                    fit_data(:, this_chan, this_roi, this_metric, this_loorep) = cur_data;
                 end
-                % Compute Beta's:
-                B = X \ cur_data(not_nan);
-                % Store the predicted times series:
-                preds(not_nan, this_chan, this_roi, this_metric) =  X * B;
-                % Compute coefficient of determination (i.e. R square /
-                % variance explained):
-                cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
-                mean_ve( this_chan, this_roi, this_metric) = cod_01;
-                fit_data(:, this_chan, this_roi, this_metric) = cur_data;
             end
         end
     end
@@ -501,7 +480,7 @@ if strcmpi(model.type,'run original model') || ...
         rel_dir = ['fixed_prf_size_' num2str(model.params.sigma_fix)];
         
     end
-    save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' cur_time]);
+    save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' opts.phs_metric '_' phfittype '_' cur_time]);
     mkdir(save_dir);
     
     

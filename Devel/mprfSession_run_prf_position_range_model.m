@@ -1,4 +1,4 @@
-function out = mprfSession_run_prf_size_range_model(pred)
+function out = mprfSession_run_prf_position_range_model(pred)
 out =[];
 
 if ~exist('pred','var') || isempty(pred)
@@ -64,7 +64,6 @@ phase_fit_loo.type = model.params.loo_type; %'amp' or 'VE';
 phfittype = '';
 opts.n_looreps = 1;
 
-
 tmp = sum([model.params.do_sl model.params.do_bb]);
 opts.metric = model.params.metric;
 opts.idx = cell(1,tmp);
@@ -90,8 +89,8 @@ ft_data = mprf__fft_on_meg_data(data.data);
 idx_train = nan(opts.n_reps,opts.n_reps-1);
 idx_test = nan(opts.n_reps,1);
 if phase_fit_loo.do == 1
-    opts.n_looreps = opts.n_reps;
-    for this_loorep = 1:opts.n_looreps
+    n_looreps = opts.n_reps;
+    for this_loorep = 1:n_looreps
         idx_test(this_loorep,1) = this_loorep;
         idx_train(this_loorep,:) = setdiff(1:opts.n_reps,idx_test(this_loorep));
     end
@@ -99,6 +98,10 @@ else
     idx_test = 1:opts.n_reps;
     idx_train = 1:opts.n_reps;
 end
+
+tseries_av = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
+tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
 
 if model.params.n_iterations > 1
     tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
@@ -113,9 +116,7 @@ n_par_it = size(meg_resp,2);
 n_it = model.params.n_iterations;
 n_chan = size(meg_resp{1},2);
 n_roi = size(meg_resp{1},3);
-n_metric = size(opts.idx,2);
-
-
+n_metric = size(tseries_av,3);
 
 %%
 tic;
@@ -155,15 +156,15 @@ if strcmpi(opts.metric, 'phase ref amplitude')
                 
                 [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp_par);
             end    
-                if phase_fit_loo.do == 1
+                if phase_fit_loo.do == 1 % for flipping the angles by 180 degrees. But this doesn't make sense. Can be deleted later.
                     phfittype = 'lo';
-                    for cur_chan =1:opts.n_chan
-                        xbins = -3.14:0.314:3.14-0.314;
-                        [N,x] = hist(PH_opt_tmp(:,cur_chan,this_par),xbins);
-                        idx_max = find(N == max(N));
-                        idx_close = (x(idx_max(1))-0.1745 < PH_opt_tmp(:,cur_chan,this_par)') & (PH_opt_tmp(:,cur_chan)' < x(idx_max(1))+0.1745);
-                        PH_opt_tmp(~idx_close,cur_chan,this_par) = wrapToPi(PH_opt_tmp(~idx_close,cur_chan,this_par) + 3.14);
-                    end
+%                     for cur_chan =1:opts.n_chan
+%                         xbins = -3.14:0.314:3.14-0.314;
+%                         [N,x] = hist(PH_opt_tmp(:,cur_chan,this_par),xbins);
+%                         idx_max = find(N == max(N));
+%                         idx_close = (x(idx_max(1))-0.1745 < PH_opt_tmp(:,cur_chan,this_par)') & (PH_opt_tmp(:,cur_chan)' < x(idx_max(1))+0.1745);
+%                         PH_opt_tmp(~idx_close,cur_chan,this_par) = wrapToPi(PH_opt_tmp(~idx_close,cur_chan,this_par) + 3.14);
+%                     end
                 end
                 
             %end
@@ -177,7 +178,6 @@ end
 tot_time = toc;
 t_hms = datevec(tot_time./(60*60*24));
 fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
-
 %%
 
 % to check something for the leave one out condition, its better to load
@@ -204,8 +204,8 @@ if strcmpi(phase_fit_loo.type,'Amp')
     tseries_av = nanmean(tseries_av,5);
     opts.n_looreps = size(tseries_av,5);
 end
-
-
+  
+    
 n_cores = model.params.n_cores;
 
 if  n_cores > 1
@@ -330,19 +330,13 @@ end
 corr_ci = prctile(all_corr, [2.5 50 97.5],1);
 [max_corr, mc_idx] = max(corr_ci(1,:,:,:,:),[],2);
 
-
-if min(model.params.sigma_range) < 0;
-    one_idx = find(model.params.sigma_range == 0);
-else
-    one_idx = find(model.params.sigma_range == 1);
-end
+one_idx = find(model.params.x0_range == 0);
 
 range = [min(model.params.x0_range) max(model.params.x0_range)];
 
-m_sigma_val = squeeze(model.params.sigma_range(mc_idx));
+m_xy_val = squeeze(model.params.x0_range(mc_idx));
 
 corr_at_one = squeeze(corr_ci(2,one_idx,:,:,:));
-
 
 results.corr_mat = all_corr;
 
@@ -352,10 +346,13 @@ xpos = layout.pos(1:157,1);
 ypos = layout.pos(1:157,2);
 %chan_occ = find(ypos<1 & xpos<1);
 chan_occ = find(ypos<0 & xpos<1);
+% fh_allchan = mprfPlotHeadLayout(chan_occ);
+% saveas(fh_allchan,'Occchan_hp.jpg');
+
 
 if model.params.do_sl && model.params.do_bb
     results.corr_ci_sl = corr_ci(:,:,:,:,1);
-    results.best_sigma_sl = m_sigma_val(:,1);
+    results.best_xy_sl = m_xy_val(:,1);
     results.best_corr_sl = squeeze(max_corr(:,:,:,:,1));
     results.corr_at_one_sl = corr_at_one(:,1);
     
@@ -369,11 +366,11 @@ if model.params.do_sl && model.params.do_bb
     
     
     fh_sl_map = figure;
-    megPlotMap(results.best_sigma_sl,range,fh_sl_map,'jet','Best sigma difference stimulus locked');
-    
+    megPlotMap(results.best_xy_sl,range,fh_sl_map,'jet','Best position difference stimulus locked');
+
     
     results.corr_ci_bb = corr_ci(:,:,:,:,2);
-    results.best_sigma_bb = m_sigma_val(:,2);
+    results.best_xy_bb = m_xy_val(:,2);
     results.best_corr_bb = squeeze(max_corr(:,:,:,:,2));
     results.corr_at_one_bb = corr_at_one(:,2);
     
@@ -387,12 +384,9 @@ if model.params.do_sl && model.params.do_bb
     
     type = 'both';
     
-    
-    
     fh_bb_map = figure;
-    megPlotMap(results.best_sigma_bb,range,fh_bb_map,'jet','Best sigma difference broad band');
-    
-    
+    megPlotMap(results.best_xy_bb,range,fh_bb_map,'jet','Best xy difference broad band');
+        
     % Position ratio vs Variance explained for sl
     tmp_corr_sl = nan(n_par_it,size(chan_occ,1));
     for i=1:n_par_it
@@ -407,9 +401,9 @@ if model.params.do_sl && model.params.do_bb
     hold on; errorbar(1:n_par_it,corr_avg_sl,corr_CI_sl);
     grid on;
     set(gca,'XTick',1:n_par_it);
-    set(gca,'XTickLabel',model.params.sigma_range);
-    title('Variance explained per sigma ratio sl locked');
-    xlabel('sigma ratio');
+    set(gca,'XTickLabel',model.params.x0_range);
+    title('Variance explained per xy ratio sl');
+    xlabel('X(Y) ratio');
     ylabel('Variance explained');
     
     % Position ratio vs Variance explained for bb
@@ -426,9 +420,9 @@ if model.params.do_sl && model.params.do_bb
     hold on; errorbar(1:n_par_it,corr_avg_bb,corr_CI_bb);
     grid on;
     set(gca,'XTick',1:n_par_it);
-    set(gca,'XTickLabel',model.params.sigma_range);
-    title('Variance explained per sigma ratio bb');
-    xlabel('sigma ratio');
+    set(gca,'XTickLabel',model.params.x0_range);
+    title('Variance explained per xy ratio bb');
+    xlabel('X(Y) ratio');
     ylabel('Variance explained');
     
     
@@ -436,7 +430,7 @@ elseif ~model.params.do_sl && model.params.do_bb
     
     
     results.corr_ci_bb = corr_ci(:,:,:,:,2);
-    results.best_sigma_bb = m_sigma_val(:,2);
+    results.best_xy_bb = m_xy_val(:,2);
     results.best_corr_bb = squeeze(max_corr(:,:,:,:,2));
     results.corr_at_one_bb = corr_at_one(:,2);
     
@@ -451,9 +445,9 @@ elseif ~model.params.do_sl && model.params.do_bb
     type = 'Broad_band';
     
     fh_bb_map = figure;
-    megPlotMap(results.best_sigma_bb,range,fh_bb_map,'jet','Best sigma difference broad band');
+    megPlotMap(results.best_xy_bb,range,fh_bb_map,'jet','Best xy difference broad band');
     
-    % Position ratio vs Variance explained for bb
+        % Position ratio vs Variance explained for bb
     tmp_corr_bb = nan(n_par_it,size(chan_occ,1));
     for i=1:n_par_it
         tmp_corr_bb(i,:) = squeeze(all_corr(:,i,chan_occ,:,2));
@@ -467,14 +461,14 @@ elseif ~model.params.do_sl && model.params.do_bb
     hold on; errorbar(1:n_par_it,corr_avg_bb,corr_CI_bb);
     grid on;
     set(gca,'XTick',1:n_par_it);
-    set(gca,'XTickLabel',model.params.sigma_range);
-    title('Variance explained per sigma ratio bb');
-    xlabel('sigma ratio');
+    set(gca,'XTickLabel',model.params.x0_range);
+    title('Variance explained per xy ratio bb');
+    xlabel('X(Y) ratio');
     ylabel('Variance explained');
     
 elseif model.params.do_sl && ~model.params.do_bb
     results.corr_ci_sl = corr_ci(:,:,:,:,1);
-    results.best_sigma_sl = m_sigma_val(:,1);
+    results.best_xy_sl = m_xy_val(:,1);
     results.best_corr_sl = squeeze(max_corr(:,:,:,:,1));
     results.corr_at_one_sl = corr_at_one(:,1);
     
@@ -489,26 +483,26 @@ elseif model.params.do_sl && ~model.params.do_bb
     type = 'Stimulus_locked';
     
     fh_sl_map = figure;
-    megPlotMap(results.best_sigma_sl,range,fh_sl_map,'jet','Best sigma difference stimulus locked');
+    megPlotMap(results.best_xy_sl,range,fh_sl_map,'jet','Best xy difference stimulus locked');
+
     
+    corr_tmp=squeeze(all_corr);
+    for tmp_cnt=1:n_par_it
+        fh_sl_map=figure;
+        megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
+            'Phase ref fit stimulus locked',[],[],'interpmethod','nearest');
+        
+       % saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
+    end
     
-    %     corr_tmp=squeeze(all_corr);
-    %     for tmp_cnt=1:n_par_it
-    %         fh_sl_map=figure;
-    %         megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
-    %             'Phase ref fit stimulus locked',[],[],'interpmethod','nearest');
-    %
-    %         saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
-    %     end
-    
-    %     load(which('meg160_example_hdr.mat'))
-    %     layout = ft_prepare_layout([],hdr);
-    %     xpos = layout.pos(1:157,1);
-    %     ypos = layout.pos(1:157,2);
-    %     %chan_occ = find(ypos<1 & xpos<1);
-    %     chan_occ = find(ypos<0 & xpos<1);
-    %     % fh_allchan = mprfPlotHeadLayout(chan_occ);
-    %     % saveas(fh_allchan,'Occchan_hp.jpg');
+%     load(which('meg160_example_hdr.mat'))
+%     layout = ft_prepare_layout([],hdr);
+%     xpos = layout.pos(1:157,1);
+%     ypos = layout.pos(1:157,2);
+%     %chan_occ = find(ypos<1 & xpos<1);
+%     chan_occ = find(ypos<1 & xpos<1);
+%     % fh_allchan = mprfPlotHeadLayout(chan_occ);
+%     % saveas(fh_allchan,'Occchan_hp.jpg');
     
     tmp_corr = nan(n_par_it,size(chan_occ,1));
     for i=1:n_par_it
@@ -530,11 +524,11 @@ elseif model.params.do_sl && ~model.params.do_bb
     %hold on; errorbar(1:n_par_it,corr_ci_occ(:,2),lb,ub);
     hold on; errorbar(1:n_par_it,corr_avg,corr_CI);
     grid on;
-    ylim([0.05 0.14]);
+    %ylim([0.05 0.14]);
     set(gca,'XTick',1:n_par_it);
-    set(gca,'XTickLabel',model.params.sigma_range);
-    title('Variance explained per sigma ratio');
-    xlabel('Sigma ratio');
+    set(gca,'XTickLabel',model.params.x0_range);
+    title('Variance explained per xy ratio sl');
+    xlabel('X(Y) ratio');
     ylabel('Variance explained');
     
 else
@@ -555,8 +549,8 @@ end
 
 res_dir = mprf__get_directory('model_results');
 main_dir = mprf__get_directory('main_dir');
-rel_dir = 'prf_size_range';
-
+rel_dir = 'prf_position_range';
+ 
 save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' opts.phs_metric '_' phfittype '_' cur_time]);
 mkdir(save_dir);
 
@@ -578,11 +572,11 @@ if ~isempty(fh_bb_map)
 end
 
 if ~isempty(fh_sl_VEparams)
-    hgsave(fh_sl_VEparams,fullfile(save_dir,'Stimulus_locked_VEvsSig_occ'));
+    hgsave(fh_sl_VEparams,fullfile(save_dir,'Stimulus_locked_VEvsPos_occ'));
 end
 
 if ~isempty(fh_bb_VEparams)
-    hgsave(fh_bb_VEparams,fullfile(save_dir,'Stimulus_locked_VEvsSig_occ'));
+    hgsave(fh_bb_VEparams,fullfile(save_dir,'Stimulus_locked_VEvsPos_occ'));
 end
 
 save(fullfile(save_dir, 'Results'),'results','model')

@@ -22,6 +22,13 @@ elseif strcmpi(type, 'broadband')
     
 end
 
+% For loading the MEG response to do the model based reference angle fit
+if strcmpi(model.params.phase_fit,'model_fit')
+    if ~exist('pred','var') || isempty(pred)
+        pred = mprf__load_model_predictions;
+        meg_resp = pred.meg_resp;
+    end    
+end
 
 n_it = model.params.n_iterations_rel;
 n_cores = model.params.n_cores;
@@ -90,29 +97,84 @@ n_bars = sz(2);
 n_reps = sz(3);
 n_chan = sz(4);
 opts.n_time = n_time;
+opts.metric = model.params.metric;
+opts.n_bars = sz(2);
+opts.n_reps = sz(3);
+opts.n_chan = sz(4);
 
 base_sel = false(1,n_bars);
 base_sel(periods.stim) = true;
 
 [stim_idx, bb_idx] = mprf__get_freq_indices(true, true, opts);
 
+if model.params.do_sl && model.params.do_bb
+    [opts.idx{1}, opts.idx{2}] = mprf__get_freq_indices(true, true, opts);
+    
+elseif model.params.do_sl && ~model.params.do_bb
+    opts.idx{1} = mprf__get_freq_indices(true, false, opts);
+elseif model.params.do_bb && ~model.params.do_sl
+    [~, opts.idx{1}] = mprf__get_freq_indices(false, true, opts);
+else
+    error('Unknown option')
+end
+
 ft_data = mprf__fft_on_meg_data(data.data);
 
 all_amp = nan(n_bars, n_reps, n_chan);
-fprintf('Computing raw amplitudes\n')
-for this_chnl = 1:n_chan
-    for this_bar = 1:n_bars
-        if do_sl
-            all_amp(this_bar,:,this_chnl) =  2*(abs(ft_data(stim_idx,this_bar,:,this_chnl)))/n_time;
-            
-        elseif do_bb
-            tmp = 2*(abs(ft_data(bb_idx,this_bar,:,this_chnl)))/n_time;
-            all_amp(this_bar,:,this_chnl) =  exp(nanmean(log(tmp.^2)));
+
+if strcmpi(model.params.metric,'amplitude')
+    fprintf('Computing raw amplitudes\n')
+    for this_chan = 1:n_chan
+        for this_bar = 1:n_bars
+            if do_sl
+                all_amp(this_bar,:,this_chan) =  2*(abs(ft_data(stim_idx,this_bar,:,this_chan)))/n_time;
+                
+            elseif do_bb
+                tmp = 2*(abs(ft_data(bb_idx,this_bar,:,this_chan)))/n_time;
+                all_amp(this_bar,:,this_chan) =  exp(nanmean(log(tmp.^2)));
+                
+            end
             
         end
-        
+    end
+elseif strcmpi(model.params.metric,'phase ref amplitude')
+    % for phase ref amplitude/ for computing the most reliable phase per
+    % channel
+    opts.phs_metric = model.params.phase_fit;
+    if strcmpi(opts.phs_metric,'data_fit')
+        [PH_opt,VE_opt] = mprf_mostreliablephase_data(ft_data,opts,model);
+    elseif strcmpi(opts.phs_metric,'model_fit')
+        [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model);
+    end
+    
+    fprintf('Computing phase referenced amplitudes\n')
+    for this_chan = 1:n_chan
+        for this_bar = 1:n_bars
+            if do_sl
+                tmp_phase_1 = angle(ft_data(stim_idx,this_bar,:,this_chan)); % take the phase at stimulus frequency, for all repeats. Should be 1 X 19
+                %tmp2 = angle(nansum(exp(tmp(:)*1i))); % averages the phases across repeats, single value
+                %if sum(isnan(tmp(:))) == opts.n_reps
+                %    tmp2 = NaN;
+                %end
+                n_nan = sum(~isnan(tmp_phase_1));
+                mst_rel_ang = PH_opt(this_chan);
+                diff_ang = tmp_phase_1 - mst_rel_ang;
+                diff_amp = cos(diff_ang);
+                
+                tmp_amp_1 = 2*(abs(ft_data(stim_idx,this_bar,:,this_chan)))/n_time;
+                %tmp_all_amp(this_bar,:,this_chan) = tmp_amp_1;
+                all_amp(this_bar,:,this_chan) = tmp_amp_1 .* diff_amp;
+                
+            elseif do_bb
+                tmp = 2*(abs(ft_data(bb_idx,this_bar,:,this_chan)))/n_time;
+                all_amp(this_bar,:,this_chan) =  exp(nanmean(log(tmp.^2)));
+                
+            end
+            
+        end
     end
 end
+
 warning('off','all')
 
 
@@ -146,25 +208,33 @@ if n_cores == 1
             av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
             av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
             
-            for this_chnl = 1:n_chan
-                sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
-                    ~isnan(av_amp_02(:,this_chnl))';
+            for this_chan = 1:n_chan
+                sel = base_sel & ~isnan(av_amp_01(:,this_chan))' & ...
+                    ~isnan(av_amp_02(:,this_chan))';
                 
                 
-                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
-                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+%                 X_01 = [ones(size(av_amp_01(sel, this_chan))) av_amp_01(sel, this_chan)];
+%                 X_02 = [ones(size(av_amp_02(sel, this_chan))) av_amp_02(sel, this_chan)];                
+%                 B_02 = X_01 \ X_02(:,2);
+%                 B_01 = X_02 \ X_01(:,2);
+%                 cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+%                 cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                
+
+                 X_01 = [av_amp_01(sel, this_chan) ones(size(av_amp_01(sel, this_chan)))];
+                 X_02 = [av_amp_02(sel, this_chan) ones(size(av_amp_02(sel, this_chan)))]; 
+                 B_02 = polyfit(X_01(:,1),X_02(:,1),1);
+                 B_01 = polyfit(X_02(:,1),X_01(:,1),1);
+                 cod_02 = 1- (var(X_01(:,1) - (X_02 * B_02' )) ./ var(X_01(:,1)));
+                 cod_01 = 1- (var(X_02(:,1) - (X_01 * B_01')) ./ var(X_02(:,1)));
                 
                 
-                B_02 = X_01 \ X_02(:,2);
-                B_01 = X_02 \ X_01(:,2);
+
                 
-                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
-                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                %tmp_r = corrcoef(av_amp_01(sel,this_chan), ...
+                 %   av_amp_02(sel,this_chan));
                 
-                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                 %   av_amp_02(sel,this_chnl));
-                
-                cor_stuff(this_chnl,[n n+1]) = [cod_01 cod_02];
+                cor_stuff(this_chan,[n n+1]) = [cod_01 cod_02];
                 
             end
             
@@ -218,13 +288,13 @@ if n_cores == 1
 %                 
 %                 cur_av = squeeze(nanmean(all_amp(:,perms(nnn,:),:),2));
 %                 
-%                 for this_chnl = 1:n_chan
-%                     sel = base_sel & ~isnan(cur_av(:,this_chnl))' & ...
-%                         ~isnan(all_av(:,this_chnl))';
-%                     tmp_r = corrcoef(cur_av(sel,this_chnl), ...
-%                         all_av(sel,this_chnl));
+%                 for this_chan = 1:n_chan
+%                     sel = base_sel & ~isnan(cur_av(:,this_chan))' & ...
+%                         ~isnan(all_av(:,this_chan))';
+%                     tmp_r = corrcoef(cur_av(sel,this_chan), ...
+%                         all_av(sel,this_chan));
 %                     
-%                     scan_corr{nn}(this_chnl,nnn) = tmp_r(2);
+%                     scan_corr{nn}(this_chan,nnn) = tmp_r(2);
 %                     
 %                 end
 %                 
@@ -238,8 +308,8 @@ if n_cores == 1
 %         
 %         
 %         for nn = 1:n_reps
-%             for  this_chnl = 1:n_chan
-%                 scan_med_corr(this_chnl,nn) = median(scan_corr{nn}(this_chnl,:));
+%             for  this_chan = 1:n_chan
+%                 scan_med_corr(this_chan,nn) = median(scan_corr{nn}(this_chan,:));
 %                 
 %             end
 %         end
@@ -288,26 +358,32 @@ if n_cores == 1
                 av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
                 av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
                 
-                for this_chnl = 1:n_chan
-                    sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
-                        ~isnan(av_amp_02(:,this_chnl))';
+                for this_chan = 1:n_chan
+                    sel = base_sel & ~isnan(av_amp_01(:,this_chan))' & ...
+                        ~isnan(av_amp_02(:,this_chan))';
                     
                     
                     
-                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
-                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+%                 X_01 = [ones(size(av_amp_01(sel, this_chan))) av_amp_01(sel, this_chan)];
+%                 X_02 = [ones(size(av_amp_02(sel, this_chan))) av_amp_02(sel, this_chan)];
+%                 
+%                 
+%                 B_02 = X_01 \ X_02(:,2);
+%                 B_01 = X_02 \ X_01(:,2);
+%                 
+%                 cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+%                 cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                
+                 X_01 = [av_amp_01(sel, this_chan) ones(size(av_amp_01(sel, this_chan)))];
+                 X_02 = [av_amp_02(sel, this_chan) ones(size(av_amp_02(sel, this_chan)))]; 
+                 B_02 = polyfit(X_01(:,1),X_02(:,1),1);
+                 B_01 = polyfit(X_02(:,1),X_01(:,1),1);
+                 cod_02 = 1- (var(X_01(:,1) - (X_02 * B_02' )) ./ var(X_01(:,1)));
+                 cod_01 = 1- (var(X_02(:,1) - (X_01 * B_01')) ./ var(X_02(:,1)));
                 
                 
-                B_02 = X_01 \ X_02(:,2);
-                B_01 = X_02 \ X_01(:,2);
                 
-                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
-                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
-                
-                
-                
-                
-                scan_corr_02{nn}(this_chnl,[nnn nnn+1]) = [cod_01 cod_02];
+                scan_corr_02{nn}(this_chan,[nnn nnn+1]) = [cod_01 cod_02];
                 
                 
                 end
@@ -324,8 +400,8 @@ if n_cores == 1
         results.raw.amplitude = all_amp;
 
         for nn = 2:n_reps
-            for  this_chnl = 1:n_chan
-                scan_med_corr_02(this_chnl,nn-1) = median(scan_corr_02{nn}(this_chnl,:));
+            for  this_chan = 1:n_chan
+                scan_med_corr_02(this_chan,nn-1) = median(scan_corr_02{nn}(this_chan,:));
                 
             end
         end
@@ -362,25 +438,33 @@ elseif n_cores > 1
             av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
             av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
             
-            for this_chnl = 1:n_chan
-                sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
-                    ~isnan(av_amp_02(:,this_chnl))';
+            for this_chan = 1:n_chan
+                sel = base_sel & ~isnan(av_amp_01(:,this_chan))' & ...
+                    ~isnan(av_amp_02(:,this_chan))';
               
-                X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
-                X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+%                 X_01 = [ones(size(av_amp_01(sel, this_chan))) av_amp_01(sel, this_chan)];
+%                 X_02 = [ones(size(av_amp_02(sel, this_chan))) av_amp_02(sel, this_chan)];
+%                 
+%                 
+%                 B_02 = X_01 \ X_02(:,2);
+%                 B_01 = X_02 \ X_01(:,2);
+%                 
+%                 cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+%                 cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+
+                 X_01 = [av_amp_01(sel, this_chan) ones(size(av_amp_01(sel, this_chan)))];
+                 X_02 = [av_amp_02(sel, this_chan) ones(size(av_amp_02(sel, this_chan)))]; 
+                 B_02 = polyfit(X_01(:,1),X_02(:,1),1);
+                 B_01 = polyfit(X_02(:,1),X_01(:,1),1);
+                 cod_02 = 1- (var(X_01(:,1) - (X_02 * B_02' )) ./ var(X_01(:,1)));
+                 cod_01 = 1- (var(X_02(:,1) - (X_01 * B_01')) ./ var(X_02(:,1)));
                 
                 
-                B_02 = X_01 \ X_02(:,2);
-                B_01 = X_02 \ X_01(:,2);
+                %tmp_r = corrcoef(av_amp_01(sel,this_chan), ...
+                 %   av_amp_02(sel,this_chan));
                 
-                cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
-                cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
-                
-                %tmp_r = corrcoef(av_amp_01(sel,this_chnl), ...
-                 %   av_amp_02(sel,this_chnl));
-                
-                cor_stuff(this_chnl,n) = cod_01;
-                cor_stuff2(this_chnl,n) = cod_02;
+                cor_stuff(this_chan,n) = cod_01;
+                cor_stuff2(this_chan,n) = cod_02;
                 
                 
             end
@@ -432,13 +516,13 @@ elseif n_cores > 1
 %                 
 %                 cur_av = squeeze(nanmean(all_amp(:,perms(nnn,:),:),2));
 %                 
-%                 for this_chnl = 1:n_chan
-%                     sel = base_sel & ~isnan(cur_av(:,this_chnl))' & ...
-%                         ~isnan(all_av(:,this_chnl))';
-%                     tmp_r = corrcoef(cur_av(sel,this_chnl), ...
-%                         all_av(sel,this_chnl));
+%                 for this_chan = 1:n_chan
+%                     sel = base_sel & ~isnan(cur_av(:,this_chan))' & ...
+%                         ~isnan(all_av(:,this_chan))';
+%                     tmp_r = corrcoef(cur_av(sel,this_chan), ...
+%                         all_av(sel,this_chan));
 %                     
-%                     scan_corr{nn}(this_chnl,nnn) = tmp_r(2);
+%                     scan_corr{nn}(this_chan,nnn) = tmp_r(2);
 %                     
 %                 end
 %                 
@@ -450,8 +534,8 @@ elseif n_cores > 1
 %         
 %         
 %         for nn = 1:n_reps
-%             for  this_chnl = 1:n_chan
-%                 scan_med_corr(this_chnl,nn) = median(scan_corr{nn}(this_chnl,:));
+%             for  this_chan = 1:n_chan
+%                 scan_med_corr(this_chan,nn) = median(scan_corr{nn}(this_chan,:));
 %                 
 %             end
 %         end
@@ -494,24 +578,30 @@ elseif n_cores > 1
                 av_amp_01 = squeeze(nanmean(all_amp(:,cur_idx_01,:),2));
                 av_amp_02 = squeeze(nanmean(all_amp(:,cur_idx_02,:),2));
                 
-                for this_chnl = 1:n_chan
-                    sel = base_sel & ~isnan(av_amp_01(:,this_chnl))' & ...
-                        ~isnan(av_amp_02(:,this_chnl))';
+                for this_chan = 1:n_chan
+                    sel = base_sel & ~isnan(av_amp_01(:,this_chan))' & ...
+                        ~isnan(av_amp_02(:,this_chan))';
                     
-                    X_01 = [ones(size(av_amp_01(sel, this_chnl))) av_amp_01(sel, this_chnl)];
-                    X_02 = [ones(size(av_amp_02(sel, this_chnl))) av_amp_02(sel, this_chnl)];
+%                     X_01 = [ones(size(av_amp_01(sel, this_chan))) av_amp_01(sel, this_chan)];
+%                     X_02 = [ones(size(av_amp_02(sel, this_chan))) av_amp_02(sel, this_chan)];
+%                     
+%                     
+%                     B_02 = X_01 \ X_02(:,2);
+%                     B_01 = X_02 \ X_01(:,2);
+%                     
+%                     cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
+%                     cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
+                    
+                 X_01 = [av_amp_01(sel, this_chan) ones(size(av_amp_01(sel, this_chan)))];
+                 X_02 = [av_amp_02(sel, this_chan) ones(size(av_amp_02(sel, this_chan)))]; 
+                 B_02 = polyfit(X_01(:,1),X_02(:,1),1);
+                 B_01 = polyfit(X_02(:,1),X_01(:,1),1);
+                 cod_02 = 1- (var(X_01(:,1) - (X_02 * B_02' )) ./ var(X_01(:,1)));
+                 cod_01 = 1- (var(X_02(:,1) - (X_01 * B_01')) ./ var(X_02(:,1)));
+                  
                     
                     
-                    B_02 = X_01 \ X_02(:,2);
-                    B_01 = X_02 \ X_01(:,2);
-                    
-                    cod_02 = 1- (var(X_01(:,2) - (X_02 * B_02 )) ./ var(X_01(:,2)));
-                    cod_01 = 1- (var(X_02(:,2) - (X_01 * B_01)) ./ var(X_02(:,2)));
-                    
-                    
-                    
-                    
-                    scan_corr_02{nn}(this_chnl,[nnn nnn+1]) = [cod_01 cod_02];
+                    scan_corr_02{nn}(this_chan,[nnn nnn+1]) = [cod_01 cod_02];
                     
                     
                     
@@ -529,8 +619,8 @@ elseif n_cores > 1
         results.raw.amplitude = all_amp;
         
         for nn = 2:n_reps
-            for  this_chnl = 1:n_chan
-                scan_med_corr_02(this_chnl,nn-1) = median(scan_corr_02{nn}(this_chnl,:));
+            for  this_chan = 1:n_chan
+                scan_med_corr_02(this_chan,nn-1) = median(scan_corr_02{nn}(this_chan,:));
                 
             end
         end
@@ -554,7 +644,7 @@ main_dir = mprf__get_directory('main_dir');
 rel_dir = 'reliability_checks';
 
 cur_time = mprf__get_cur_time;
-save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' cur_time]);
+save_dir = fullfile(main_dir, res_dir, rel_dir, ['Run_' type '_' opts.phs_metric '_' cur_time]);
 mkdir(save_dir);
 
 if ~isempty(fh_half)
