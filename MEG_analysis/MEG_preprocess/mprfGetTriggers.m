@@ -16,12 +16,12 @@ for n = 1:length(param_files)
     
     
     if n == 1;
-        timing.stimulus.seqtime = nan(size(stim_time.seq_times,1), length(param_files));
+        timing.stimulus.seqtime = nan(size(stim_time.seq_times,2), length(param_files));
         timing.stimulus.flip_time = nan(size(flip_time.flip_times,2), length(param_files));
         
         timing.trigger.flip_time = nan(size(flip_time.trigger_times,2), length(param_files));
-        timing.trigger.seq_time = nan(size(stim_time.trigger_times,1), length(param_files));
-        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02,1), length(param_files));
+        timing.trigger.seq_time = nan(size(stim_time.trigger_times,2), length(param_files));
+        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02,2), length(param_files));
         
         timing.trigger.idx = nan(size(flip_time.trigger_times,2), length(param_files));
         timing.init.flip_time = nan(size(init.flip_times,2), length(param_files));
@@ -30,7 +30,7 @@ for n = 1:length(param_files)
         
     end
     
-    timing.stimulus.seqtime(:,n) = stim_time.seq_times; % Time at which a flip was requested
+    timing.stimulus.seqtime(:,n) = stim_time.seq_times'; % Time at which a flip was requested
     timing.stimulus.flip_time(:,n) = flip_time.flip_times'; % Timing of the flips, relative to start of the experiment
     
     if ~isempty(flip_time.trigger_times)
@@ -38,7 +38,7 @@ for n = 1:length(param_files)
     end
     
     if ~isempty(flip_time.trigger_times)
-        timing.trigger.seq_time(:,n) = stim_time.trigger_times; % time at which a trigger was requested
+        timing.trigger.seq_time(:,n) = stim_time.trigger_times'; % time at which a trigger was requested
     end
     
     timing.trigger.flip_time_02(:,n) = flip_time.trigger_times_02; % trigger value for each flip, zeros is no trigger

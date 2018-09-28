@@ -1,14 +1,16 @@
-# megRetinotopy
-Code for MEG Retinotopy Project led by Barrie Klein
+# README for MEG Retinotopy code
 
-[NEEDS UPDATING]
+(Last update by EK: Sep 20, 2018)
 
-README Retinotopy Folder (Last update by JW: March 3rd, 2017)
+## DESCRIPTION
+This project is an MEG retinotopy project, as a collaboration between 
+NYU (Noah Benson, Eline Kupers and Jon Winawer) and the Amsterdam Spinoza Center 
+(Akhil Edadan, Wietske Zuiderbaan, Serge Dumoulin).
 
-This project is an MEG retinotopy project, as a collaboration between Barrie Klein, 
-Noah Benson, Eline Kupers, Serge Dumoulin, and Jon Winawer
+(Historically, this project was initiated by Barrie Klein, Serge Dumoulin, and Jon Winawer.
+The code from Barrie Klein is archived in this repository under archive/archive_master).
 
-
+## GOAL
 The aim of this project is to see if we can fit a population receptive field (pRF) 
 template of the visual cortex to MEG data. In order to achieve this we derive predicted 
 MEG time course by multiplying a pRF model template with a stimulus sequence and computing 
@@ -19,19 +21,36 @@ export the data first to the Freesurfer surface space and then to the Brainstorm
 space. We can do the same transformation for ROIs defined either using mrVista 
 (i.e. drawn on a mesh) or using Noah Benson’s cortical templates.
 
-At this stage (April 1st, 2017) this can be done for an example subject (Ernie) 
-by following the steps below:
+## FOLDER STRUCTURE
+This code repository contains 5 subfolders specific for this project:
+1. Devel (old versions of Barrie's code, should not be used)
+2. MEG_analysis (preprocessing scripts for MEG data)
+3. mprfSession (scripts to compare preprocessed MEG and MRI data)
+4. MRI_analysis (preprocessing scripts for MRI data)
+5. Stimuli (used stimulus files for fMRI and MEG sessions)
 
-1. Add the ‘Code’ directory in this folder to your Matlab path
+## DATA 
+Raw and derivatives of MRI and MEG data are on the Winawerlab server Acadia 
+server > Projects > MEG > Retinotopy.
 
-2. Add ‘vistasoft’ to your Matlab path
+## PIPELINE
+This code is Matlab based, and has the following depencies:
+- FreeSurfer (v??)
+- Vistasoft (v??)
+- ToolboxToolbox (v??)
+- Fieldtrip (v??)
+- Brainstorm (v??)
+- meg_utils (v??)
 
-3. Create a new directory. This directory will act as a session folder, much like the 
-	mrVista subject directory.
+Get started:
+1. Pull code directory from GitHub with the ToolboxToolbox and add to paths
+`tbUse('regMeg')`
 
-4. Navigate to this directory in Matlab
 
-5. To start a new session type ‘mprfSessionInit(true)’ in your Matlab command window
+**[ EVERYTHING FROM HERE NEEDS TO BE CHECKED AND/OR UPDATED ]**
+
+
+2. To start a new session type ‘mprfSessionInit(true)’ in your Matlab command window
 	The input argument “true” tells mprfSessionInit that you want to use Ernie’s example 
 	data. In that case, it will attempt to download Ernie’s example data fMRI and 
 	anatomical data using mrtInstallSampleData. In order to run, this needs the Remote 
@@ -141,25 +160,7 @@ will be prepared and stored under prediction/stimulus and is accessible later. O
 have been made, you can view them on the brainstorm pial surface via a GUI
 
 
-
-
-__________________________________________________________________________________________________
-This main folder contains 3 subfolders specific for this project:
-	1. Code
-	2. Data [This is not on GitHubL: It is on winwerlab server]
-	3. Stimuli [This is not on GitHubL: It is on winwerlab server]
-
-Apart from these, it also contains additional sub folders:
-	1. Ernie_brainstorm_data [This is not on GitHub: It is on winwerlab server]
-	2. Ernie_ROIs [This is not on GitHub: It is on winwerlab server]
-	3. Legacy [NA]
-	4. Several session folders. [This is not on GitHuB: It is on winwerlab server]
-
-
-
 To make stimuli:
 - mprfCreate.. … … 
 
-Associated GitHub / Toolbox files:
-- vistadisp.json (toolbox registry)
 
