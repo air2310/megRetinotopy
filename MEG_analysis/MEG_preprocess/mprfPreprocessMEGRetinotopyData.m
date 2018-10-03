@@ -1,7 +1,13 @@
-tic % Timing
+%% mprfPreprocessMEGRetinotopyData
 
+% This script is the main analysis to preprocess the MEG dataset.
+
+% Questions:
 % start preprocessing after which step ?. I.e. which data to load and work
 % with?
+
+
+% Settings: 
 preproc = 'full'; % Full = do all steps,
 
 save_interim_files = true; % Save data at every intermediate step?
@@ -321,7 +327,6 @@ if strcmpi(preproc,'denoise') || strcmpi(preproc,'full')
         
        
 end
-toc
 
 return
 
