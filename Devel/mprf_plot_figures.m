@@ -9,7 +9,7 @@ function mprf_plot_figures(plot_type, interpmethod)
 %  1 -  'Original model'         
 %  2 -  'scrambled'; channels for averaging  - all the channels on the back on head       
 %  3 -  'scrambled'; channels for averaging based on the reliability metric;         
-%  4 -  'range'; channels for averaging  - all the channels in the back on head
+%  4 -  'range'; channels for averaging  - all the channels in the back of head
 %  5 -  'range'; channels for averaging based on the reliability metric;
 %  6 -  'range'; channels for averaging are selected based on whether they are senstive to scrambling of pRF parameters;
 %  7 -  'reliability'; - across repeat reliability metric
@@ -24,7 +24,7 @@ function mprf_plot_figures(plot_type, interpmethod)
 % For Range,     model_type = 'range'; 
 %                              chan_sel = 'rel';  
 %                              chan_sel = 'back';
-%                              chan_sel = 'ind_scr' (for electrodes with p value <0.01 for the scrambling condition)
+%                              chan_sel = 'ind_scr' (for channels with p value <0.01 for the scrambling condition)
 % For reliability,
 %                model_type = 'reliability';
 % For phase_diff,model_type = 'phase_diff';  
@@ -74,7 +74,7 @@ main_dir = mprf__get_directory('main_dir');
 %plot_type = 1;
 switch plot_type
     case 1
-        model_type = 'Original model';  chan_sel = ''; compare_phfits = 1;
+        model_type = 'Original model';  chan_sel = ''; compare_phfits = 0;
         
     case 2
         model_type = 'scrambled'; chan_sel = 'back'; compare_phfits = 0;

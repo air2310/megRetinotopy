@@ -148,7 +148,8 @@ if prepare_meg_data;
     end
     fprintf('Processing %d stimulus periods:\n',opts.n_bars);
     
-    
+    PH_opt = []; % When the metric is amplitude, function mprf_computemetric still asks for a phase value. So, we just give an empty variable
+    VE_opt = []; 
     % For phase ref amplitude/ for computing the most reliable phase per channel
     if strcmpi(opts.metric, 'phase ref amplitude')
         if strcmpi(opts.phs_metric,'data_fit')
@@ -174,13 +175,13 @@ if prepare_meg_data;
                 phfittype = 'lo';
                 % for switching the angle for a leave one out iteration
                 % by 180 degrees
-%                 for cur_chan =1:opts.n_chan
-%                     xbins = -3.14:0.314:3.14-0.314;
-%                     [N,x] = hist(PH_opt(:,cur_chan),xbins);
-%                     idx_max = find(N == max(N));
-%                     idx_close = (x(idx_max(1))-0.1745 < PH_opt(:,cur_chan)') & (PH_opt(:,cur_chan)' < x(idx_max(1))+0.1745);
-%                     PH_opt(~idx_close,cur_chan) = wrapToPi(PH_opt(~idx_close,cur_chan) + 3.14);
-%                 end
+                for cur_chan =1:opts.n_chan
+                    xbins = -3.14:0.314:3.14-0.314;
+                    [N,x] = hist(PH_opt(:,cur_chan),xbins);
+                    idx_max = find(N == max(N));
+                    idx_close = (x(idx_max(1))-0.1745 < PH_opt(:,cur_chan)') & (PH_opt(:,cur_chan)' < x(idx_max(1))+0.1745);
+                    PH_opt(~idx_close,cur_chan) = wrapToPi(PH_opt(~idx_close,cur_chan) + 3.14);
+                end
                 PH_opt_loo = PH_opt;
             end
         end
@@ -247,7 +248,7 @@ if strcmpi(model.type,'run original model')
                     preds(not_nan, this_chan, this_roi, this_metric, this_loorep) =  X * B;
                     % Compute coefficient of determination (i.e. R square /
                     % variance explained):
-                    cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
+                    cod_01 = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan))); % Same as Variance exaplained = 1 - ((Residual sum of squares)./(Total sum of squares))
                     mean_ve( this_chan, this_roi, this_metric, this_loorep) = cod_01;
                     fit_data(:, this_chan, this_roi, this_metric, this_loorep) = cur_data;
                 end

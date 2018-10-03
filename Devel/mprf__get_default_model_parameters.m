@@ -59,8 +59,8 @@ switch lower(model_type)
     case 'position (x,y) range'    
         def_params.x0 = 'x range (proportion)';
         def_params.y0 = 'y range (proportion)';
-        def_params.x0_range = '0:(pi/4):2*pi'; % Range of prf sizes, either absolute or proportional
-        def_params.y0_range = '0:(pi/4):2*pi'; 
+        def_params.x0_range = '-pi:(pi/4):pi'; % Range of prf sizes, either absolute or proportional
+        def_params.y0_range = '-pi:(pi/4):pi'; 
         
         def_params.sigma = 'sigma_smoothed'; % sigma smoothed, sigma, fixed sigma (absolute), fixed sigma (proportion), sigma range (absolute), sigma range (proportion)
         def_params.beta = 'recomp_beta';

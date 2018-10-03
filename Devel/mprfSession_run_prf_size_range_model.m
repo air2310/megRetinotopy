@@ -64,7 +64,6 @@ phase_fit_loo.type = model.params.loo_type; %'amp' or 'VE';
 phfittype = '';
 opts.n_looreps = 1;
 
-
 tmp = sum([model.params.do_sl model.params.do_bb]);
 opts.metric = model.params.metric;
 opts.idx = cell(1,tmp);
@@ -115,8 +114,6 @@ n_chan = size(meg_resp{1},2);
 n_roi = size(meg_resp{1},3);
 n_metric = size(opts.idx,2);
 
-
-
 %%
 tic;
 if strcmpi(opts.metric, 'phase ref amplitude')
@@ -157,13 +154,13 @@ if strcmpi(opts.metric, 'phase ref amplitude')
             end    
                 if phase_fit_loo.do == 1
                     phfittype = 'lo';
-                    for cur_chan =1:opts.n_chan
-                        xbins = -3.14:0.314:3.14-0.314;
-                        [N,x] = hist(PH_opt_tmp(:,cur_chan,this_par),xbins);
-                        idx_max = find(N == max(N));
-                        idx_close = (x(idx_max(1))-0.1745 < PH_opt_tmp(:,cur_chan,this_par)') & (PH_opt_tmp(:,cur_chan)' < x(idx_max(1))+0.1745);
-                        PH_opt_tmp(~idx_close,cur_chan,this_par) = wrapToPi(PH_opt_tmp(~idx_close,cur_chan,this_par) + 3.14);
-                    end
+%                     for cur_chan =1:opts.n_chan
+%                         xbins = -3.14:0.314:3.14-0.314;
+%                         [N,x] = hist(PH_opt_tmp(:,cur_chan,this_par),xbins);
+%                         idx_max = find(N == max(N));
+%                         idx_close = (x(idx_max(1))-0.1745 < PH_opt_tmp(:,cur_chan,this_par)') & (PH_opt_tmp(:,cur_chan)' < x(idx_max(1))+0.1745);
+%                         PH_opt_tmp(~idx_close,cur_chan,this_par) = wrapToPi(PH_opt_tmp(~idx_close,cur_chan,this_par) + 3.14);
+%                     end
                 end
                 
             %end
@@ -177,7 +174,6 @@ end
 tot_time = toc;
 t_hms = datevec(tot_time./(60*60*24));
 fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
-
 %%
 
 % to check something for the leave one out condition, its better to load

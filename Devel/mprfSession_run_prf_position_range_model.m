@@ -89,8 +89,8 @@ ft_data = mprf__fft_on_meg_data(data.data);
 idx_train = nan(opts.n_reps,opts.n_reps-1);
 idx_test = nan(opts.n_reps,1);
 if phase_fit_loo.do == 1
-    n_looreps = opts.n_reps;
-    for this_loorep = 1:n_looreps
+    opts.n_looreps = opts.n_reps;
+    for this_loorep = 1:opts.n_looreps
         idx_test(this_loorep,1) = this_loorep;
         idx_train(this_loorep,:) = setdiff(1:opts.n_reps,idx_test(this_loorep));
     end
@@ -98,10 +98,6 @@ else
     idx_test = 1:opts.n_reps;
     idx_train = 1:opts.n_reps;
 end
-
-tseries_av = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
-tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
-tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2));
 
 if model.params.n_iterations > 1
     tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
@@ -116,7 +112,7 @@ n_par_it = size(meg_resp,2);
 n_it = model.params.n_iterations;
 n_chan = size(meg_resp{1},2);
 n_roi = size(meg_resp{1},3);
-n_metric = size(tseries_av,3);
+n_metric = size(opts.idx,2);
 
 %%
 tic;
