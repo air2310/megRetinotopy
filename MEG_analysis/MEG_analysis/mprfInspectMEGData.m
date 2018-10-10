@@ -30,13 +30,13 @@ trig_chan = 160 : 167;
 diode_chan = 191;
 
 % Directory where the raw data is located:
-raw_dir = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wl_subj040/Ret_check_01/Raw';
+raw_dir = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wlsubj030/raw';
 
 % Name of data file to load:
-fname = 'R1151_RetCheckerboard1_3.17.17.sqd';
+fname = 'R0942_Ret2_9.11.18.sqd';
 
 % All files in the parameter directory:
-param_dir = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wl_subj040/R11551_Retinotopy_3.17.17';
+param_dir = fullfile(raw_dir,'R0942_MegRet_9.11.18','behavior');
 par_files = dir(fullfile(param_dir,'*.mat'));
 
 % Load the data:
