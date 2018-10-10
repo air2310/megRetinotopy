@@ -12,10 +12,12 @@
 % branch. Note to self: use git checkout master and git checkout
 % meg_compatible
 %
-% addpath(genpath('~/Documents/MATLAB/toolboxes/vistadisp'));
+% Needs vistadisp (Winawerlab fork)
+% addpath(genpath('~/matlab/git/forks/vistadisp'));
 %
-% % Needs psychtoolbox 3
-% tbUse('psychtoolbox-3');
+% Needs psychtoolbox 3
+% tbUse('psychtoolbox-3'); % or
+% addpath(genpath('/Applications/Psychtoolbox'))
 
 %% In general: check wich has the smaller screen, relative to the subject's position:
 cal_mri = 'CBI_Propixx';
@@ -409,35 +411,47 @@ for run = 1:nruns
     
     %% Sequence for checks and dartboard
     
+    % Create blank image (gray / mean luminance)
     blank_im_mri = uint8(ones(mri_res, mri_res) .* 128);
     blank_im_meg = uint8(ones(meg_res, meg_res) .* 128);
     
     mri_ori_idx = [1 3 5 7];
     meg_ori_idx = 1:7;
     
+    % When to add blank periods in sequence?
     blanks_after_these_orientations_mri = orientations(mri_ori_idx) ./ pi * 4;
     blanks_after_these_orientations_meg = orientations(meg_ori_idx) ./ pi * 4;
     
+    % Create blink image (a mean luminance screen with a black square in
+    % the middle)
     blink_im = zeros(1,meg_res);
     blink_im((meg_res/2 - round(blink_size/2)) : (meg_res/2 - round(blink_size/2)) + blink_size-1) = 1;
     blink_im = -1 .* (blink_im' * blink_im);
     blink_im = blink_im .*128 + 128;
     
+	% Concatenate all images, both blank and bar (and blink block for MEG)
     im_mri_all = cat(3,blank_im_mri, im_mri);
     im_meg_all = cat(3,blank_im_meg, blink_im, im_meg);
     
+    % Number of total frames in seconds: MRI: 342 (TR * number of orientations *
+    % step size --dependent on the height of the smaller screen size + TR*blank time)
     total_sec_mri = step_time_mri * length(orientations) * length(low_x) + (length(mri_ori_idx)* blank_time_mri);
     total_sec_meg = step_time_meg * (length(orientations) * (length(low_x)+ n_repeats_first_stim_time_meg)) + (length(meg_ori_idx)* (blink_time_meg + blank_time_meg));
     
+    % Number of stimulus frames in seconds: MRI: 252 (TR * number of orientations *
+    % step size (dependent on the height of the smaller screen size)
     stim_sec_mri = step_time_mri * length(orientations) * length(low_x);
     stim_sec_meg = step_time_meg * (length(orientations) * (length(low_x) + n_repeats_first_stim_time_meg));
     
+    % Number of total frames: MRI: 3420 (taking into account the 10 Hz flicker rate)  
     n_frames_mri = total_sec_mri * flicker_freq;
     n_frames_meg = total_sec_meg * flicker_freq;
     
+    % Number of stimulus frames: MRI: 2520 (taking into account the 10 Hz flicker rate)  
     n_stim_frames_mri = stim_sec_mri * flicker_freq;
     n_stim_frames_meg = stim_sec_meg * flicker_freq;
     
+    % Number of blank frames in between the bar sweeps: MRI: 255 (taking into account the 10 Hz flicker rate)  
     blank_frames_pp_mri = blank_time_mri * flicker_freq;
     blank_frames_pp_meg = blank_time_meg * flicker_freq;
     blink_frames_pp_meg = blink_time_meg * flicker_freq;
@@ -448,26 +462,51 @@ for run = 1:nruns
     % n_im_per_step_mri =  step_time_mri * flicker_freq /2;
     % n_im_per_step_meg =  step_time_meg * flicker_freq /2;
     
-    % Compile MRI sequence
+    %% Compile MRI sequence
+    
+    % Use all frames to get an alternating sequence (1, 2) to get the flickering 
     aa_mri = mod(2:n_stim_frames_mri+(2-1),2)+1;
+    
+    % Get number of steps (frames) to get through all stimuli with this TR
     n_steps = stim_sec_mri / step_time_mri;
+    
+    % Put a stimulus frames into a sequence that shows a frame every other TR.
+    % This sequence repeats 15 times since we have 15 conditions (stimulus sweeps and blanks)
     bb_mri = repmat(0:2:(2*n_steps)-1,(n_stim_frames_mri / (n_images_mri/2)),1);
+    
+    % Concatenate the alternating sequence of the 15 stimulus conditions
     cc_mri = bb_mri(:);
+    
+    % Merge the alternating (1,2) sequence with the stimulus condition
+    % sequence
     im_seq_mri = aa_mri(:) + cc_mri+1;
     
+    % Get nr of frames per pass (or sweep) of an oriented bar  (315 = 2520 / 8)
     mri_frames_per_pass = length(im_seq_mri) / length(orientations);
     
+    % Get frame where each of the four blank periods will start
     blank_start_idx_mri = mri_ori_idx * mri_frames_per_pass + ...
         [1 blank_frames_pp_mri .* (1:length(mri_ori_idx)-1) + 1];
     
+    % Get frame where each of the four blank periods will end
     blank_end_idx_mri = blank_start_idx_mri + blank_frames_pp_mri-1;
     
+    % Get frame where each of the 5 corresponding stim periods to those blanks will start
     stim_start_idx = [0 blank_end_idx_mri] + 1;
+    
+    % Get frame where each of the 5 corresponding stim periods to those
+    % blanks will end
     stim_end_idx = [blank_start_idx_mri - 1 n_frames_mri];
     
+    % Preallocate space for the full mri sequence
     seq_mri = nan(1,n_frames_mri);
+    
+    % How many bar passes before a blank period?
     n_bar_passes = [mri_ori_idx(1) diff(mri_ori_idx) (length(orientations) - mri_ori_idx(end))];
     
+    % Loop over all stimulus sweeps
+    % Sequence is now: Stim, Blank, Stim, Stim, Blank, Stim, Stim, Blank,
+    % Stim Stim, Blank, Stim. (One stim is 21 TRs, one Blank is 15 TRs) 
     start_frame = 1;
     for n = 1:length(stim_start_idx)
         s_idx = stim_start_idx(n);
@@ -486,6 +525,7 @@ for run = 1:nruns
         error('Something went wrong')
     end
     
+    % Add addition pre and post blank to mri sequence (8 trs)
     seq_mri(isnan(seq_mri)) = 1;
     n_tr_blank = 8;
     seq_mri = [ones(1, flicker_freq * TR * n_tr_blank) seq_mri ones(1, flicker_freq * TR * n_tr_blank)];
@@ -501,7 +541,7 @@ for run = 1:nruns
     stimulus.cmap = gray(256);
     stimulus.fixSeq = fixSeq_mri(1:n_frames_mri);
     stimulus.srcRect = [0 0 mri_res mri_res];
-    stimulus.destRect = [128 0 896 786];
+    stimulus.destRect = [128 0 896 768];
     
     
 %     save(fullfile(mri_save_path,sprintf('MRI_retinotopy_stimulus_run_%d',run)),'stimulus');
