@@ -23,7 +23,7 @@ space. We can do the same transformation for ROIs defined either using mrVista
 
 ## FOLDER STRUCTURE
 This code repository contains 5 subfolders specific for this project:
-1. Devel (old versions of Barrie's code, should not be used)
+1. Devel (Code to run the MEG retinotopy model/ prf size range and position range and scrambling of pRF parameters)
 2. MEG_analysis (preprocessing scripts for MEG data)
 3. mprfSession (scripts to compare preprocessed MEG and MRI data)
 4. MRI_analysis (preprocessing scripts for MRI data)
@@ -44,7 +44,7 @@ This code is Matlab based, and has the following depencies:
 
 Get started:
 1. Pull code directory from GitHub with the ToolboxToolbox and add to paths
-`tbUse('regMeg')`
+`tbUse('retMeg')`
 
 
 **[ EVERYTHING FROM HERE NEEDS TO BE CHECKED AND/OR UPDATED ]**

@@ -16,12 +16,12 @@ for n = 1:length(param_files)
     
     
     if n == 1;
-        timing.stimulus.seqtime = nan(size(stim_time.seq_times,2), length(param_files));
+        timing.stimulus.seqtime = nan(size(stim_time.seq_times',2), length(param_files));
         timing.stimulus.flip_time = nan(size(flip_time.flip_times,2), length(param_files));
         
         timing.trigger.flip_time = nan(size(flip_time.trigger_times,2), length(param_files));
-        timing.trigger.seq_time = nan(size(stim_time.trigger_times,2), length(param_files));
-        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02,2), length(param_files));
+        timing.trigger.seq_time = nan(size(stim_time.trigger_times',2), length(param_files));
+        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02',2), length(param_files));
         
         timing.trigger.idx = nan(size(flip_time.trigger_times,2), length(param_files));
         timing.init.flip_time = nan(size(init.flip_times,2), length(param_files));

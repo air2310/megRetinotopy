@@ -6,7 +6,7 @@ out = [];
 % trying different, fixed pRF sizes there is no need to prepare the MEG
 % data over and over again. Check if there are multiple iterations and if
 % there is MEG data already available to use.
-if ~exist('use_meg_data','var') || isempty(use_meg_data);
+if ~exist('use_meg_data','var') || isempty(use_meg_data) || strcmpi(pred.model.params.metric,'phase ref amplitude')
     prepare_meg_data = true;
 else
     if use_meg_data.first_iteration
@@ -51,34 +51,44 @@ if prepare_meg_data;
     opts.stim_freq = model.params.stim_freq;
     opts.samp_rate = model.params.samp_rate;
     
-    % Where is the preprocessed data folder?
-    preproc_dir =  mprf__get_directory('meg_preproc');
-    cd(preproc_dir)
-    % Ask user for the preprocessed data file to load:
-    [fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
-    
-    % End gracefully when no file name is selected
-    if fname == 0
-        fprintf('No file selected, quitting\n');
-        return
+    if ~exist('use_meg_data','var') || use_meg_data.first_iteration == 1  
+        % Where is the preprocessed data folder?
+        preproc_dir =  mprf__get_directory('meg_preproc');
+        cd(preproc_dir)
+        % Ask user for the preprocessed data file to load:
+        [fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
         
+        % End gracefully when no file name is selected
+        if fname == 0
+            fprintf('No file selected, quitting\n');
+            return
+            
+        end
+        
+        % Load the raw data from .mat file
+        fprintf('Loading raw data...\n')
+        tmp = load(fullfile(fpath, fname));
+        var_name = fieldnames(tmp);
+        data = tmp.(var_name{1});
+        clear tmp
+        % Bad channels are removed during the preprocessing step. Reason why
+        % channels (21,24,41,65,153) are nans
+        
+        
+        % Go back to the session directory
+        cd(cur_dir)
+        
+    elseif use_meg_data.first_iteration == 0
+       data = use_meg_data.data; 
     end
-    
-    % Load the raw data from .mat file
-    fprintf('Loading raw data...\n')
-    tmp = load(fullfile(fpath, fname));
-    var_name = fieldnames(tmp);
-    data = tmp.(var_name{1});
-    clear tmp
-    
-    % Go back to the session directory
-    cd(cur_dir)
-    
     % Define the periods (Eventually, this should come from somewhere else,
     % for example the stimulus files)
-    periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140]; % What frames where blanks?
-    periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137]; % During what frames could the subject blink (i.e. square in the center)
-    periods.stim = setdiff(1:140,[periods.blink periods.blank]); % What where stimulus (i.e. bar position) frames?
+    % Also, the first bar positions after every blanks are removed. [6,33,60,87,114]
+    % This is already implemented in the mprfSession_preprocess_meg_data >> mprfPreprocessWrapper
+    %periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140]; % What frames where blanks?
+    %periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137]; % During what frames could the subject blink (i.e. square in the center)
+    %periods.stim = setdiff(1:140,[periods.blink periods.blank]); % What where stimulus (i.e. bar position) frames?
+    
     
     % Get the size of the data:
     sz = size(data.data);
@@ -173,15 +183,6 @@ if prepare_meg_data;
             end
             if phase_fit_loo.do == 1
                 phfittype = 'lo';
-                % for switching the angle for a leave one out iteration
-                % by 180 degrees
-                for cur_chan =1:opts.n_chan
-                    xbins = -3.14:0.314:3.14-0.314;
-                    [N,x] = hist(PH_opt(:,cur_chan),xbins);
-                    idx_max = find(N == max(N));
-                    idx_close = (x(idx_max(1))-0.1745 < PH_opt(:,cur_chan)') & (PH_opt(:,cur_chan)' < x(idx_max(1))+0.1745);
-                    PH_opt(~idx_close,cur_chan) = wrapToPi(PH_opt(~idx_close,cur_chan) + 3.14);
-                end
                 PH_opt_loo = PH_opt;
             end
         end
@@ -531,9 +532,16 @@ elseif strcmpi(model.type,'scramble prf parameters')
         end
     end
     
-    out.tseries_av = tseries_av;
-    out.cur_corr = all_corr;
-    
+    if strcmpi(pred.model.params.metric,'amplitude')
+        out.tseries_av = tseries_av;
+        out.cur_corr = all_corr;
+    elseif strcmpi(pred.model.params.metric,'phase ref amplitude')
+        out.data = data;
+        out.cur_corr = all_corr;
+        use_meg_data.first_iteration = false;
+        out.first_iteration = use_meg_data.first_iteration;
+    end
+        
     if use_meg_data.first_iteration
         out.first_iteration = false;
     end

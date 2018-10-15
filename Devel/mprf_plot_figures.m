@@ -1,4 +1,4 @@
-function mprf_plot_figures(plot_type, interpmethod)
+function mprf_plot_figures(plot_type,interpmethod,compare_phfits)
 % mprf_plot_figures - To make the figures from the results saved using
 % mprfSession_run_model command
 %
@@ -61,11 +61,17 @@ if ~exist('plot_type','var') || isempty(plot_type)
     return;
 end
 
+%if nargin > 1
+   
+
 if ~exist('interpmethod','var') || isempty(interpmethod)
    interpmethod = [];
 end
-
     
+if ~exist('compare_phfits','var') || isempty(compare_phfits)
+   compare_phfits = 0;
+end
+
 load mprfSESSION.mat;
 cur_time = mprf__get_cur_time;
 res_dir = mprf__get_directory('model_plots');
@@ -74,28 +80,28 @@ main_dir = mprf__get_directory('main_dir');
 %plot_type = 1;
 switch plot_type
     case 1
-        model_type = 'Original model';  chan_sel = ''; compare_phfits = 0;
+        model_type = 'Original model';  chan_sel = ''; 
         
     case 2
-        model_type = 'scrambled'; chan_sel = 'back'; compare_phfits = 0;
+        model_type = 'scrambled'; chan_sel = 'back';
         
     case 3
-        model_type = 'scrambled'; chan_sel = 'rel'; compare_phfits = 0;
+        model_type = 'scrambled'; chan_sel = 'rel'; 
         
     case 4
-        model_type = 'range'; chan_sel = 'back'; compare_phfits = 0;
+        model_type = 'range'; chan_sel = 'back';
         
     case 5
-        model_type = 'range'; chan_sel = 'rel'; compare_phfits = 0;
+        model_type = 'range'; chan_sel = 'rel'; 
         
     case 6
-        model_type = 'range'; chan_sel = 'ind_scr'; compare_phfits = 0;
+        model_type = 'range'; chan_sel = 'ind_scr'; 
         
     case 7
-        model_type = 'reliability'; chan_sel = ''; compare_phfits = 0;
+        model_type = 'reliability'; chan_sel = '';
         
     case 8
-        model_type = 'phase_diff'; chan_sel = ''; compare_phfits = 0;
+        model_type = 'phase_diff'; chan_sel = ''; 
         
 end
 
@@ -153,7 +159,7 @@ switch model_type
 
         end
         
-        ch = [15,20,10,14,26,62];
+        ch = [15,20,10,14,26,62,60];
         
         for i =1:length(ch)
             ch_cur = ch(i);
