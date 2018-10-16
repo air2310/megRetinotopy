@@ -26,7 +26,7 @@ data_reshaped = reshape(data_reshaped,data_dim(1), [], data_dim(4)); % Assuming 
 fprintf('Done.\n')
 
 fprintf('Preprocessing data...\n')
-[data_reshaped, badChannels, badEpochs]  = dfdPreprocessData(data_reshaped, ...
+[data_reshaped, badChannels, badEpochs]  = nppPreprocessData(data_reshaped, ...
     varThreshold, badChannelThreshold, badEpochThreshold,verbose);
 fprintf('Done.\n')
 
