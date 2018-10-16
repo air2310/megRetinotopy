@@ -2,10 +2,13 @@
 
 % This script is the main analysis to preprocess the MEG dataset.
 
-% Questions:
-% start preprocessing after which step ?. I.e. which data to load and work
-% with?
+% EK: Questions:
+% - start preprocessing after which step ?. I.e. which data to load and work with?
+% - In case of multiple sqd files, does data have to be combined before
+% running this preprocessing script?
 
+% addpath(genpath('~/matlab/git/toolboxes/meg_utils'))
+% addpath(genpath('~/matlab/git/denoiseproject'))
 
 % Settings: 
 preproc = 'full'; % Full = do all steps,
@@ -23,7 +26,10 @@ cd(project_dir);
 % In case of synthetic data, the selected file should have an associated
 % timing file, check for it and if it exist, load it and skip timing
 % processing below
-[raw_file, source_dir] = uigetfile('*','Please select file to preprocess');
+% [raw_file, source_dir] = uigetfile('*','Please select file to preprocess');
+d = dir('/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wlsubj030/raw/R0942_RetCombined.sqd');
+raw_file = d.name;
+source_dir = d.folder;
 put_timing_file = ['timing_info_' raw_file(5:end-4) '.mat'];
 
 if exist(fullfile(source_dir, put_timing_file),'file')
@@ -39,9 +45,12 @@ mkdir(dest_dir);
 
 %raw_file = 'R1151_Retinotopy_04.06.17.sqd';                             % Raw file
 
-param_dir = uigetdir(source_dir,'Select directory with parameter files');               % Parameter files
-stim_dir = uigetdir(param_dir(1:find(param_dir == '/',1,'last')),...
-    'Select directory with stimulus files');                % Stimulus files
+% param_dir = uigetdir(source_dir,'Select directory with parameter files');               % Parameter files
+% stim_dir = uigetdir(param_dir(1:find(param_dir == '/',1,'last')),...
+%     'Select directory with stimulus files');                % Stimulus files
+
+param_dir = fullfile(source_dir, 'R0942_MegRet_9.11.18', 'behavior');
+stim_dir = fullfile(source_dir, 'R0942_MegRet_9.11.18', 'stimFiles');
 
 
 % Output file names:
@@ -62,9 +71,9 @@ epoched_hp_filt_preproc_denoised_file = 'epoched_data_hp_preproc_denoised.mat';
 if strcmpi(preproc,'full')
     
     % Channel identity:
-    trig_chan = 160 : 167;
-    diode_chan = 191;
-    data_chan = 0:156;
+    trig_chan = 161 : 168;
+    diode_chan = 192;
+    data_chan = 1:157;
     raw_meg_file = fullfile(source_dir,raw_file);
     
     %% Triggers
@@ -92,11 +101,11 @@ if strcmpi(preproc,'full')
         %It uses many methods, some work better for one set than others.
         
         try
-            triggers = [timing.trigger.trigger2flip(:,1) timing.trigger.idx(:)];
+            triggers = [timing.trigger.trigger2flip(:,1) timing.trigger.idx(:,1)];
             
         catch
             
-            triggers = [timing.trigger.channel(:,1) timing.trigger.idx(:)];
+            triggers = [timing.trigger.channel_inds timing.trigger.idx(:)];
             
         end
         
@@ -118,30 +127,32 @@ if strcmpi(preproc,'full')
     
     
     fprintf('Reading raw data from .sqd file...\n')
-    meg_raw_data = ft_read_data(raw_meg_file);
+    [pathstr, name, ext] = fileparts(raw_file);
+    meg_raw_data = meg_load_sqd_data(source_dir, '*_Ret_*');
+%     meg_raw_data = ft_read_data(raw_meg_file);
     fprintf('Done.\n');
     
     
     if save_interim_files
         
         fprintf('Saving data file...\n')
-        data_channel_data = meg_raw_data(data_chan+1,:);
+        data_channel_data = meg_raw_data(data_chan,:);
         save(fullfile(dest_dir,raw_mat_data_file), 'data_channel_data','-v7.3')
         fprintf('Done.\n');
         
         fprintf('Saving trigger file...\n')
-        trigger_channel_data = meg_raw_data(trig_chan+1,:);
+        trigger_channel_data = meg_raw_data(trig_chan,:);
         save(fullfile(dest_dir,raw_mat_tr_file), 'trigger_channel_data','-v7.3')
         fprintf('Done.\n');
         
         fprintf('Saving photo diode file...\n')
-        diode_channel_data = meg_raw_data(diode_chan+1,:);
+        diode_channel_data = meg_raw_data(diode_chan,:);
         save(fullfile(dest_dir,raw_mat_ph_file), 'diode_channel_data','-v7.3')
         fprintf('Done.\n');
         
     else
         warning('Not saving intermediate data files')
-        data_channel_data = meg_raw_data(data_chan+1,:);
+        data_channel_data = meg_raw_data(data_chan,:);
         
     end
     
@@ -164,7 +175,7 @@ if strcmpi(preproc,'epoch') || strcmpi(preproc,'full')
     if ~exist('data_channel_data','var') || isempty(data_channel_data)
         [fname, fpath] = uigetfile('*','Please select Data channel data file');
         
-        load(fullefile(fname, fpatch));
+        load(fullfile(fname, fpatch));
         
         if  ~exist('data_channel_data','var') || isempty(data_channel_data)
             error('Could not load data file');
