@@ -1,20 +1,26 @@
 function [epoch, results, evalout,denoised_spec] = mprfDenoiseWrapper(epoch, stim_dir)
 
+% Define variables
+nTimePoints     = size(epoch.data,1);
+nEpochsPerRun   = size(epoch.data,2);
+nRuns           = size(epoch.data,3);
+nChannels       = size(epoch.data,4);
+
 
 skip_n_samples = 0;
-keep_n_samples = 1100;
+keep_n_samples = nTimePoints;
 fs_range = [10 10];
 
 epoch_idx = epoch.idx;
-epoch_idx = epoch_idx(:,ones(1,19));
+epoch_idx = epoch_idx(:,ones(1,nRuns));
 epoch_idx = epoch_idx(:);
 
 first_idx = epoch.preproc.first_pos_idx;
-first_idx = first_idx(:,ones(1,19));
+first_idx = first_idx(:,ones(1,nRuns));
 first_idx = first_idx(:);
 
 blink_idx = epoch.preproc.blink_idx;
-blink_idx = blink_idx(:,ones(1,19));
+blink_idx = blink_idx(:,ones(1,nRuns));
 blink_idx = blink_idx(:);
 
 epoch_idx = epoch_idx(~first_idx &~blink_idx);
@@ -45,7 +51,7 @@ presented_conds = all_cond(ismember(all_cond,unique(epoch_idx)));
 fprintf('Making design matrix...\n')
 fprintf('Loading stimulus...\n')
 stimfiles = dir(fullfile(stim_dir,'*.mat'));
-stim = load(fullfile(stim_dir, stimfiles(2).name));
+stim = load(fullfile(stim_dir, stimfiles(1).name));
 
 stim_range = double([min(stim.stimulus.images(:)) max(stim.stimulus.images(:))]);
 bk = double(mode(mode(stim.stimulus.images(:,:,1))));
@@ -87,7 +93,7 @@ for n = 1:length(design_02)
     
 end
 
-design_02 = design_02(:,ones(1,19));
+design_02 = design_02(:,ones(1,nRuns));
 design_02 = design_02(:);
 
 design_02 = design_02(~first_idx &~blink_idx);
@@ -98,16 +104,17 @@ design_03 = zeros(size(design_02,1),n_conds);
 cond_idx = sub2ind(size(design_03),find(design_02),design_02(design_02>0));
 design_03(cond_idx) = 1;
 
-fprintf('Desing has %d conditions, corresponding to unique bar positions\n',size(design_03,2));
+fprintf('Design has %d conditions, corresponding to unique bar positions\n',size(design_03,2));
 
 opt.verbose             = true;
 opt.use3Channels        = false;
 opt.removeFirstEpoch    = false;
 opt.removeMsEpochs      = false;
-opt.pcchoose          = 1.05;   % Take 10 PCs
-opt.npcs2try          = 10;
+opt.pcchoose            = 1.05;   % Take 10 PCs
+opt.npcs2try            = 10;
+sampleRate              = 1000; %hz
 
-evokedfun = @(x)mprfDenoiseEvalFun(x,fs_range,1000);
+evokedfun = @(x)mprfDenoiseEvalFun(x,fs_range,sampleRate);
 
 fprintf('Denoising data...\n')
 
@@ -122,13 +129,13 @@ plot([0 10],[0 10],'r-');
 xlabel('Final');
 ylabel('orig');
 
-orig_dim = [size(denoised_data{1},2) 2660 157];
+orig_dim = [size(denoised_data{1},2) nEpochsPerRun*nRuns nChannels];
 
 first_pos_idx = epoch.preproc.first_pos_idx;
 blink_idx = epoch.preproc.blink_idx;
 
-first_pos_idx = first_pos_idx(:,ones(1,19));
-blink_idx = blink_idx(:,ones(1,19));
+first_pos_idx = first_pos_idx(:,ones(1,nRuns));
+blink_idx = blink_idx(:,ones(1,nRuns));
 
 first_pos_idx = first_pos_idx(:);
 blink_idx = blink_idx(:);
@@ -146,7 +153,7 @@ fprintf('Done.\n')
 
 tmp_data(:,good_epoch_idx,~epoch.preproc.badChannels) = permute(denoised_data{1},[2 3 1]);
 
-epoch.data = reshape(tmp_data,[1100 140 19 157]);
+epoch.data = reshape(tmp_data,[nTimePoints nEpochsPerRun nRuns nChannels]);
 
 
 end
