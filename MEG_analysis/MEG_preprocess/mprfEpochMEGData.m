@@ -12,7 +12,7 @@ end
 
 
 n_epochs_total = length(triggers);
-n_periods = 140;
+n_periods = 211; % 140; %for subject 004 and 040
 n_repeats = n_epochs_total/n_periods;
 n_channels = size(raw_data,1);
 
