@@ -16,12 +16,12 @@ for n = 1:length(param_files)
     
     
     if n == 1;
-        timing.stimulus.seqtime = nan(size(stim_time.seq_times',2), length(param_files));
+        timing.stimulus.seqtime = nan(size(stim_time.seq_times,2), length(param_files));
         timing.stimulus.flip_time = nan(size(flip_time.flip_times,2), length(param_files));
         
         timing.trigger.flip_time = nan(size(flip_time.trigger_times,2), length(param_files));
-        timing.trigger.seq_time = nan(size(stim_time.trigger_times',2), length(param_files));
-        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02',2), length(param_files));
+        timing.trigger.seq_time = nan(size(stim_time.trigger_times,2), length(param_files));
+        timing.trigger.flip_time_02 = nan(size(flip_time.trigger_times_02,2), length(param_files));
         
         timing.trigger.idx = nan(size(flip_time.trigger_times,2), length(param_files));
         timing.init.flip_time = nan(size(init.flip_times,2), length(param_files));
@@ -31,7 +31,7 @@ for n = 1:length(param_files)
     end
     
     timing.stimulus.seqtime(:,n) = stim_time.seq_times'; % Time at which a flip was requested
-    timing.stimulus.flip_time(:,n) = flip_time.flip_times'; % Timing of the flips, relative to start of the experiment
+    timing.stimulus.flip_time(:,n) = flip_time.flip_times; % Timing of the flips, relative to start of the experiment
     
     if ~isempty(flip_time.trigger_times)
         timing.trigger.flip_time(:,n) = flip_time.trigger_times'; % time at which a trigger occured
@@ -81,7 +81,7 @@ timing.flip.channel_02 = tmp(tmp2 > 0);
 
 
 %% Compare to triggers from trigger channel
-% Issues: it appears that the triggers were 'combined' with a lot
+% [BK]: Issues: it appears that the triggers were 'combined' with a lot
 % crap in the trigger channels, making it impossible to work out the
 % identity of all the triggers. More annoying is the fact that the timing
 % of the triggers is not reliable as well....
@@ -89,47 +89,78 @@ timing.flip.channel_02 = tmp(tmp2 > 0);
 % channels, to the extend these can be trusted. I.e. the trigger flips may
 % be delayed compared to the trigger channel ??
 
-timing.trigger.channel = all_trigger(meg_file, trig_chan);
+% [EK]: I don't get why we are using this ancient sqd all_trigger file with
+% and arbirtary threshold of 150. I am gonna use a new version of our 
+% meg_fix_triggers instead.
+% timing.trigger.channel = all_trigger(meg_file, trig_chan);
+% ts_triggers = sqdread(meg_file,'Channels',trig_chan);
+
+[filepath,name] = fileparts(meg_file);
+ts = meg_load_sqd_data(filepath, '*_Ret_*');
+
+timing.trigger.channel = meg_fix_triggers(ts(trig_chan,:)');
+
+% Get indices of triggers
+indices = find(timing.trigger.channel);
+
+% Remove first (false) trigger for subject R0942
+if strcmp(name,'R0942_RetCombined')
+    timing.trigger.channel(indices(1)) = 0;
+    indices(1) = [];
+end
+
+timing.trigger.channel_inds = indices;
+
 
 %% Fiddle around with the photodiode
 % Process trigger data:
 % rescale to [0 1]
 
 % Load the data:
-phdata = sqdread(meg_file,'Channels',diode_chan);
-
-phdata = phdata - min(phdata(:));
-phdata = phdata / max(phdata(:));
+% phdata = sqdread(meg_file,'Channels',diode_chan);
+photoDiodeData = ts(diode_chan,:);
+photoDiodeData = photoDiodeData - min(photoDiodeData(:));
+photoDiodeData = photoDiodeData / max(photoDiodeData(:));
 
 % check whether triggers are indicated by a low value or a high value
-if round(mean(phdata)) == 0, trigger_is_high = true;
-else                     trigger_is_high = false; end
+if round(mean(photoDiodeData)) == 0
+     trigger_is_high = true;
+else trigger_is_high = false; 
+end
 
 % if triggers are indicated by a low value, then invert the signal
-if ~trigger_is_high, phdata = 1 - phdata; end
+if ~trigger_is_high, photoDiodeData = 1 - photoDiodeData; end
 
+
+% if name == 'R0942_RetCombined'
+%     photoDiodeData
 % threshold to binarize from analog recording
-phdata = phdata > 0.75;
+photoDiodeData = photoDiodeData > 0.75;
 
 
 % differentiate to isolate trigger onsets, and pad to preserve length
-phdata_d = [diff(phdata);0];
+photoDiodeData_diff = [diff(photoDiodeData),0];
+
+% remove photodiode triggers before the onset of the experiments
+photoDiodeData_diff(1:(timing.trigger.channel_inds(1)-1))=0;
 
 % rectify
-phdata_d(phdata_d<0) = 0;
+photoDiodeData_diff(photoDiodeData_diff<0) = 0;
 
 % mark the samples as 1 when any trigger channel signaled
-any_trigger      = sum(phdata_d,2) > 0;
+any_trigger      = photoDiodeData_diff > 0;
 
 % list the sample numbers (time ponts) when any trigger channel signalled
 any_trigger_inds = find(any_trigger);
 
-
-timing.diode.channel = any_trigger_inds;
+% [EK]: it is unclear to me why we are using the indices of the photo diode 
+% and the full time series of the trigger channels..
+timing.diode.channel_inds = any_trigger_inds;
+timing.diode.channel = any_trigger;
 
 
 %% Find the triggers and photo diode flashes that correspond to eachother:
-ph_trig_diff = bsxfun(@minus,timing.diode.channel,timing.trigger.channel(:,1)');
+ph_trig_diff = bsxfun(@minus,timing.diode.channel,timing.trigger.channel');
 
 % ph_trig_diff = bsxfun(@minus, diode_flip_times2, any_trigger_inds');
 
@@ -169,7 +200,7 @@ timing.trigger.trigger2diode_delay = -timing.diode.diode2trigger_delay;
 
 
 %% Find the triggers and flip times that correspond to eachother:
-flip_trig_diff = bsxfun(@minus,resp_trig_time+timing.trigger.channel(1),timing.trigger.channel(:,1)');
+flip_trig_diff = bsxfun(@minus,resp_trig_time+timing.trigger.channel(1),find(timing.trigger.channel)');
 
 % ph_trig_diff = bsxfun(@minus, diode_flip_times2, any_trigger_inds');
 
@@ -190,41 +221,41 @@ keep_idx = unique(keep_idx);
 keep_idx2 = unique(keep_idx2);
 % These triggers were matched by the corresponding photodiode triggers:
 timing.flip.flip2trigger = resp_trig_time(keep_idx)+timing.trigger.channel(1); % Flips with matched triggers
-timing.trigger.trigger2flip = timing.trigger.channel(keep_idx2,:); % Triggers with matched flip times
-timing.trigger.trigger2flip = timing.trigger.trigger2flip(diff([0;timing.trigger.trigger2flip(:,1)]) > 10,:);
+timing.trigger.trigger2flip = timing.trigger.channel_inds(keep_idx2); % Triggers with matched flip times
+timing.trigger.trigger2flip = timing.trigger.trigger2flip(diff([0;timing.trigger.trigger2flip(:,1)]) > 10);
 
-timing.trigger.trigger2flip_delay = timing.flip.flip2trigger - timing.trigger.trigger2flip(:,1);
+timing.trigger.trigger2flip_delay = timing.flip.flip2trigger - timing.trigger.trigger2flip;
 timing.flip.flip2trigger_delay = -timing.trigger.trigger2flip_delay;
 
 %% Do the same with the triggers flip times and photo diode:
-flip_ph_diff = bsxfun(@minus,resp_trig_time+timing.trigger.channel(1),timing.diode.channel');
-
-% ph_trig_diff = bsxfun(@minus, diode_flip_times2, any_trigger_inds');
-
-% Select the flips and triggers that are closest to each other:
-[min_diffs, min_idx] = min(abs(flip_ph_diff),[],1); % Index to timing.diode.channel, with length of amount triggers, i.e. closest ph for every trigger
-[min_diffs2, min_idx2] = min(abs(flip_ph_diff),[],2); % Index to trigger with length of amount PHs, i.e. closest trigger for every ph
-
-% idx = sub2ind(size(flip_ph_diff),min_idx,1:size(flip_ph_diff,2)); % used for obtaining the signed difference from ph_trig_diff
-% idx2 = sub2ind(size(flip_ph_diff),1:size(flip_ph_diff,1),min_idx2');
-
-% Remove any trigger that was more than 100 ms away from a photodiode
-% flip, i.e. we simply did not send a photodiode flip for this
-% trigger (i.e. they are from the init sequence):
-keep_idx = min_idx(min_diffs < 200); % PHs that are closer than 100 ms to the triggers for which they are the nearest
-keep_idx2 = min_idx2(min_diffs2 < 200); % Triggers that are closer than 100 ms to the PHs for which thay are the nearest PH
-
-keep_idx = unique(keep_idx);
-keep_idx2 = unique(keep_idx2);
-% These triggers were matched by the corresponding photodiode triggers:
-timing.diode.diode2flip = timing.diode.channel(keep_idx2); % PHs with matched triggers
-
-timing.flip.flip2diode = resp_trig_time(keep_idx)+timing.trigger.channel(1); % Triggers with matched flip times
-timing.flip.flip2diode  = timing.flip.flip2diode (diff([0;timing.flip.flip2diode(:,1)]) > 10,:);
-
-
-timing.flip.flip2diode_delay = timing.flip.flip2diode - timing.diode.diode2flip;
-timing.diode.diode2flip_delay = -timing.flip.flip2diode;
+% flip_ph_diff = bsxfun(@minus,resp_trig_time+timing.trigger.channel(1),find(timing.diode.channel)');
+% 
+% % ph_trig_diff = bsxfun(@minus, diode_flip_times2, any_trigger_inds');
+% 
+% % Select the flips and triggers that are closest to each other:
+% [min_diffs, min_idx] = min(abs(flip_ph_diff),[],1); % Index to timing.diode.channel, with length of amount triggers, i.e. closest ph for every trigger
+% [min_diffs2, min_idx2] = min(abs(flip_ph_diff),[],2); % Index to trigger with length of amount PHs, i.e. closest trigger for every ph
+% 
+% % idx = sub2ind(size(flip_ph_diff),min_idx,1:size(flip_ph_diff,2)); % used for obtaining the signed difference from ph_trig_diff
+% % idx2 = sub2ind(size(flip_ph_diff),1:size(flip_ph_diff,1),min_idx2');
+% 
+% % Remove any trigger that was more than 100 ms away from a photodiode
+% % flip, i.e. we simply did not send a photodiode flip for this
+% % trigger (i.e. they are from the init sequence):
+% keep_idx = min_idx(min_diffs < 200); % PHs that are closer than 100 ms to the triggers for which they are the nearest
+% keep_idx2 = min_idx2(min_diffs2 < 200); % Triggers that are closer than 100 ms to the PHs for which thay are the nearest PH
+% 
+% keep_idx = unique(keep_idx);
+% keep_idx2 = unique(keep_idx2);
+% % These triggers were matched by the corresponding photodiode triggers:
+% timing.diode.diode2flip = timing.diode.channel(keep_idx2); % PHs with matched triggers
+% 
+% timing.flip.flip2diode = resp_trig_time(keep_idx)+timing.trigger.channel(1); % Triggers with matched flip times
+% timing.flip.flip2diode  = timing.flip.flip2diode (diff([0;timing.flip.flip2diode(:,1)]) > 10,:);
+% 
+% 
+% timing.flip.flip2diode_delay = timing.flip.flip2diode - timing.diode.diode2flip;
+% timing.diode.diode2flip_delay = -timing.flip.flip2diode;
 
 
 
