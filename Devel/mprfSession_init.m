@@ -64,6 +64,9 @@
 %           Same as for the MEG stimulus folder, but now for MRI.
 %           Also forgot why I did it this way.
 
+project_pth = '/Volumes/server/Projects/MEG/Retinotopy/';
+subject = 'wlsubj030';
+cd(fullfile(project_pth, 'Data', 'fMRI', subject));
 
 global mprfSESSION %#ok<NUSED>
 
