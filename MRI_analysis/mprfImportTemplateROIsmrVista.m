@@ -38,7 +38,11 @@ hideGrayROIs = viewGet(VOLUME{1}, 'hide gray ROIs');
 VOLUME{1} = viewSet(VOLUME{1}, 'hide Gray ROIs', true);
 
 
-Wang_ROI_Names = {'V1' 'V2' 'V3' 'hV4', 'VO1' 'LO1' 'V3A' 'V3B'};
+% Wang_ROI_Names = {'V1' 'V2' 'V3' 'hV4', 'VO1' 'LO1' 'V3A' 'V3B'};
+Wang_ROI_Names = {...
+    'V1v' 'V1d' 'V2v' 'V2d' 'V3v' 'V3d' 'hV4' 'VO1' 'VO2' 'PHC1' 'PHC2' ...
+    'TO2' 'TO1' 'LO2' 'LO1' 'V3B' 'V3A' 'IPS0' 'IPS1' 'IPS2' 'IPS3' 'IPS4' ...
+    'IPS5' 'SPL1' 'FEF'};
 
 wangComments = 'ROI made based on maximum probabilty map from Wang et al, 2014 ''Probabilistic Maps of Visual Topography in Human Cortex''';
 
