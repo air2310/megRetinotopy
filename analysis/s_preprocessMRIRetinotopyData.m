@@ -14,6 +14,8 @@
 
 % 1. Init session
 
+init_vista
+
 % 2. ComputeMean
 
 % 3. makeStimFiles
