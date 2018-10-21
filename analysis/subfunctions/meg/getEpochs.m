@@ -1,7 +1,7 @@
 function epochedData = getEpochs(data, triggers, epochLength, flickerFreq, fs)
 
 numTimepoints  = epochLength(2)-epochLength(1);
-skipTimepoints = epochLength(1); % skip 150 ms of the first bar location after a blank
+skipTimepoints = epochLength(1); % Question: skip 150 ms of the first bar location after a blank or for every bar position?
 numChannels    = size(data,1);
 
 
@@ -10,7 +10,12 @@ numChannels    = size(data,1);
 endOfRun = floor(length(triggers.timing)/flickerFreq : length(triggers.timing)/flickerFreq : length(triggers.timing));
 startOfRun = [1, 1+endOfRun(1:end-1)];
 
-inds = bsxfun(@plus,triggers.timing,(epoch_samples(1):epoch_samples(2)-1));
+epochSamples = round(numTimepoints * fs); %epoch length in samples
+
+
+
+
+inds = bsxfun(@plus,triggers.timing,(epochLength(1):epochLength(2)-1));
 
 
 

@@ -1,21 +1,23 @@
 %% s_preprocessMEGRetinotopyData
 
-% This script is the main analysis to preprocess the MEG dataset.
+% This script is in progress but will hopefully replace Barrie's old scripts
+% for the main analysis to preprocess the MEG dataset.
 
 % This script relies on the following toolboxes:
 % * meg_utils
 % * Fieldtrip
 % * megdenoise
 
-% all toolboxes can be added with the toolboxtoolbox command tbUse('retmeg') 
+% All toolboxes can be added with the toolboxtoolbox command:
+% tbUse('retmeg') 
 
 %% 0. Define parameters and paths
 
 % Define subject and data path
 subject_nr    = 'wlsubj030';
-fnameCombined = 'R0942_RetCombined'; % if session had multiple sqd files, we can combine them
+fnameCombined = 'R0942_RetCombined'; % if session had multiple sqd files, we can combine them with another function and load that file
 fnameSingle   =  '*_Ret_*';          % .. or just load the individual files
-dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
+dataPth       = '/Volumes/server-1/Projects/MEG/Retinotopy/Data/MEG/';
 
 % Derive other file paths
 rawSqdPath = fullfile(dataPth, subject_nr, 'raw');
@@ -75,7 +77,7 @@ if verbose; figure; plot(triggers.ts); title('Triggers'); xlabel('Time (ms)'); y
 totalNumEpoch                 = length(triggers.timing);
 numStimConditionsWithinOneRun = 211; % Note: 140 for subject004 and 040
 numRuns = totalNumEpoch/numStimConditionsWithinOneRun;
-epochStartEnd                 = [150 (150+1100)]; % ms (First 150 ms are blank, total amount of timepoints = 1100)
+epochStartEnd                 = [.150 (.150+1.100)]; % s (First 150 ms are blank, one epoch length = 1.100 s)
 flickerFreq                   = 10; % Hz
 
 if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
