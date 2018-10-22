@@ -13,19 +13,23 @@
 
 
 % 1. Init session
-
-init_vista
+initVistaMegRet
 
 % 2. ComputeMean
+computeMeanMapCoronalMegRet
 
 % 3. makeStimFiles
+makeStimFiles
 
 % 4. solve_PRFs
+solvePRFsMegRet
 
 % 5. Export Niftis to surface
+exportNiftisMegRet
 
-% 6. Run Bayesian template and Wang atlas
 
-% 7. Load ROIs and export to Vista
+% 6. Run Bayesian template and Wang atlas with Noah Benson's docker, load
+% these and then export ROIs from FS to Vista
+...
 
 
