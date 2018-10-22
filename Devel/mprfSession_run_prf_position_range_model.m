@@ -155,13 +155,22 @@ if strcmpi(opts.metric, 'phase ref amplitude')
         for this_par=1:n_par_it % For every pRf size range value
             meg_resp_par{1} = meg_resp{this_par}; % There is a meg prediction array of 140x157 for every pRF size range value.
             % One is taken at a time to compute the reference phase.
-            
-            parfor this_loorep = 1:opts.n_looreps % For every leave one out condition
-                
-                [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:)...
-                                                                                                                              ,opts,meg_resp_par);
-                
+            if n_cores > 1
+                parfor this_loorep = 1:opts.n_looreps % For every leave one out condition
+                    
+                    [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:)...
+                        ,opts,meg_resp_par);
+                    
+                end
+            else
+                for this_loorep = 1:opts.n_looreps % For every leave one out condition
+                    
+                    [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:)...
+                        ,opts,meg_resp_par);
+                    
+                end
             end
+                
             if phase_fit_loo.do == 1 
                 phfittype = 'lo';
             end 
