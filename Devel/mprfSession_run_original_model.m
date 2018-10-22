@@ -74,13 +74,13 @@ if prepare_meg_data;
         % Bad channels are removed during the preprocessing step. Reason why
         % channels (21,24,41,65,153) are nans
         
-        
         % Go back to the session directory
         cd(cur_dir)
         
     elseif use_meg_data.first_iteration == 0
        data = use_meg_data.data; 
     end
+    
     % Define the periods (Eventually, this should come from somewhere else,
     % for example the stimulus files)
     % Also, the first bar positions after every blanks are removed. [6,33,60,87,114]
@@ -99,7 +99,6 @@ if prepare_meg_data;
     opts.n_iter = model.params.n_iterations;
     
     % params for the phase fitting
-    
     opts.phs_metric = model.params.phase_fit; % for choosing between model or data based fit
     phase_fit_loo.do = model.params.phase_fit_loo;
     phase_fit_loo.type = model.params.loo_type; %'amp' or 'VE';
@@ -153,9 +152,19 @@ if prepare_meg_data;
     tseries_std = nan(opts.n_bars,opts.n_chan,size(opts.idx,2),opts.n_looreps);
     tseries_ste = nan(opts.n_bars,opts.n_chan,size(opts.idx,2),opts.n_looreps);
     
-    if model.params.n_iterations > 1
+    % starting the parallel pool for running par for loop for reference
+    % phase fitting for Leave one out repetitions
+    n_cores = model.params.n_cores;
+    if n_cores > 1 && ~isempty(gcp('nocreate'))
+        mpool = parpool(n_cores);
+        pctRunOnAll warning('off','all');
+    end
+    
+    if model.params.n_iterations > 1 || n_cores > 1
         tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
     end
+    
+    
     fprintf('Processing %d stimulus periods:\n',opts.n_bars);
     
     PH_opt = []; % When the metric is amplitude, function mprf_computemetric still asks for a phase value. So, we just give an empty variable
@@ -176,10 +185,19 @@ if prepare_meg_data;
             
             PH_opt = nan(opts.n_looreps,opts.n_chan);
             VE_opt = nan(opts.n_looreps,opts.n_chan);
-            for this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
-                fprintf('leave one out repetition # %d',this_loorep)
-                fprintf('\n');
-                [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
+
+            if n_cores > 1
+                parfor this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
+                    fprintf('leave one out repetition # %d',this_loorep)
+                    fprintf('\n');
+                    [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
+                end
+            else
+                for this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
+                    fprintf('leave one out repetition # %d',this_loorep)
+                    fprintf('\n');
+                    [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
+                end
             end
             if phase_fit_loo.do == 1
                 phfittype = 'lo';
@@ -207,8 +225,15 @@ if prepare_meg_data;
         opts.n_looreps = size(tseries_av,4);
     end
     
-    
+    % Ending the parallel pool
+    if isempty(gcp('nocreate'))
+        fprintf('?? no open pool found ??');
+    else
+        delete(gcp);
+    end
 end
+
+
 
 % Fit the MEG predictions on the time series extracted above
 n_it = model.params.n_iterations; % How many iterations do we need?

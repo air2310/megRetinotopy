@@ -460,6 +460,7 @@ elseif strcmpi(model.type, 'scramble prf parameters');
         % Now use the mask for scrambling:
         roi_idx = find(roi.mask);
         
+        
         for this_it = 1:n_it
             
             this_prf = prf;
