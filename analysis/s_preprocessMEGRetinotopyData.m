@@ -99,12 +99,18 @@ epochStartEnd                 = [.150 (.150+1.100)]; % s (First 150 ms are blank
 flickerFreq                   = 10; % Hz
 
 if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
-data = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs); % time x epochs x channels
+[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs); % time x epochs x channels
 
-% Set blink and blank epochs to NaNs
-data(:, triggers.stimConditions==10,:) = NaN;
-% data(:, triggers.stimConditions==20,:) = NaN;
+% Set blink epochs to NaNs, leave blanks as is
+data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
+% data(:, triggers.stimConditions==20,:) = NaN; % 20: Blank blocks
 
+% Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
+% do this? Maybe consider not doing this since we already remove the first
+% 150 ms of every epoch?)
+data(:, startOfRun, :) = NaN;
+
+% Plot a single channel to check data
 if verbose
     t = (1:size(data,1))./fs;
     ft = (0:length(t)-1)/max(t);
@@ -122,8 +128,8 @@ if doFiltering
 
     fParams.fStop = 0.1;    % LowPass filter (Hz)
     fParams.fPass = 1;      % BandPass filter (Hz)
-    fParams.aStop = 60;     % Db
-    fParams.aPass = 3;      % Passband Ripple (Db)
+    fParams.aStop = 60;     % ?? Amplitude of lowpass filter(Db)
+    fParams.aPass = 3;      % ?? Amplitude band pass Ripple (Db)
     fParams.fs    = fs;
     
     if verbose; sprintf('(%s) High pass filter data...\n', mfilename); end
@@ -141,6 +147,7 @@ verbose             = true;
 
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
     varThreshold, badChannelThreshold, badEpochThreshold, verbose);
+
 
 %% 6. Denoise time series
 
@@ -191,32 +198,63 @@ if doSaveData
 
     if verbose; sprintf('(%s) Save data...\n', mfilename); end
     
-    % to do reshape back to time x epochs x channels x runs (maybe split up
-    % the runs to get same as old data sets)
-    clear dataBlocked;
-    numTrigPerBlock = (numOfEpochsPerOrientation + (3*(numOfEpochsPerOrientation+5)));
-    startEpoch = 1;
-    figure; plot(triggers.stimConditions); hold all;
-    for n = 1:numRuns*2
-        
-        if n == 1
-            theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
-        elseif (mod(n,2)==1)
-            startEpoch = theseEpochs(end)+1;
-            theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);   
+    % to do reshape back to time x epochs x channels x runs
+    
+        % SPLIT UP IN 20 blocks
+        % (maybe split up the runs to get same as old data sets)
+        %     clear dataBlocked;
+        %     numTrigPerBlock = (numOfEpochsPerOrientation + (3*(numOfEpochsPerOrientation+5)));
+        %     startEpoch = 1;
+        %     figure; plot(triggers.stimConditions); hold all;
+        %     for n = 1:numRuns*2
+        %         
+        %         if n == 1
+        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
+        %         elseif (mod(n,2)==1)
+        %             startEpoch = theseEpochs(end)+1;
+        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);   
+        %         else
+        %             startEpoch = theseEpochs(end)+6;
+        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
+        %         end
+        %         
+        %         dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
+        %         plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
+        %     end   
+        %     
+        %     data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels 
+        %     save(fullfile(savePth, 'MEG_timeseries.mat'), 'data', '-v7.3')
+     
+    % SPLIT UP IN 10 blocks   (i.e. number of RUNS)
+    dataBlocked =  NaN([size(dataDenoised,1),size(dataDenoised,2), size(dataDenoised,3)/numRuns, numRuns]);
+    
+     % plot all triggers
+    figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
+
+    for n = 1:numRuns
+       
+        % Get first epoch
+        startEpoch = startOfRun(n);
+
+        % Get last epoch depending on the run number
+        if n < numRuns
+            lastEpoch  = startOfRun(n+1)-1;
+            theseEpochs = startEpoch:lastEpoch;
         else
-            startEpoch = theseEpochs(end)+6;
-            theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
+            lastEpoch  = size(dataDenoised,3);
+            theseEpochs = startEpoch:lastEpoch;
         end
         
+        % Get data and put in dataBlocked variable
         dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
-        plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
-%         waitforbuttonpress;
-    end   
-    
-    data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels 
-    save(fullfile(savePth, 'MEG_timeseries.mat'), 'data', '-v7.3')
 
+        % Mark those that are blocked
+        plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
+    end
+    
+    clear data;
+    data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
+    save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
 end
 
 
