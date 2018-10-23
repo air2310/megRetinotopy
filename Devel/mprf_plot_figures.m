@@ -132,7 +132,7 @@ try
             
             chan = 15;
             figure,
-            mprf_polarplot(ones(19,1),orig_results.results.PH_opt(:,chan));
+            mprf_polarplot(ones(size(orig_results.results.PH_opt,1),1),orig_results.results.PH_opt(:,chan));
             x_bl = ones(size(orig_results.results.PH_opt(:,chan))).* cos(orig_results.results.PH_opt(:,chan));
             y_bl = ones(size(orig_results.results.PH_opt(:,chan))).* sin(orig_results.results.PH_opt(:,chan));
             for ct = 1:size(orig_results.results.PH_opt(:,chan),1)
