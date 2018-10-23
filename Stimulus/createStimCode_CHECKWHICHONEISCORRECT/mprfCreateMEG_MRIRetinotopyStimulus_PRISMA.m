@@ -23,8 +23,8 @@
 cal_mri = 'CBI_Propixx';
 cal_meg = 'meg_lcd';
 
-mri_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/20180909/Retinotopy/MRI';
-meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/20180909/Retinotopy/MEG';
+mri_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/20180909_wlsubj030/Retinotopy/MRI/';
+meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/20180909_wlsubj030/Retinotopy/MEG/';
 
 stim_size = 'max'; % 'max' or the degrees visual angle it should be (number, not char)
 nruns = 20;
@@ -177,6 +177,17 @@ Xmeg_deg = pix2angle(d_meg,Xmeg);
 
 Ymri_deg = pix2angle(d_mri,Ymri);
 Ymeg_deg = pix2angle(d_meg,Ymeg);
+
+% Save MEG grid
+grid = struct;
+grid.Xd = Xmeg_deg;
+grid.Yd = Ymeg_deg;
+grid.Xp = Xmeg;
+grid.Yp = Ymeg;
+grid.Rp = Rmeg;
+grid.Rd = Rmeg_deg;
+
+save(fullfile(meg_save_path,'MEG_grid'),'grid');
 
 % or
 % Rmri_deg = Rmri .* pix2angle(d_mri,1);
