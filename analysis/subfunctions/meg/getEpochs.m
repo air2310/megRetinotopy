@@ -1,4 +1,4 @@
-function epochedData = getEpochs(data, triggers, epochLength, flickerFreq, fs)
+function [epochedData, startOfRun] = getEpochs(data, triggers, epochLength, flickerFreq, fs)
 
 
 % Get epoch samples
@@ -9,8 +9,8 @@ epochSamples   = [skipTimepoints, numTimepoints+skipTimepoints]; %epoch length i
 
 
 % Not USED: Skip every 10 triggers, to the triggers that define the start of every run
-% endOfRun = floor(length(triggers.timing)/flickerFreq : length(triggers.timing)/flickerFreq : length(triggers.timing));
-% startOfRun = [1, 1+endOfRun(1:end-1)];
+endOfRun = floor(length(triggers.timing)/flickerFreq : length(triggers.timing)/flickerFreq : length(triggers.timing));
+startOfRun = [1, 1+endOfRun(1:end-1)];
 
 
 % Get indices for epoching
