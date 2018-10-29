@@ -1,16 +1,8 @@
+function [] = megRet_exportNiftis(subject, sessionDir)
+
 %% Configuration
 
-clear('all');
-tbUse('vistasoft');
-
-% If these are set, then they won't be deduced from the script location in
-% the next section:
-sub_name = 'wlsubj030';
-session_path = '/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030/';
-session_name = 'MRI_data';
-bids_sess    = 'nyu3T01';
-stimuli_path = fullfile(session_path, 'Stimuli');
-output_path = fullfile(session_path, 'Outputs');
+outputPath = fullfile(sessionDir, 'Outputs');
 
 % If you don't have SUBJECTS_DIR set, then you'll need to set this manually
 % to be your FreeSurfer subject's directory
@@ -26,40 +18,40 @@ output_path = fullfile(session_path, 'Outputs');
 
 % First, get the session path and subject name
 if ~exist('sub_name', 'var')
-    script_path = mfilename('fullpath');
-    [code_path,     script_name,  ~] = fileparts(script_path);
-    [session_path,  code_name,    ~] = fileparts(code_path);
-    [sub_path,      session_name, ~] = fileparts(session_path);
-    [subjects_path, sub_name,     ~] = fileparts(sub_path);
+    scriptPath = mfilename('fullpath');
+    [codePath,     scriptName,  ~] = fileparts(scriptPath);
+    [sessionDir,  codeName,    ~] = fileparts(codePath);
+    [subPath,      sessionName, ~] = fileparts(sessionDir);
+    [subjectsPath, subject,     ~] = fileparts(subPath);
 
-    if ~strcmpi(code_name, 'code')
+    if ~strcmpi(codeName, 'code')
         error(['If initialization script is not in <subj>/<sess>/code' ...
                ' then it must be edited manually to include paths']);
     end
 end
-if ~exist('session_name', 'var') || ~exist('session_path', 'var')
+if ~exist('sessionName', 'var') || ~exist('sessionPath', 'var')
     error('No session name/path deduced or provided');
 end
-fprintf('Subject: %-12s  Session: %-20s\n', sub_name, session_name);
+fprintf('Subject: %-12s  Session: %-20s\n', subject, sessionName);
    
 % Next, figure out freesurfer data if not given
-if ~exist('freesurfer_id', 'var'), freesurfer_id = sub_name; end
-if ~exist('fs_subjects_dir', 'var')
-    fs_subjects_dir = getenv('SUBJECTS_DIR');
+if ~exist('freesurferID', 'var'), freesurferID = subject; end
+if ~exist('fsSubjectsDir', 'var')
+    fsSubjectsDir = getenv('SUBJECTS_DIR');
 end
 
 % Last, figure out the output directory if not given
-if ~exist('output_path', 'var')
-    output_path = fullfile(session_path, 'Outputs');
+if ~exist('outputPath', 'var')
+    outputPath = fullfile(sessionDir, 'Outputs');
 end
-if ~exist(output_path, 'dir')
-    error(sprintf('output_path (%s) not found', output_path));
+if ~exist(outputPath, 'dir')
+    error(sprintf('outputPath (%s) not found', outputPath));
 end
 
 
 %% Navigate and initialize session
 
-cd(session_path);
+cd(sessionDir);
 
 % The datsets we need to deal with:
 datasets = {'Averages'};
@@ -76,14 +68,14 @@ for ii = 1:numel(datasets)
     % Load and export the angle/eccen
     vw = rmLoad(vw, 1, 'x0', 'map');
     vw = viewSet(vw, 'displaymode', 'map');
-    functionals2nifti(vw, [], sprintf('%s/%s-xcrds.nii.gz', output_path, outnames{ii}));
+    functionals2nifti(vw, [], sprintf('%s/%s-xcrds.nii.gz', outputPath, outnames{ii}));
     vw = rmLoad(vw, 1, 'y0', 'map');
-    functionals2nifti(vw, [], sprintf('%s/%s-ycrds.nii.gz', output_path, outnames{ii}));
+    functionals2nifti(vw, [], sprintf('%s/%s-ycrds.nii.gz', outputPath, outnames{ii}));
     % we also need the variance explained and sigma
     vw = rmLoad(vw, 1, 'sigma', 'map');
-    functionals2nifti(vw, [], sprintf('%s/%s-sigma.nii.gz', output_path, outnames{ii}));
+    functionals2nifti(vw, [], sprintf('%s/%s-sigma.nii.gz', outputPath, outnames{ii}));
     vw = rmLoad(vw, 1, 'variance explained', 'map');
-    functionals2nifti(vw, [], sprintf('%s/%s-vexpl.nii.gz', output_path, outnames{ii}));
+    functionals2nifti(vw, [], sprintf('%s/%s-vexpl.nii.gz', outputPath, outnames{ii}));
 end
 
 % That's all!
