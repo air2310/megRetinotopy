@@ -1,8 +1,12 @@
+function [] = megRet_computeMeanMapCoronal(subject, sessionDir)
+
 % Computes mean maps and averaged scans in the Inplane. Transforms 
 % averaged mean map and coranal to gray using trilinear interpolation.
 
 % Open the session
-cd /Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030;
+cd(sessionDir)
+
+% Open Vista
 vw = mrVista;
 
 % 

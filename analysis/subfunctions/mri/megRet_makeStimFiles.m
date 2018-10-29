@@ -1,20 +1,14 @@
-%% makeStimFiles_wlsubj030
+function [] = makeStimFiles(subject, sessionDir, sessionName, bidsSession)
 
 % Create scan_params and scan_images matfiles to run retinotopy model
 
-% Get subject info
-sub_name     = 'wlsubj030';
-session_path = '/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030';
-session_name = 'MRI_Data';
-bids_sess    = 'nyu3T01';
-
 % Where to find stimuli params?
-d1 = dir(fullfile(session_path, 'Stimuli','vistadisp_files', 'stim_input_matrices', '*stimulus*'));
-d2 = dir(fullfile(session_path, 'Stimuli','vistadisp_files', 'stim_output_matrices', '*.mat'));
+d1 = dir(fullfile(sessionDir, 'Stimuli','vistadisp_files', 'stim_input_matrices', '*stimulus*'));
+d2 = dir(fullfile(sessionDir, 'Stimuli','vistadisp_files', 'stim_output_matrices', '*.mat'));
 
 % Where to save stimuli params?
-stim_folder = fullfile(session_path, 'Stimuli');
-if ~exist(stim_folder, 'dir'); mkdir(stim_folder); end;
+stimFolder = fullfile(sessionDir, 'Stimuli');
+if ~exist(stimFolder, 'dir'); mkdir(stimFolder); end;
 
 
 % Just pick the first run:
@@ -54,11 +48,11 @@ params.period       =  params.scanDuration;
 
 images = im.stimulus.images;
 
-save(fullfile(stim_folder,'scan_images.mat'), 'images')
+save(fullfile(stimFolder,'scan_images.mat'), 'images')
 
 clear im images
 
-save(fullfile(stim_folder,'scan_params.mat'));
+save(fullfile(stimFolder,'scan_params.mat'));
     
 
 

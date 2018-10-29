@@ -1,28 +1,21 @@
-%% Configuration
+function [] = megRet_solvePRFs(subject, sessionDir, sessionName)
 
 clear('sub_name', 'session_path', 'session_name', 'stimuli_path', ...
       'params_file', 'fs_subjects_dir', 'freesurfer_id');
 
-% If these are set, then they won't be deduced from the script location in
-% the next section:
-sub_name = 'wlsubj030';
-session_path = '/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030/';
-session_name = 'MRI_data';
-bids_sess    = 'nyu3T01';
-
 % If you don't have SUBJECTS_DIR set, then you'll need to set this manually
 % to be your FreeSurfer subject's directory
-fs_subjects_dir = '/Volumes/server/Freesurfer_subjects';
+fsSubjectsDir = '/Volumes/server/Freesurfer_subjects';
 
 % If your subject has a different FreeSurfer subject ID than VistaSoft ID,
 % you must set this to the subject's freesurfer id:
-freesurfer_id = 'wlsubj030';
+freesurferID = subject;
 
 % The annot_pattern is the string used to create the scan names via the
 % sprintf function; e.g., if you have 4 scans that are all pRF scans, and
 % you choose 'myPRF%02d' for this string,
 % then your scans will be named myPRF01, myPRF02, myPRF03, and myPRF04.
-annot_pattern = 'PRF%02d';
+annotPattern = 'PRF%02d';
 
 %% Deducing the remaining configuration data
 %  We assume that this file is in <something>/<subject>/code/scriptname.m
@@ -32,9 +25,9 @@ annot_pattern = 'PRF%02d';
 if ~exist('sub_name', 'var')
     script_path = mfilename('fullpath');
     [code_path,     script_name,  ~] = fileparts(script_path);
-    [session_path,  code_name,    ~] = fileparts(code_path);
-    [sub_path,      session_name, ~] = fileparts(session_path);
-    [subjects_path, sub_name,     ~] = fileparts(sub_path);
+    [sessionDir,  code_name,    ~] = fileparts(code_path);
+    [sub_path,      sessionName, ~] = fileparts(sessionDir);
+    [subjects_path, subject,     ~] = fileparts(sub_path);
 
     if ~strcmpi(code_name, 'code')
         error(['If initialization script is not in <subj>/<sess>/code' ...
@@ -44,12 +37,12 @@ end
 if ~exist('session_name', 'var') || ~exist('session_path', 'var')
     error('No session name/path deduced or provided');
 end
-fprintf('Subject: %-12s  Session: %-20s\n', sub_name, session_name);
+fprintf('Subject: %-12s  Session: %-20s\n', subject, sessionName);
    
 % Next, figure out freesurfer data if not given
-if ~exist('freesurfer_id', 'var'), freesurfer_id = sub_name; end
+if ~exist('freesurfer_id', 'var'), freesurferID = subject; end
 if ~exist('fs_subjects_dir', 'var')
-    fs_subjects_dir = getenv('SUBJECTS_DIR');
+    fsSubjectsDir = getenv('SUBJECTS_DIR');
 end
 
 % Figure out the stimulus path if not given
@@ -62,7 +55,7 @@ if ~exist('stimuli_path', 'dir') && need_stimdir
     stimuli_paths = {'Stimulus', 'stimulus', 'Stimuli', 'stimuli', ...
                      'Stim', 'stim'};
     for i = 1:numel(stimuli_paths)
-        stimuli_path = fullfile(session_path, stimuli_paths{i});
+        stimuli_path = fullfile(sessionDir, stimuli_paths{i});
         if isdir(stimuli_path), break;
         else stimuli_path = [];
         end
@@ -114,7 +107,7 @@ end
 
 %% Navigate
 
-cd(session_path);
+cd(sessionDir);
 
 gr = initHiddenGray();
 gr = viewSet(gr, 'current dt', 'Averages');

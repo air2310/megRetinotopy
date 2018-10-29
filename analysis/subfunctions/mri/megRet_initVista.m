@@ -1,4 +1,4 @@
-function [] = initVista(subject, scriptPth, sessionFolder, bidsSession)
+function [] = megRet_initVista(subject, scriptPth, sessionFolder, bidsSession)
 
 %% How this file works:
 %  (1) You create a VistaSoft subject directory (but not an anatomy
