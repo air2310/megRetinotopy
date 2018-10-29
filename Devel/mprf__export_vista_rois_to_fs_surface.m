@@ -48,9 +48,9 @@ for nn = 1:length(surfaces_to_load)
     
     if isempty(roi_names)
 %         % Ask for the ROIs we want to export for the current hemisphere:
-%         [roi_names, roi_path] = uigetfile('*',...
-%             sprintf('Please select the %s hemisphere ROIs you want to export',hs{nn}),...
-%             'MultiSelect','on');
+        [roi_names, roi_path] = uigetfile('*',...
+            sprintf('Please select the %s hemisphere ROIs you want to export',hs{nn}),...
+            'MultiSelect','on');
         error('ROIs for %s hemisphere not properly imported',hs{nn})
 
 
@@ -174,7 +174,7 @@ for nn = 1:length(surfaces_to_load)
         cnt = cnt+1;
         roi_tag = mprf__get_roi_tags(roi_names{n});
         
-        tag_to_idx.(roi_tag) = cnt;
+        tag_to_idx.(roi_tag{1}) = cnt;
         
         [~,roi_name] = fileparts(roi_names{n});
         tmp = nan(1,length(mrv_msh.vertices));

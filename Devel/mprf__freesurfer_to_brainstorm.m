@@ -69,31 +69,41 @@ end
 
 
 fprintf('Exporting surface data:\n')
+
 for n = 1:length(surfaces_to_load)
-    verts = [];
+    % Get brainstorm mesh
+    fs_vertices = [];
     
     % Loop over all (2, left and right) surfaces:
     for nn = 1:length(hs_to_load)
         cur_surf = [hs_to_load{nn} '.' surfaces_to_load{n}];
         surf_file = fullfile(main_dir,mprf__get_directory('fs_surface'),cur_surf);
+        
         % Use the same routine as Brainstorm uses, otherwise the vertices 
         % are slightly off and intersectCols does not find all the matching 
         % vertices.
-        tmp_verts = mne_read_surface(surf_file); 
         
-        % Transformations applied by brainstorm:
-        tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);
+        [tmp_verts, ~] = mne_read_surface(surf_file);
+        
+         % Transformations applied by brainstorm:
+        tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);  
         tmp_verts = [tmp_verts'; ones(1,size(tmp_verts,1))]; %% Actually verts)
         tmp_verts = [bs_mri.SCS.R, bs_mri.SCS.T./1000; 0 0 0 1] * tmp_verts;
         tmp_verts = tmp_verts(1:3,:)';
         
-        % Concatenate left and right: 
-        verts = [verts; tmp_verts]; %#ok<AGROW>
         
+        % combine left and right hemi
+        verts = [fs_vertices; tmp_verts];  
     end
+     
     
+%         fs_verticesAligned = cs_convert(bs_mri, 'mri', 'scs', fs_vertices);
+
+        
+    
+    % Get brainstorm mesh
     surf_path = fullfile(main_dir, mprf__get_directory('bs_anat'));
-    
+  
     % Load the brainstorm surface file:
     bs_surf_files = dir(fullfile(surf_path,'*tess_cortex*.mat'));
     this_bs_file = find(~cellfun(@isempty,strfind({bs_surf_files.name},surfaces_to_load{n})));
@@ -101,7 +111,7 @@ for n = 1:length(surfaces_to_load)
     if isempty(this_bs_file)
         error('Could not find Brainstorm surface file for %s',surfaces_to_load{n})
     end
-    load(fullfile(surf_path,bs_surf_files(this_bs_file).name),'Vertices');
+    load(fullfile(surf_path,bs_surf_files(this_bs_file).name),'Vertices', 'Faces');
     
     % Find the vertices that we computed in verts in the Vertices generated
     % by Brainstorm. Brainstorm downsamples the surfaces (15002 vertices)
@@ -110,7 +120,10 @@ for n = 1:length(surfaces_to_load)
     % ones. Therefore, intersectCols should be able to find all 15002
     % vertices of the brainstorm surface in our own verts variable. If not,
     % possibly something went wrong in the transformations above.
-    [~, bs_vert_idx, bs_vert_idx2] = intersectCols(verts', Vertices');
+%     [~, bs_vert_idx, bs_vert_idx2] = intersectCols(verts', Vertices');
+    
+    bs_vert_idx = dsearchn(verts, Vertices);
+    bs_vert_idx2 = dsearchn(Vertices, verts);
     
     if numel(bs_vert_idx) == size(Vertices,1);
         
@@ -157,10 +170,13 @@ for n = 1:length(surfaces_to_load)
                 read_curv(fullfile(pname,cur_rh_file))];
             
             % preallocate the output variable:
-            both_bs_data_out = nan(size(bs_vert_idx2));
+%             both_bs_data_out = nan(size(bs_vert_idx));
+%             both_bs_data_out = nan(size(bs_vert_idx));
             
             % Select to correct parameters:
-            both_bs_data_out(bs_vert_idx2) = both_data(bs_vert_idx);
+%             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
+            both_bs_data_out = both_data(bs_vert_idx);
+
             
             % Store the results:
             cur_out_file = [surfaces_to_load{n} '.' par_name];

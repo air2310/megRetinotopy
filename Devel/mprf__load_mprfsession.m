@@ -27,8 +27,12 @@ switch lower(action)
         if strcmpi(mprfSESSION.init.main_dir,pwd)
             
         else
-           warning('Updating main directory to current directory') 
-            
+            warning('Updating main directory to current directory')
+            cur_date = datestr(now);
+            cur_date(cur_date == ' '| cur_date == ':' | cur_date == '-') = '_';
+            mprfSESSION.init.date = cur_date;
+            mprfSESSION.init.main_dir = pwd;
+            mprfSESSION.root.root_path = mprfRootPath;
         end
 
 

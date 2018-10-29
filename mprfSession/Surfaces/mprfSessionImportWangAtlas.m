@@ -4,7 +4,7 @@ load(fullfile(pwd,'mprfSESSION.mat'))
 global mprfSESSION
 
 
-cd(mprfSESSION.orig.fs_subject_dir)
+cd(mprfSESSION.orig.paths.fs_dir)
 
 [atlas_files, atlas_path] = uigetfile('*.mgz',...
     'Please select atlas files you want to import',...

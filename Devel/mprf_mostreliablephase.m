@@ -10,7 +10,7 @@ function [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,opts,meg_resp)
 %              stimulus frequency, metric
 %
 
-ph_range = -3.14:0.314:3.14; % range of values to search for the reference phase
+ph_range = 0:0.314:3.14; % range of values to search for the reference phase
 %VE_fit_alang = nan(size(ph_range,2),opts.n_chan);
 ang_opt = nan(1,opts.n_chan);
 PH_opt = nan(1,opts.n_chan);
@@ -75,7 +75,7 @@ for idx_ch = 1:opts.n_chan
                 tmp_v(c) = mean_ve;
                 c = c+1;
         
-        if B(2) >= 0
+        %if B(2) >= 0
             if notDefined('opt_ve')
                 opt_ve = mean_ve(1);
                 
@@ -107,13 +107,12 @@ for idx_ch = 1:opts.n_chan
             end
             %        VE_fit_alang(count_ang,idx_ch) = mean_ve(idx_ch);
             count_ang = count_ang+1;
-        end
+        %end
         
     end
     %%
     ang_opt(idx_ch) = count_opt;
     PH_opt(idx_ch) = ref_ph_opt;
-    
     VE_opt(idx_ch) = VE_fit_opt;
     
     % for plotting the phase values on polar cordinates
