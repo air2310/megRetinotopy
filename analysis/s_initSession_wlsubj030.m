@@ -27,24 +27,8 @@ s.MEGStim.pth       = fullfile(megDataDir, 'raw', 'R0942_MegRet_9.11.18','stimFi
 s.MEGStimGrid.pth   = fullfile(megDataDir, 'raw', 'R0942_MegRet_9.11.18','stimFiles', 'MEG_grid.mat');
 
 % RM model, with stimulus
-prfParams = load(s.PRFParams.pth);
+loadAndVisualizeStim(s, 'MEG')
 
-megStimulus = load(s.MEGStim.pth, 'stimulus');
-megStimulusGrid = load(s.MEGStimGrid.pth);
-
-%   Make grid?
-sz1 = numel(X);
-sz2 = 
-X   = repmat(X(:),1,sz2);
-Y   = repmat(Y(:),1,sz2);
-
-% define centered around (0,0) coordinate space
-x0 = repmat(x0(:)',sz1,1);
-y0 = repmat(y0(:)',sz1,1);
-
-% Translate grid so that center is at RF center
-X = X - x0;   % positive x0 moves center right
-Y = Y - y0;   % positive y0 moves center up
     
     
 % check where coordinates fall wrt image?
