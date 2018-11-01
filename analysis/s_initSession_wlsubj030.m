@@ -27,7 +27,7 @@ s.MEGStim.pth       = fullfile(megDataDir, 'raw', 'R0942_MegRet_9.11.18','stimFi
 s.MEGStimGrid.pth   = fullfile(megDataDir, 'raw', 'R0942_MegRet_9.11.18','stimFiles', 'MEG_grid.mat');
 
 % RM model, with stimulus
-loadAndVisualizeStim(s, 'MEG')
+stim = loadStim(s);
 
     
     

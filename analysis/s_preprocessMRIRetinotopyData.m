@@ -13,8 +13,8 @@
 %    variable: setenv('SUBJECTS_DIR', '/Volumes/server/Freesurfer_subjects')
 
 subject      = 'wlsubj030';
-sessionDir   = '/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030';
-sessionName  = 'MRI_Data';
+sessionDir   = '/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/wlsubj030/vistaSession';
+sessionName  = 'MRI_data';
 bidsSession  = 'nyu3T01';
 
 % 1. Init session
@@ -27,7 +27,7 @@ megRet_computeMeanMapCoronal(subject, sessionDir)
 megRet_makeStimFiles(subject, sessionDir, sessionName, bidsSession)
 
 % 4. solve_PRFs
-megRet_solvePRFs(subject, sessionDir, sessionName, bidsSession)
+megRet_solvePRFs(subject, sessionDir, sessionName)
 
 % 5. Export Niftis to surface
 megRet_exportNiftis

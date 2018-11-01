@@ -46,7 +46,7 @@ model.params.beta_equal_pred    = 1;
 model.params.beta_equal_beta    = 0;
 
        
-model.type = 'prf size range'; %'original'
+model.type = 'run original model'; %'original'
 
 % Get the modeling parameters from the model variable:
 [prf, bs, roi] = mprf__model_get_prf_params(model);
