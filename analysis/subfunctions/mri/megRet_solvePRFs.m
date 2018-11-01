@@ -1,8 +1,5 @@
 function [] = megRet_solvePRFs(subject, sessionDir, sessionName)
 
-clear('sub_name', 'session_path', 'session_name', 'stimuli_path', ...
-      'params_file', 'fs_subjects_dir', 'freesurfer_id');
-
 % If you don't have SUBJECTS_DIR set, then you'll need to set this manually
 % to be your FreeSurfer subject's directory
 fsSubjectsDir = '/Volumes/server/Freesurfer_subjects';
@@ -22,93 +19,93 @@ annotPattern = 'PRF%02d';
 %  for the purposes of deducing various paths.
 
 % First, get the session path and subject name
-if ~exist('sub_name', 'var')
+if ~exist('subject', 'var')
     script_path = mfilename('fullpath');
-    [code_path,     script_name,  ~] = fileparts(script_path);
-    [sessionDir,  code_name,    ~] = fileparts(code_path);
-    [sub_path,      sessionName, ~] = fileparts(sessionDir);
-    [subjects_path, subject,     ~] = fileparts(sub_path);
+    [codePath,     scriptName,  ~] = fileparts(script_path);
+    [sessionDir,    codeName,    ~] = fileparts(codePath);
+    [subPath,       sessionName, ~] = fileparts(sessionDir);
+    [subjectsPath,  subject,     ~] = fileparts(subPath);
 
-    if ~strcmpi(code_name, 'code')
+    if ~strcmpi(codeName, 'code')
         error(['If initialization script is not in <subj>/<sess>/code' ...
                ' then it must be edited manually to include paths']);
     end
 end
-if ~exist('session_name', 'var') || ~exist('session_path', 'var')
+if ~exist('sessionName', 'var') || ~exist('sessionDir', 'var')
     error('No session name/path deduced or provided');
 end
 fprintf('Subject: %-12s  Session: %-20s\n', subject, sessionName);
    
 % Next, figure out freesurfer data if not given
-if ~exist('freesurfer_id', 'var'), freesurferID = subject; end
-if ~exist('fs_subjects_dir', 'var')
+if ~exist('freesurferID', 'var'), freesurferID = subject; end
+if ~exist('fs_subjectsDir', 'var')
     fsSubjectsDir = getenv('SUBJECTS_DIR');
 end
 
 % Figure out the stimulus path if not given
-if ~exist('params_file', 'var') || ~exist('images_file', 'var')
-    need_stimdir = true;
+if ~exist('paramsFile', 'var') || ~exist('imagesFile', 'var')
+    needStimdir = true;
 else
-    need_stimdir = false;
+    needStimdir = false;
 end
-if ~exist('stimuli_path', 'dir') && need_stimdir
-    stimuli_paths = {'Stimulus', 'stimulus', 'Stimuli', 'stimuli', ...
+if ~exist('stimuliPath', 'dir') && needStimdir
+    stimuliPaths = {'Stimulus', 'stimulus', 'Stimuli', 'stimuli', ...
                      'Stim', 'stim'};
-    for i = 1:numel(stimuli_paths)
-        stimuli_path = fullfile(sessionDir, stimuli_paths{i});
-        if isdir(stimuli_path), break;
-        else stimuli_path = [];
+    for i = 1:numel(stimuliPaths)
+        stimuliPath = fullfile(sessionDir, stimuliPaths{i});
+        if isdir(stimuliPath), break;
+        else stimuliPath = [];
         end
     end
-    if isempty(stimuli_path)
+    if isempty(stimuliPath)
         error('Could not deduce the stimuli path')
     end
 end
 % And figure out the actual param and image files...
-if ~exist('params_file', 'var')
-    fls = dir(fullfile(stimuli_path, '*_params.mat'));
-    params_file = [];
+if ~exist('paramsFile', 'var')
+    fls = dir(fullfile(stimuliPath, '*_params.mat'));
+    paramsFile = [];
     for ii = 1:numel(fls)
         fldat = fls(ii);
-        fl = fullfile(stimuli_path, fldat.name);
+        fl = fullfile(stimuliPath, fldat.name);
         if fl(1) == '.',  continue;
         elseif isdir(fl), continue;
-        else              params_file = fl;
+        else              paramsFile = fl;
                           break;
         end
     end
-    if isempty(params_file)
+    if isempty(paramsFile)
         error('Could not deduce location of parameters mat file');
     end
 end
-if ~exist(params_file, 'file')
-    error(sprintf('params file (%s) does not exist', params_file));
+if ~exist(paramsFile, 'file')
+    error(sprintf('params file (%s) does not exist', paramsFile));
 end
-if ~exist('images_file', 'var')
-    fls = dir(fullfile(stimuli_path, '*_images.mat'));
-    images_file = [];
+if ~exist('imagesFile', 'var')
+    fls = dir(fullfile(stimuliPath, '*_images.mat'));
+    imagesFile = [];
     for ii = 1:numel(fls)
         fldat = fls(ii);
-        fl = fullfile(stimuli_path, fldat.name);
+        fl = fullfile(stimuliPath, fldat.name);
         if fl(1) == '.',  continue;
         elseif isdir(fl), continue;
-        else              images_file = fl;
+        else              imagesFile = fl;
                           break;
         end
     end
-    if isempty(images_file)
+    if isempty(imagesFile)
         error('Could not deduce location of images mat file');
     end
 end
-if ~exist(images_file, 'file')
-    error(sprintf('images file (%s) does not exist', images_file));
+if ~exist(imagesFile, 'file')
+    error(sprintf('images file (%s) does not exist', imagesFile));
 end
 
 
 %% Navigate
 
 cd(sessionDir);
-
+load mrSESSION
 gr = initHiddenGray();
 gr = viewSet(gr, 'current dt', 'Averages');
 
@@ -121,12 +118,12 @@ prfModels = 'one gaussian';
 sParams = rmCreateStim(gr);
 sParams.stimType   = 'StimFromScan'; % This means the stimulus images will
                                      % be read from a file.
-sParams.stimSize   = 11.5919;        % usually 12.4; but for experiment the stimsize is limited by MEG screen fov           % stimulus radius (deg visual angle)
+sParams.stimSize   = 11.1859;        % usually 12.4; but for experiment the stimsize is limited by MEG screen fov           % stimulus radius (deg visual angle)
 sParams.nDCT       = 1;              % detrending frequeny maximum (cycles
                                      % per scan): 1 means 3 detrending
                                      % terms, DC (0 cps), 0.5, and 1 cps
-sParams.imFile     = images_file;    % file containing stimulus images
-sParams.paramsFile = params_file;    % file containing stimulus parameters
+sParams.imFile     = imagesFile;    % file containing stimulus images
+sParams.paramsFile = paramsFile;    % file containing stimulus parameters
 sParams.nCycles     = 1;
 sParams.framePeriod = 1.5;
 sParams.prescanDuration = 0;
