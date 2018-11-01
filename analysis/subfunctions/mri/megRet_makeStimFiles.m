@@ -17,7 +17,7 @@ id = 1;
 % create params struct
 load(fullfile(d2(id).folder, d2(id).name));
 
-% params.analysis.fieldSize   = 11.5919;
+% params.analysis.fieldSize   = 11.18;
 % params.analysis.numberStimulusGridPoints = 11;
 % params.analysis.sampleRate  = 1.0538;
 % params.prescanDuration      = 8; % TRs
