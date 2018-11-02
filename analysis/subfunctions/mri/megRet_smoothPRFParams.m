@@ -91,7 +91,7 @@ for nn = 1:length(paramLabels)
             mresp = mprfComputeMaximumResponse(s.stim.MRI,sigma_us,x0,y0,prfParamsExp.(curParam),VEmask);
             
             % Store the maximum responses as a nifti file:
-            fname = mprfExportDataPath('prf_nifti','mresp.nii.gz');
+            fname = fullfile(savePth,'mresp.nii.gz');
             prfParamsExp.('mresp') = mresp;
             hvol = viewSet(hvol,'map',{mresp});
             functionals2nifti(hvol, 1, fname);
@@ -105,7 +105,7 @@ for nn = 1:length(paramLabels)
             
             % Export smoothed maximum responses as a nifti:
             hvol = viewSet(hvol,'map',{mresp_sm});
-            fname = fullfile(main_dir, mprf__get_directory('prf_nifti'),'mresp_smoothed.nii.gz');
+            fname = fullfile(savePth, 'mresp_smoothed.nii.gz');
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(classFile, fname);
             
