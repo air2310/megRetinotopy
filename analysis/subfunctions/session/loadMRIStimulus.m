@@ -14,7 +14,7 @@ prfParams = load(stimPths.PRFParams.pth);
 % [EK]: not sure what the difference is between unconvolved and all
 % stim images. And why we even need this?
 %         retStim.im = prfParams.params.stim.images_unconvolved;
-%         retStim.im_conv = prfParams.params.analysis.allstimimages';
+retStim.im_conv = prfParams.params.analysis.allstimimages';
 
 retStim.window  = prfParams.params.stim.stimwindow;
 X = prfParams.params.analysis.X;
