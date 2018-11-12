@@ -6,6 +6,8 @@
 % Define subject and its paths
 subject            = 'wlsubj030';
 dataDir            = '/Volumes/server/Projects/MEG/Retinotopy/Data/';
+freeSurferDir      = '/Volumes/server/Freesurfer_subjects/';
+brainstormDBDir    = '/Volumes/server/Projects/MEG/brainstorm_db/';
 vistaSessionDir    = fullfile(dataDir, 'fMRI', subject, 'VistaSession');
 megDataDir         = fullfile(dataDir, 'MEG', subject);
 outPutDir          = fullfile(mprfRootPath, 'data', subject);
@@ -13,11 +15,16 @@ outPutDir          = fullfile(mprfRootPath, 'data', subject);
 % Predefine struct
 s = struct();
 
+% Add FS and BS subject
+s.fsSubject          = subject;
+s.bsSubject          = subject;
+
 % Find MEG time series
 s.MEGtimeseries = fullfile(megDataDir, 'processed', 'epoched_data_hp_preproc_denoised.mat');
 
 % Add other general paths
 s.vistaSession.pth = vistaSessionDir;
+s.freeSurferDir    = freeSurferDir;
 s.megData.pth      = megDataDir;
 s.outPut.pth       = outPutDir;
 
@@ -38,8 +45,23 @@ s.stim = loadStim(s);
 megRet_smoothPRFParams(s)
 
 % Find ROIS in Freesurfer directory
+s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
 
-% Find Brainstorm headmodel
+% Find Brainstorm headmodel and copy to output dir
+d = dir(fullfile(brainstormDBDir, 'MEG_Retinopy', 'data', subject, '*', 'headmodel*.mat'));
+s.BS.gainMatrix.pth = fullfile(d.folder,d.name);
+status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, 'gainmatrix.mat'));
 
-% Export FS surfaces to Brainstorm 
+% Find BS surfaces
+s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
+
+% What rois?
+roiType = 'allRoisWangAtlas';
+
+% Go from FS to BS
+megRet_FS2BS(s, roiType)
+
+
+
+
 
