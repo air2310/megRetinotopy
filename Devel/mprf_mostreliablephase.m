@@ -10,7 +10,7 @@ function [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,opts,meg_resp)
 %              stimulus frequency, metric
 %
 
-ph_range = 0:0.314:3.14; % range of values to search for the reference phase
+ph_range = -3.14:0.314:3.14; % range of values to search for the reference phase
 %VE_fit_alang = nan(size(ph_range,2),opts.n_chan);
 ang_opt = nan(1,opts.n_chan);
 PH_opt = nan(1,opts.n_chan);
@@ -37,8 +37,7 @@ for idx_ch = 1:opts.n_chan
         n_roi = size(meg_resp{1},3);
         n_metric = size(tseries_av,3);
         
-        fit_data_opt = nan(n_bars,n_chan);
-        preds_opt =  nan(n_bars,n_chan);
+
         preds = nan(n_bars, 1, n_roi, n_metric);
         mean_ve = nan(1, n_roi, n_metric);
         fit_data = nan(n_bars,1,n_roi,n_metric);
@@ -58,9 +57,13 @@ for idx_ch = 1:opts.n_chan
                         X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
                     elseif strcmpi(opts.metric,'phase ref amplitude')
                         X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                        
+                        X_tmp = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
                     end
                     % Compute Beta's:
                     B = X \ cur_data(not_nan);
+                    
+                    B_tmp = X_tmp \ cur_data(not_nan);
                     % Store the predicted times series:
                     preds(not_nan, 1, this_roi, this_metric) =  X * B;
                     % Compute coefficient of determination (i.e. R square /
@@ -71,23 +74,32 @@ for idx_ch = 1:opts.n_chan
                 end
             end
         end
-                tmp_b(c) = B(2);
-                tmp_v(c) = mean_ve;
+                tmp_b(idx_ch,c) = B(2);
+                tmp_v(idx_ch,c) = mean_ve;
                 c = c+1;
         
-        %if B(2) >= 0
+        if B(2) >= 0
             if notDefined('opt_ve')
-                opt_ve = mean_ve(1);
-                
+                opt_ve = mean_ve(1);                
             end
-            
             if mean_ve(1) >= opt_ve
+                
+                fit_data_opt = nan(n_bars,1);
+                preds_opt =  nan(n_bars,1);
+                
                 ref_ph_opt = idx_ang;
                 VE_fit_opt = mean_ve(1);
                 count_opt = count_ang;
                 opt_ve = VE_fit_opt;
-                %            fit_data_opt(:,idx_ch) = fit_data(:, idx_ch, this_roi, this_metric);
-                %            preds_opt(not_nan,idx_ch) = preds(not_nan,idx_ch);
+                 
+%                 if B_tmp(2)<0
+%                     B(2) = -(B(2));
+%                     ref_ph_opt = pi + ref_ph_opt;
+%                 end
+                
+                fit_data_opt = fit_data;
+                preds_opt(not_nan, 1, this_roi, this_metric) =  X * B;
+                
             end
             if isnan(opt_ve)
                 ref_ph_opt = NaN;
@@ -98,6 +110,9 @@ for idx_ch = 1:opts.n_chan
                 %            preds_opt(:,idx_ch) = nan(n_bars,1);
             end
             
+            
+            
+            
             if count_ang == 1 && idx_ch == 1
                 tmp_time = toc;
                 tot_time = tmp_time * length(ph_range) * opts.n_looreps * n_chan;
@@ -107,7 +122,7 @@ for idx_ch = 1:opts.n_chan
             end
             %        VE_fit_alang(count_ang,idx_ch) = mean_ve(idx_ch);
             count_ang = count_ang+1;
-        %end
+        end
         
     end
     %%
