@@ -1,19 +1,27 @@
 function megRet_FS2BS(s, roiType)
 
-addpath(genpath('/Applications/freesurfer/matlab'));
-addpath(genpath('/Applications/freesurfer/fsfast/toolbox'));
+% if ~exist('...')
+    addpath(genpath('/Applications/freesurfer/matlab'));
+    addpath(genpath('/Applications/freesurfer/fsfast/toolbox'));
+% end
 
 % Load the brainstorm head model file, as we need to know on which surface
 % it is defined:
 bsOverlay = load(fullfile(s.BS.surface.pth, 'tess_cortex_pial_low.mat'));
 
+% Set the freesurfer subject dir
 fsSubjDir = fullfile(s.freeSurferDir, s.fsSubject);
 setenv('SUBJECT_DIR', s.freeSurferDir)
 
-wangAtlas_fname = @(hem, type)(sprintf('%s/surf/%s.wang2015_atlas.mgz', fsSubjDir, hem));
-surfdat      = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
+% Save ROIs
+s.saveRoiDir = fullfile(s.outPut.pth, s.fsSubject, 'BSrois');
+if ~exist(s.saveDir,'dir'); mkdir(s.saveDir); end;
 
-subFSWang = surfdat(MRIread(wangAtlas_fname('lh')), MRIread(wangAtlas_fname('rh')), 1);
+% Get the Wang Atlas
+wangAtlas_fname = @(hem, type)(sprintf('%s/surf/%s.wang2015_atlas.mgz', fsSubjDir, hem));
+surfdat         = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
+
+subFSWang       = surfdat(MRIread(wangAtlas_fname('lh')), MRIread(wangAtlas_fname('rh')), 1);
 
 switch roiType
     
@@ -24,24 +32,22 @@ switch roiType
         rh.ROI_data = subFSWang.rh>0;
 
         % do interpolation
-        subBSInterp = tess_fs2bst(bsSubjDir, fsSubjDir, lh.ROI_data, rh.ROI_data);
+        wangROI_BS = tess_fs2bst(bsSubjDir, fsSubjDir, lh.ROI_data, rh.ROI_data);
 
         % save interpolated data as mgz and mat file
-        subBSAllROImgzfile = sprintf('%s/allWangROIs_overlay.mgz', sub_bsdir);
+        subBSAllROImgzfile = sprintf('%s/allWangROIs_overlay.mgz', s.saveRoiDir);
 
-         subBSAllROImatfile = sprintf('%s/allWangROIs_overlay.mat', sub_bsdir);
+        subBSAllROImatfile = sprintf('%s/allWangROIs_overlay.mat', s.saveRoiDir);
 
-         MRIwrite(struct('vol', sub_bs_angle), sub_bs_angle_mgzfile);
+        MRIwrite(struct('vol', wangROI_BS), subBSAllROImgzfile);
 
-         save(sub_bs_angle_matfile, 'sub_bs_angle');
+        save(subBSAllROImatfile, 'wangROI_BS');
 
     case 'individual'
-        % in case of individual rois
+        % in case of individual rois???
         
 end
         
-
-
 
 % AND NOW the same for PRF DATA
 

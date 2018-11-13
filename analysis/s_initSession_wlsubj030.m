@@ -55,10 +55,8 @@ status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, 'gainmatrix.mat'));
 % Find BS surfaces
 s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
 
-% What rois?
-roiType = 'allRoisWangAtlas';
-
 % Go from FS to BS
+roiType = 'allRoisWangAtlas'; % What rois?
 megRet_FS2BS(s, roiType)
 
 
