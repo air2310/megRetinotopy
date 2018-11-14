@@ -1,17 +1,20 @@
 function megRet_FS2BS(s, roiType)
 
-% if ~exist('...')
+if ~exist('MRIread')
     addpath(genpath('/Applications/freesurfer/matlab'));
     addpath(genpath('/Applications/freesurfer/fsfast/toolbox'));
-% end
+end
 
 % Load the brainstorm head model file, as we need to know on which surface
 % it is defined:
-bsOverlay = load(fullfile(s.BS.surface.pth, 'tess_cortex_pial_low.mat'));
+% bsOverlay = load(fullfile(s.BS.surface.pth, 'tess_cortex_pial_low.mat'));
 
 % Set the freesurfer subject dir
 fsSubjDir = fullfile(s.freeSurferDir, s.fsSubject);
 setenv('SUBJECT_DIR', s.freeSurferDir)
+
+% Set the brainstorm subject dir
+bsSubjDir = s.BS.surface.pth;
 
 % Save ROIs
 s.saveRoiDir = fullfile(s.outPut.pth, s.fsSubject, 'BSrois');
@@ -34,13 +37,14 @@ switch roiType
         % do interpolation
         wangROI_BS = tess_fs2bst(bsSubjDir, fsSubjDir, lh.ROI_data, rh.ROI_data);
 
-        % save interpolated data as mgz and mat file
+        % Create file names for interpolated data
         subBSAllROImgzfile = sprintf('%s/allWangROIs_overlay.mgz', s.saveRoiDir);
-
         subBSAllROImatfile = sprintf('%s/allWangROIs_overlay.mat', s.saveRoiDir);
 
+        % save ROIs as mgz file
         MRIwrite(struct('vol', wangROI_BS), subBSAllROImgzfile);
 
+        % save ROIs as mat file
         save(subBSAllROImatfile, 'wangROI_BS');
 
     case 'individual'
