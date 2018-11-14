@@ -12,7 +12,7 @@
 
 module load matlab/2016b
 
-cd /scratch/ek99/megRetData/Subjects_sessions/wl_subj004
+cd /scratch/ek99/megRetData/wl_subj040
 
 # If the files you are running are not in the same folder as this script,
 # you can insert "addpath(genpath('/PATH/TO/FILES/'));" before the command
