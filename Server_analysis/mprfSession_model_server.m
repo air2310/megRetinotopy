@@ -18,13 +18,14 @@ function mprfSession_model_server(save_path,meg_data_file,sub_sess_dir,model_typ
 % 
 %
 
-if isnumeric(model_type)
-    allModels = {'original (phase ref amplitude) (model fit)', ...
+allModels = {'original (phase ref amplitude) (model fit)', ...
                  'original (phase ref amplitude) (model fit) (leave one out)', ...
                  'pRF size range (phase ref amplitude) (model fit) (leave one out)', ...
                  'pRF position range (phase ref amplitude) (model fit) (leave one out)', ...
                  'scrambled (phase ref amplitude) (model fit) (leave one out)'};
-    model_type = allModels{model_type};
+
+if ~any(strcmp(allModels, model_type))
+    model_type = allModels{str2double(model_type)};
 end
 
 global mprfSESSION
