@@ -24,6 +24,7 @@ if ~exist(fullfile(sub_sess_dir,'mprfSESSION.mat'),'file')
     mprfSESSION = make_mprfSession(sub_sess_dir);
 else
     load(fullfile(sub_sess_dir,'mprfSESSION.mat')) ;
+    mprfSESSION.init.main_dir = sub_sess_dir;
 end
 
 % Model to run
@@ -38,7 +39,6 @@ if nargin > 3
 else
     addArg = [];
 end
-
 
 % Creates a file containing all the information about the model to run
 [params,~] = mprf_make_params(save_path,model_type,addArg); 
