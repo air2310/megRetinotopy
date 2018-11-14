@@ -12,12 +12,12 @@
 
 module load matlab/2016b
 
-cd /scratch/ek99/megRetinotopy/
+cd /scratch/ek99/megRetData/Subjects_sessions/wl_subj004
 
 # If the files you are running are not in the same folder as this script,
 # you can insert "addpath(genpath('/PATH/TO/FILES/'));" before the command
 # you want to run.
-matlab -nodisplay -r "addpath(genpath('/scratch/ek99/megRetinotopy')); cd('/scratch/ek99/'); sub_sess_dir = '/scratch/ek99/megRetData/Subjects_sessions/wl_subj040'; save_path = fullfile(sub_sess_dir, 'modeling', 'results'); meg_data_file = fullfile(sub_sess_dir, 'data', 'meg', 'raw'); mprfSession_model_server(save_path,meg_data_file,sub_sess_dir,$SLURM_ARRAY_TASK_ID); exit()"
+matlab -nodisplay -r "/scratch/ek99/megRetinotopy/Server_analysis/HPC/runModel$SLURM_ARRAY_TASK_ID; exit()"
 
 exit
 
