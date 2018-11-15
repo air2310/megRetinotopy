@@ -284,7 +284,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
     
     data_in.first_iteration = true;
     % Do an intial fit and return the data
-    orig_data = mprfSession_run_original_model(pred,meg_data_file_path,plot_figure,data_in);
+    orig_data = mprfSession_run_original_model_server(pred,meg_data_file_path,plot_figure,data_in);
     
     data_in = orig_data;
     data_in = rmfield(data_in,'cur_corr');
@@ -409,7 +409,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             this_pred.meg_resp = this_meg_resp;
             
             
-            this_data_in = mprfSession_run_original_model(this_pred,meg_data_file_path,plot_figure,this_data_in);
+            this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
             scramble_corr(:,this_it) = this_data_in.cur_corr;
             this_data_in = rmfield(this_data_in,'cur_corr');
             
@@ -509,7 +509,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             this_pred.meg_resp = this_meg_resp;
             
             
-            this_data_in = mprfSession_run_original_model(this_pred,meg_data_file_path,plot_figure,this_data_in);
+            this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
             scramble_corr(:,this_it) = this_data_in.cur_corr;
             this_data_in = rmfield(this_data_in,'cur_corr');
             
