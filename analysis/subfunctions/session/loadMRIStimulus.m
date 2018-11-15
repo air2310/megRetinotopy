@@ -1,4 +1,4 @@
-function retStim = loadMRIStimulus(stimPths)
+function retStim = loadMRIStimulus(s)
 
 % subfunction of loadStim, to specifically prepare the MRI stimulus
 
@@ -9,7 +9,7 @@ xRange         = [];
 yRange         = [];
 
 % Get MRI prf scan parameters from file
-prfParams = load(stimPths.PRFParams.pth);
+prfParams = load(s.PRFParams.pth);
 
 % [EK]: Apparently we only take the pixels that fall within the square
 % window mask (im_conv). We don't need the im_unconv and we also don't need
@@ -29,5 +29,9 @@ retStim.X = X;
 retStim.Y = Y;
 % Get final retinotopy stimulus images (previously called full_im)
 [~, retStim.allim] = rmStimulusMatrix(prfParams.params,xRange,yRange,useFinalImages,scans);
+
+saveDir = fullfile(s.outPut.pth, 'stim');
+if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
+save(fullfile(saveDir, 'mri_stim'),'retStim')
 
 end

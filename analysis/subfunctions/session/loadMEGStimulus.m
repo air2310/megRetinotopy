@@ -1,12 +1,12 @@
-function retStim = loadMEGStimulus(stimPths)
+function retStim = loadMEGStimulus(s)
 
 % subfunction of loadStim, to specifically prepare the MEG stimulus
 
 % Load stimuli and grid
-stim = load(stimPths.MEGStim.pth);
+stim = load(s.MEGStim.pth);
 stim = stim.stimulus;
 
-grid = load(stimPths.MEGStimGrid.pth);
+grid = load(s.MEGStimGrid.pth);
 grid = grid.grid;
 
 % Get x and y dim range from grid
@@ -28,7 +28,7 @@ stimTriggers = stim.seq(stim.trigSeq > 0);
 % and length(-50:50)= 101. So the X and Y grid used when solving
 % the retinotopy model with MRI data was 101x101. See vistasoft
 % function: makeStimFromScan(params,1);
-prfParams      = load(stimPths.PRFParams.pth);
+prfParams      = load(s.PRFParams.pth);
 szDownSampled  = sqrt(size(prfParams.params.stim.stimwindow,1));
 imOutSize      = [szDownSampled szDownSampled]; % imOutSize = [101 101];
 
@@ -70,5 +70,9 @@ retStim.X  = retStim.resizedX(:);
 retStim.Y  = retStim.resizedY(:);
 retStim.X  = retStim.X(retStim.window);
 retStim.Y  = retStim.Y(retStim.window);
+
+saveDir = fullfile(s.outPut.pth, 'stim');
+if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
+save(fullfile(saveDir, 'meg_stim'),'retStim')
 
 end
