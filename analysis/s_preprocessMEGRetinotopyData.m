@@ -255,6 +255,7 @@ if doSaveData
     clear data;
     data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
     save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
+    save(fullfile(savePth, 'megStimConditions.mat'), 'triggers.stimConditions')
 end
 
 
