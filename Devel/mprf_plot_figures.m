@@ -166,6 +166,10 @@ try
             
             ch = [15,20,10,14,26,62,60];
             
+            [val, idx] = sort(orig_results.results.corr_mat, 'descend');
+            nanChan = ~isnan(val);
+            allCh = idx(nanChan);
+            ch = allCh(1:7);
             for i =1:length(ch)
                 ch_cur = ch(i);
                 figPoint_1{i} = figure;
