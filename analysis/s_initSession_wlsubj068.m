@@ -1,10 +1,10 @@
-%% s_initSession_wlsubj030
+%% s_initSession_wlsubj068
 
 % This is a script to define the paths of the files we need to run a model.
 % 
 
 % Define subject and its paths
-subject            = 'wlsubj030';
+subject            = 'wlsubj068';
 dataDir            = '/Volumes/server/Projects/MEG/Retinotopy/Data/';
 freeSurferDir      = '/Volumes/server/Freesurfer_subjects/';
 brainstormDBDir    = '/Volumes/server/Projects/MEG/brainstorm_db/';
@@ -35,8 +35,8 @@ s.PRFParams.pth    = fullfile(d.folder, d.name);
 % Find MEG & MRI stimulus (and check if they are the same)
 s.MRIStimIm.pth     = fullfile(vistaSessionDir, 'Stimuli', 'scan_images.mat');
 s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'scan_params.mat');
-s.MEGStim.pth       = fullfile(megDataDir,'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
-s.MEGStimGrid.pth   = fullfile(megDataDir,'stimFiles', 'MEG_grid.mat');
+s.MEGStim.pth       = fullfile(megDataDir, 'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
+s.MEGStimGrid.pth   = fullfile(megDataDir, 'stimFiles', 'MEG_grid.mat');
 
 % Load stimulus (To Do: check where coordinates fall wrt image)
 s.stim = loadStim(s); 

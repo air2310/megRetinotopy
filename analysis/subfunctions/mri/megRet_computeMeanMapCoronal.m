@@ -41,9 +41,9 @@ vw = refreshScreen(vw);
 
 %% Average 
 % if we have just original data, let's make a new dataTYPE of the averages
-if numel(dataTYPES) == 1        
+% if numel(dataTYPES) == 1        
     vw = averageTSeries(vw, 1:6, 'Averages', 'Average of Original 1:6');
-end
+% end
 
 %% Run coherence analysis on averaged scan
 vw = viewSet(vw, 'current data type', 'Averages'); 

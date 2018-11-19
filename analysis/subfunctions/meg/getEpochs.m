@@ -8,9 +8,9 @@ numChannels    = size(data,1);
 epochSamples   = [skipTimepoints, numTimepoints+skipTimepoints]; %epoch length in samples
 
 
-% Not USED: Skip every 10 triggers, to the triggers that define the start of every run
-endOfRun = floor(length(triggers.timing)/flickerFreq : length(triggers.timing)/flickerFreq : length(triggers.timing));
-startOfRun = [1, 1+endOfRun(1:end-1)];
+% Skip every 10 triggers, to the triggers that define the start of every run
+endOfRun = find(diff(triggers.timing) > 1302);
+startOfRun = [1; 1+endOfRun];
 
 
 % Get indices for epoching

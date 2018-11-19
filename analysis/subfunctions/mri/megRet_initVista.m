@@ -1,4 +1,4 @@
-function [] = megRet_initVista(subject, scriptPth, sessionFolder, bidsSession)
+function [] = megRet_initVista(subject, sessionPath, bidsSession)
 
 %% How this file works:
 %  (1) You create a VistaSoft subject directory (but not an anatomy
@@ -39,8 +39,8 @@ if ~exist('subject', 'var')
     scriptPath = mfilename('fullpath');
     disp(scriptPath);
     [codePath,     scriptName,  ~] = fileparts(scriptPath);
-    [sessionPth,  codeName,    ~]  = fileparts(codePath);
-    [subPath,      sessionName, ~] = fileparts(sessionPth);
+    [sessionPath,  codeName,    ~]  = fileparts(codePath);
+    [subPath,      sessionName, ~] = fileparts(sessionPath);
     [subjectsPath, subject,     ~] = fileparts(subPath);
     
     if ~strcmpi(codeName, 'code')
@@ -48,9 +48,11 @@ if ~exist('subject', 'var')
             ' then it must be edited manually to include paths']);
     end
 end
-if ~exist('sessionPame', 'var') || ~exist('sessionPath', 'var')
+if ~exist('sessionName', 'var') && ~exist('sessionPath', 'var')
     error('No session name/path deduced or provided');
 end
+
+[~,      sessionName, ~] = fileparts(sessionPath);
 fprintf('Subject: %-12s  Session: %-20s\n', subject, sessionName);
 
 % Next, figure out freesurfer data if not given
@@ -132,11 +134,11 @@ if startsWith(ip, sessionPath)
     ip = ip(spl+2:end);
 end
 for ii = 1:numel(epiFiles)
-    if startsWith(epiFiles{ii}, session_path)
+    if startsWith(epiFiles{ii}, sessionPath)
         epiFiles{ii} = epiFiles{ii}(spl+2:end);
     end
 end
-if startsWith(t1File, session_path)
+if startsWith(t1File, sessionPath)
     t1File = t1File(spl+2:end);
 end
 
@@ -148,7 +150,7 @@ params = mrInitDefaultParams;
 % And insert the required parameters:
 params.inplane      = ip;
 params.functionals  = epiFiles;
-params.sessionDir   = session_path;
+params.sessionDir   = sessionPath;
 
 % Specify some optional parameters
 params.vAnatomy = t1File;
@@ -173,6 +175,7 @@ for k=1:4, tline = fgets(fid); end
 for k = 1:4; R(k,:) = str2num(fgetl(fid)); end
 fclose(fid);
 vistaAlignment = fs_tkreg2vista(R, ip, t1File);
+
 mrSESSION = sessionSet(mrSESSION, 'alignment', vistaAlignment);
 saveSession();
 

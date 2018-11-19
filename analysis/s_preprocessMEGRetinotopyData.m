@@ -14,18 +14,17 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject_nr    = 'wlsubj030';
-fnameCombined = 'R0942_RetCombined'; % if session had multiple sqd files, we can combine them with another function and load that file
-fnameSingle   =  '*_Ret_*';          % .. or just load the individual files
+subject    = 'wlsubj068';
+fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 
 % Derive other file paths
-rawSqdPath = fullfile(dataPth, subject_nr, 'raw');
-paramFilePth = fullfile(rawSqdPath, 'R0942_MegRet_9.11.18', 'behavior');
-stimFilePth = fullfile(rawSqdPath, 'R0942_MegRet_9.11.18', 'stimFiles');
+rawSqdPath = fullfile(dataPth, subject, 'raw');
+paramFilePth = fullfile(dataPth, subject, 'paramFiles');
+stimFilePth = fullfile(dataPth, subject, 'stimFiles');
 
 % Make 'processed' folder to save time series
-savePth = fullfile(dataPth, subject_nr, 'processed');
+savePth = fullfile(dataPth, subject, 'processed');
 if ~exist(savePth, 'dir'); mkdir(savePth); end
 
  % MEG Channel information:
@@ -39,6 +38,7 @@ verbose       = true;
 doFiltering   = true;
 doDenoise     = true;
 doSaveData    = true;
+verbose       = true;
 
 % Go to dataPth
 curDir = pwd;
@@ -64,7 +64,7 @@ triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan,
 triggers.timing = find(triggers.ts);
 
 % remove first trigger (not sure why this one is here)
-triggers.ts(triggers.timing(1)) = 0;
+if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; end;
 triggers.timing = find(triggers.ts);
 
 medianTriggerLength = median(diff(triggers.timing));
@@ -100,6 +100,9 @@ flickerFreq                   = 10; % Hz
 
 if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
 [data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs); % time x epochs x channels
+
+% get size of data before removing epochs
+sz = size(data);
 
 % Set blink epochs to NaNs, leave blanks as is
 data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
@@ -167,6 +170,13 @@ if doDenoise
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     designConditions = triggers.stimConditions;
     designConditions(designConditions > 9)=0;
+    if strcmp(subject, 'wlsubj068')
+        designConditions(designConditions==3) = 2;
+        designConditions(designConditions==4) = 3;
+        designConditions(designConditions==4) = 3;
+        designConditions(designConditions==6) = 4;
+        designConditions(designConditions==7) = 5;
+    end
     designMatrix     = conditions2design(designConditions);
 
     dataToDenoise = permute(data, [3,1,2]);
@@ -225,8 +235,8 @@ if doSaveData
         %     data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels 
         %     save(fullfile(savePth, 'MEG_timeseries.mat'), 'data', '-v7.3')
      
-    % SPLIT UP IN 10 blocks   (i.e. number of RUNS)
-    dataBlocked =  NaN([size(dataDenoised,1),size(dataDenoised,2), size(dataDenoised,3)/numRuns, numRuns]);
+    % SPLIT UP IN blocks   (i.e. number of RUNS)
+    dataBlocked =  NaN(sz(3), sz(1), sz(2)/numRuns, numRuns);
     
      % plot all triggers
     figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
@@ -241,7 +251,7 @@ if doSaveData
             lastEpoch  = startOfRun(n+1)-1;
             theseEpochs = startEpoch:lastEpoch;
         else
-            lastEpoch  = size(dataDenoised,3);
+            lastEpoch  = size(dataBlocked,3);
             theseEpochs = startEpoch:lastEpoch;
         end
         
