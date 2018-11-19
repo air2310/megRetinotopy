@@ -31,7 +31,7 @@ megRet_makeStimFiles(subject, sessionDir, sessionName, bidsSession)
 megRet_solvePRFs(subject, sessionDir, sessionName)
 
 %% 5. Export Niftis to surface
-megRet_exportNiftis(sessionDir)
+megRet_exportNiftis(subject, sessionDir)
 
 %% 6. Run Bayesian template and Wang atlas with Noah Benson's docker, load
 % these and then export ROIs from FS to Vista

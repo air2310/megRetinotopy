@@ -196,7 +196,7 @@ if doDenoise
         xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
     end
 
-    dataDenoised = NaN(size(denoised_data{1}));
+    dataDenoised = NaN(sz(3),sz(1),sz(2));
     dataDenoised(~badChannels, :, ~badEpochs) = denoised_data{1};
 end
 
@@ -252,7 +252,7 @@ if doSaveData
             theseEpochs = startEpoch:lastEpoch;
         else
             lastEpoch  = size(dataBlocked,3);
-            theseEpochs = startEpoch:lastEpoch;
+            theseEpochs = startEpoch:(startEpoch+lastEpoch-1);
         end
         
         % Get data and put in dataBlocked variable
