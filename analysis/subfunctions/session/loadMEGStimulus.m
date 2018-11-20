@@ -73,6 +73,6 @@ meg_stim.Y  = meg_stim.Y(meg_stim.window);
 
 saveDir = fullfile(s.outPut.pth, 'stim');
 if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
-save(fullfile(saveDir, 'meg_stim'),'meg_stim')
+save(fullfile(saveDir, 'meg_stimulus'),'meg_stim')
 
 end
