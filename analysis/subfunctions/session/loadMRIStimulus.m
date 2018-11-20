@@ -1,4 +1,4 @@
-function retStim = loadMRIStimulus(s)
+function meg_stim = loadMRIStimulus(s)
 
 % subfunction of loadStim, to specifically prepare the MRI stimulus
 
@@ -16,22 +16,22 @@ prfParams = load(s.PRFParams.pth);
 % the allX and allY or allim for any computations (like smoothing the
 % parameters on the surface). I guess it is good to have for
 % visualization??
-retStim.im_unconv = prfParams.params.stim.images_unconvolved;
-retStim.im_conv = prfParams.params.analysis.allstimimages';
+meg_stim.im_unconv = prfParams.params.stim.images_unconvolved;
+meg_stim.im_conv = prfParams.params.analysis.allstimimages';
 
-retStim.window  = prfParams.params.stim.stimwindow;
+meg_stim.window  = prfParams.params.stim.stimwindow;
 X = prfParams.params.analysis.X;
 Y = prfParams.params.analysis.Y;
 
 % Create X and Y axis of stimulus grid
-[retStim.allX, retStim.allY] = meshgrid(unique(X), unique(Y));
-retStim.X = X;
-retStim.Y = Y;
+[meg_stim.allX, meg_stim.allY] = meshgrid(unique(X), unique(Y));
+meg_stim.X = X;
+meg_stim.Y = Y;
 % Get final retinotopy stimulus images (previously called full_im)
-[~, retStim.allim] = rmStimulusMatrix(prfParams.params,xRange,yRange,useFinalImages,scans);
+[~, meg_stim.allim] = rmStimulusMatrix(prfParams.params,xRange,yRange,useFinalImages,scans);
 
 saveDir = fullfile(s.outPut.pth, 'stim');
 if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
-save(fullfile(saveDir, 'mri_stim'),'retStim')
+save(fullfile(saveDir, 'mri_stim'),'meg_stim')
 
 end
