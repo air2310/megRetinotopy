@@ -21,8 +21,10 @@
 cal_mri = 'CBI_Propixx';
 cal_meg = 'meg_lcd';
 
-mri_save_path = '';
-meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/MEG';
+mri_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MRI3/';
+meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MEG3/';
+if ~exist('mri_save_path', 'dir'); mkdir(mri_save_path); end
+if ~exist('meg_save_path', 'dir'); mkdir(meg_save_path); end
 
 stim_size = 20; % 'max' or the degrees visual angle it should be (number, not char)
 nruns = 20;
@@ -32,8 +34,8 @@ flicker_freq = 10;
 
 d_mri   = loadDisplayParams(cal_mri);
 d_meg   = loadDisplayParams(cal_meg);
-d_meg.dimensions = [23.9 16.6];
-d_meg.distance = 45;
+% d_meg.dimensions = [23.8 17.1]; %[23.9 16.6];
+% d_meg.distance = 45;
 
 mri_res = min(d_mri.numPixels);
 meg_res = min(d_meg.numPixels);
@@ -141,7 +143,7 @@ blink_sq_size   = 2;    % Degrees of blink square (width)
 blink_size      = round(2*angle2pix(d_meg,blink_sq_size/2));
 
 outer_rad       = cur_screen_size / 2;
-n_fix_changes   = 30;   % amount of fixation color changes
+n_fix_changes   = 20;   % amount of fixation color changes
 
 stim_frame      = 1/flicker_freq;
 
@@ -152,8 +154,8 @@ low_x               = -(outer_rad+add_coverage) : step_size : outer_rad - add_co
 high_x              = low_x + bar_width;
 
 orientations = (0:45:360)./360*(2*pi); % degrees -> rad
-% orientations = orientations([1 6 3 8 5 2 7 4]);
-orientations = orientations([1 6 3 4 7]);
+orientations = orientations([1 6 3 8 5 2 7 4]);
+% orientations = orientations([1 6 3 4 7]);
 
 %% General stuff
 
@@ -411,8 +413,11 @@ for run = 1:nruns
     blank_im_mri = uint8(ones(mri_res, mri_res) .* 128);
     blank_im_meg = uint8(ones(meg_res, meg_res) .* 128);
     
-    mri_ori_idx = [1 3];
-    meg_ori_idx = 1:5;
+    mri_ori_idx = [1 3 5 7];
+    meg_ori_idx = 1:7;
+        
+%     mri_ori_idx = [1 3];
+%     meg_ori_idx = 1:5;
     
     blanks_after_these_orientations_mri = orientations(mri_ori_idx) ./ pi * 4;
     blanks_after_these_orientations_meg = orientations(meg_ori_idx) ./ pi * 4;
@@ -479,7 +484,7 @@ for run = 1:nruns
         
     end
     
-    if sum(isnan(seq_mri)) == 2 * blank_frames_pp_mri;
+    if sum(isnan(seq_mri)) == 4 * blank_frames_pp_mri;
         
     else
         error('Something went wrong')
