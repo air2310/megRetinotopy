@@ -35,6 +35,6 @@ megRet_exportNiftis(subject, sessionDir)
 
 %% 6. Run Bayesian template and Wang atlas with Noah Benson's docker, load
 % these and then export ROIs from FS to Vista
-megRet_getROIsFromTemplate(subject, fullfile(sessionDir, 'vistaSession'))
+megRet_getROIsFromTemplate(subject, fullfile(sessionDir))
 
 
