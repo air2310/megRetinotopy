@@ -29,7 +29,11 @@ data_file = dir(fullfile(main_dir, mprf__get_directory('prf_mat'),'*.mat'));
 load(fullfile(main_dir, mprf__get_directory('prf_mat'),data_file.name));
 
 % Loop over all the parameters stored in the exported data file:
-par_names = fieldnames(prf_par_exp);
+if ~exist('prf_par_exp', 'var')
+    par_names = fieldnames(prfParamsExp);
+else
+    par_names = fieldnames(prf_par_exp);
+end
 
 % Keep track of the X and Y variables, both smoothed and unsmoothed to
 % compute the eccenricity and polar angle maps as well:
