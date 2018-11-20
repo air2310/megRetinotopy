@@ -41,7 +41,7 @@ function [] = megRet_getROIsFromTemplate(subject, sessionDir)
 % Check whether freesurfer paths exist.
 fssubjectsdir = getenv('SUBJECTS_DIR');
 if isempty(fssubjectsdir)
-    error('Freesurfer paths not found. Cannot proceed.')
+    error('Freesurfer paths not found. Cannot proceed. Try: setenv(''SUBJECTS_DIR'', ''/Volumes/server/Freesurfer_subjects'')')
 end
 
 % Get subject's freesurfer directory
