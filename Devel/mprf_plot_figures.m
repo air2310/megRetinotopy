@@ -368,10 +368,10 @@ try
                     xlabel('sigma ratio');
                     set(gca,'XTickLabel',range_results.model.params.sigma_range);
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('sigma ratio');
+                    xlabel('position (deg)');
                     set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
-                title('Variance explained per sigma ratio sl locked');
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
                 ylabel('Variance explained');
                 F = getframe(fh_sl_VEparams);
                 
@@ -444,10 +444,10 @@ try
                     xlabel('sigma ratio');
                     set(gca,'XTickLabel',range_results.model.params.sigma_range);
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('sigma ratio');
+                    xlabel('position (deg)');
                     set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
-                title('Variance explained per sigma ratio sl locked');
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
                 ylabel('Variance explained');
                 F = getframe(fh_sl_VEparams);
                 
