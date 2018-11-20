@@ -12,12 +12,12 @@
 
 module load matlab/2016b
 
-cd /scratch/ek99/megRetData/wl_subj068
+cd /scratch/ek99/megRetData/wlsubj068
 
 # If the files you are running are not in the same folder as this script,
 # you can insert "addpath(genpath('/PATH/TO/FILES/'));" before the command
 # you want to run.
-matlab -nodisplay -r "addpath(genpath('/scratch/ek99/megRetinotopy/')); addpath(genpath('/scratch/ek99/megRetData/')); addpath(genpath('/scratch/ek99/vistasoft')); cd('/scratch/ek99/megRetData/wl_subj068'); run('runModel$SLURM_ARRAY_TASK_ID.m'); exit()"
+matlab -nodisplay -r "addpath(genpath('/scratch/ek99/megRetinotopy/')); addpath(genpath('/scratch/ek99/megRetData/')); addpath(genpath('/scratch/ek99/vistasoft')); cd('/scratch/ek99/megRetData/wlsubj068'); run('runModel$SLURM_ARRAY_TASK_ID.m'); exit()"
 
 exit
 
