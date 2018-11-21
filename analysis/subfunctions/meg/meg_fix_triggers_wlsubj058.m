@@ -13,9 +13,11 @@ condsOneRun = trigger3(trig3_ind(1:140));
 
 
 %% 1. Part where every trigger has the same value
-ts(triggerChan(1),1:110236) = 0;
 
-ts1 = ts(triggerChan(1),1:3376546)';
+ts1 = ts;
+ts1(triggerChan(1),1:110236) = 0;
+
+ts1 = ts1(triggerChan(1),1:3376546)';
 
 md = median(ts1(:));
 ts1(ts1 > 5*md) = NaN;
@@ -56,7 +58,7 @@ time_points_that_are_too_close = any_trigger_inds(triggers_that_are_too_close);
 % Solution: because of padding, the triggers are present -1 or -2 time
 % points before the the time points listed in bad_time_points
 
-%% Realign bad triggers
+% Realign bad triggers
 %   We find any case where two trigger channel onsets were within 2
 %   samples, and we re-align them to the first sample.
 for ii=1:length(time_points_that_are_too_close)
