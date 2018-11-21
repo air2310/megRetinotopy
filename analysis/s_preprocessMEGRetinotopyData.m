@@ -14,7 +14,7 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject    = 'wlsubj068';
+subject    = 'wlsubj058';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 

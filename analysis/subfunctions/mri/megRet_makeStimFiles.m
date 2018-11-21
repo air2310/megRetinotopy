@@ -47,6 +47,9 @@ if strcmp(subject, 'wlsubj030')
 elseif strcmp(subject, 'wlsubj068')
     params.prescanDuration = 0; %12*1.5; % Sec
     params.scanDuration =  244; %244-12; % TRs
+elseif strcmp(subject, 'wlsubj058')
+    params.prescanDuration = 0; %12*1.5; % Sec
+    params.scanDuration =  244; %244-12; % TRs
 end
 
 params.period       =  params.scanDuration;

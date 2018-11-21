@@ -13,7 +13,7 @@
 %    - have the freesurfer subject directory defined as as an environmental
 %    variable: setenv('SUBJECTS_DIR', '/Volumes/server/Freesurfer_subjects')
 
-subject      = 'wlsubj068';
+subject      = 'wlsubj058';
 sessionDir   = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession/', subject);
 sessionName  = 'raw';
 bidsSession  = 'nyu3t01';
