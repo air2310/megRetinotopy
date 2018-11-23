@@ -77,8 +77,9 @@ try
     load mprfSESSION.mat;
     cur_time = mprf__get_cur_time;
     res_dir = mprf__get_directory('model_plots');
-    main_dir = mprf__get_directory('main_dir');
-    
+%     main_dir = mprf__get_directory('main_dir');
+    main_dir  = mprfSESSION.init.main_dir;
+
     %plot_type = 1;
     switch plot_type
         case 1

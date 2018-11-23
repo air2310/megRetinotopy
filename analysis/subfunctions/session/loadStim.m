@@ -1,11 +1,11 @@
-function retStim = loadStim(stimPths)
+function meg_stim = loadStim(stimPths)
 
 % Function to load stimulus used in the MEG and MRI experiment
 
-retStim = struct();
+meg_stim = struct();
 
-retStim.MEG = loadMEGStimulus(stimPths);
-retStim.MRI = loadMRIStimulus(stimPths);
+meg_stim.MEG = loadMEGStimulus(stimPths);
+meg_stim.MRI = loadMRIStimulus(stimPths);
 
 
 end

@@ -60,8 +60,11 @@ if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 % 10  = blink
 % 
 
-triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
-triggers.timing = find(triggers.ts);
+if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
+    triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
+else
+    triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
+end
 
 % remove first trigger (not sure why this one is here)
 if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; end;
@@ -170,9 +173,8 @@ if doDenoise
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     designConditions = triggers.stimConditions;
     designConditions(designConditions > 9)=0;
-    if strcmp(subject, 'wlsubj068')
+    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058')
         designConditions(designConditions==3) = 2;
-        designConditions(designConditions==4) = 3;
         designConditions(designConditions==4) = 3;
         designConditions(designConditions==6) = 4;
         designConditions(designConditions==7) = 5;
@@ -206,41 +208,15 @@ end
 
 if doSaveData
 
-    if verbose; sprintf('(%s) Save data...\n', mfilename); end
-    
     % to do reshape back to time x epochs x channels x runs
-    
-        % SPLIT UP IN 20 blocks
-        % (maybe split up the runs to get same as old data sets)
-        %     clear dataBlocked;
-        %     numTrigPerBlock = (numOfEpochsPerOrientation + (3*(numOfEpochsPerOrientation+5)));
-        %     startEpoch = 1;
-        %     figure; plot(triggers.stimConditions); hold all;
-        %     for n = 1:numRuns*2
-        %         
-        %         if n == 1
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
-        %         elseif (mod(n,2)==1)
-        %             startEpoch = theseEpochs(end)+1;
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);   
-        %         else
-        %             startEpoch = theseEpochs(end)+6;
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
-        %         end
-        %         
-        %         dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
-        %         plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
-        %     end   
-        %     
-        %     data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels 
-        %     save(fullfile(savePth, 'MEG_timeseries.mat'), 'data', '-v7.3')
+    if verbose; sprintf('(%s) Save data...\n', mfilename); end
      
     % SPLIT UP IN blocks   (i.e. number of RUNS)
     dataBlocked =  NaN(sz(3), sz(1), sz(2)/numRuns, numRuns);
     
      % plot all triggers
     figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
-
+    startOfRun = 1:140:(19*140);
     for n = 1:numRuns
        
         % Get first epoch

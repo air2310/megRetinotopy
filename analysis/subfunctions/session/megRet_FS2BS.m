@@ -33,22 +33,39 @@ switch roiType
     
     case 'allRoisWangAtlas'
         
-        % get all indiv
-        lh.ROI_data = subFSWang.lh>0;
-        rh.ROI_data = subFSWang.rh>0;
+        % get all rois in one data structure
+        lh.ROI_data = subFSWang.lh;
+        rh.ROI_data = subFSWang.rh;
+        
+        % get all rois as a mask (0's and 1's)
+        lh.ROI_data_mask = subFSWang.lh>0;
+        rh.ROI_data_mask = subFSWang.rh>0;
+
         
         % do interpolation
         wangROI_BS = tess_fs2bst(s.bsSubject, fsSubjDir, lh.ROI_data, rh.ROI_data);
+        wangROI_BS_mask = tess_fs2bst(s.bsSubject, fsSubjDir, lh.ROI_data_mask, rh.ROI_data_mask);
+
         
         % Create file names for interpolated data
-        subBSAllROImgzfile = sprintf('%s/allWangROIs_overlay.mgz', saveRoiDir);
+        subBSAllROImgzfile = sprintf('%s/pial.all_rois.mgz', saveRoiDir);
+        subBSAllROIMaskmgzfile = sprintf('%s/pial.all_rois_mask.mgz', saveRoiDir);
+
         subBSAllROImatfile = sprintf('%s/allWangROIs_overlay.mat', saveRoiDir);
         
         % save ROIs as mgz file
         MRIwrite(struct('vol', wangROI_BS), subBSAllROImgzfile);
+        MRIwrite(struct('vol', wangROI_BS_mask), subBSAllROIMaskmgzfile);
+        
+        % still need to figure this out.. what file format??
+%         write_curv(sprintf('%s/surface/brainstorm/pial.all_rois', saveRoiDir), wangROI_BS)
+%         write_curv(sprintf('%s/surface/brainstorm/pial.all_rois_mask', saveRoiDir), wangROI_BS_mask)
+
         
         % save ROIs as mat file
         save(subBSAllROImatfile, 'wangROI_BS');
+         
+        
         
     case 'individual'
         % in case of individual rois???
@@ -58,9 +75,9 @@ end
 %% Separate PRF data into Left and Right Hemi, then project to FS mesh?
 
 % location of smoothed prf data
-prfDataDir = fullfile(s.outPut.pth, 'prfParams');
+prfDataDir = fullfile(s.outPut.pth, 'prf_data');
 
-load(fullfile(prfDataDir, 'allPRFParams.mat'), 'prfParamsExp');
+load(fullfile(prfDataDir, 'exported_prf_params.mat'), 'prfParamsExp');
 
 % Get all the parameters stored in the prf parameter data file:
 parNames = fieldnames(prfParamsExp);
