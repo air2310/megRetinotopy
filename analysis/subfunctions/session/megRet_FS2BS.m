@@ -58,8 +58,8 @@ switch roiType
         MRIwrite(struct('vol', wangROI_BS_mask), subBSAllROIMaskmgzfile);
         
         % still need to figure this out.. what file format??
-%         write_curv(sprintf('%s/surface/brainstorm/pial.all_rois', saveRoiDir), wangROI_BS)
-%         write_curv(sprintf('%s/surface/brainstorm/pial.all_rois_mask', saveRoiDir), wangROI_BS_mask)
+        write_curv(sprintf('%s/surface/brainstorm/pial.all_rois', saveRoiDir), wangROI_BS, 1)
+        write_curv(sprintf('%s/surface/brainstorm/pial.all_rois_mask', saveRoiDir), wangROI_BS_mask, 1)
 
         
         % save ROIs as mat file
@@ -77,7 +77,7 @@ end
 % location of smoothed prf data
 prfDataDir = fullfile(s.outPut.pth, 'prf_data');
 
-load(fullfile(prfDataDir, 'exported_prf_params.mat'), 'prfParamsExp');
+load(fullfile(prfDataDir, 'data_dir', 'exported_prf_params.mat'), 'prfParamsExp');
 
 % Get all the parameters stored in the prf parameter data file:
 parNames = fieldnames(prfParamsExp);
@@ -90,7 +90,9 @@ has_x_sm = false;
 has_y_sm = false;
 
 % surfaces to transform from FS to BS
-fsSurfaces = {'lh.pial','rh.pial'};
+% fsSurfaces = {'lh.pial','rh.pial'};
+fsSurfaces = {'lh.white','rh.white'};
+
 
 currPath = pwd;
 cd(s.vistaSession.pth)
