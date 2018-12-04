@@ -113,13 +113,13 @@ for idx_ch = 1:opts.n_chan
             
             
             
-            if count_ang == 1 && idx_ch == 1
-                tmp_time = toc;
-                tot_time = tmp_time * length(ph_range) * opts.n_looreps * n_chan;
-                t_hms = datevec(tot_time./(60*60*24));
-                fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
-                fprintf('\n');
-            end
+%             if count_ang == 1 && idx_ch == 1 
+%                 tmp_time = toc;
+%                 tot_time = tmp_time * length(ph_range) * opts.n_looreps * n_chan;
+%                 t_hms = datevec(tot_time./(60*60*24));
+%                 fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
+%                 fprintf('\n');
+%             end
             %        VE_fit_alang(count_ang,idx_ch) = mean_ve(idx_ch);
             count_ang = count_ang+1;
         end

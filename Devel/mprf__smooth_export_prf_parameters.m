@@ -25,7 +25,7 @@ cd(mprfSESSION.orig.paths.vista_path);
 
 % Check if mrVista is on your Matlab path, if not, attempt to add it using
 % tbUse.
-if exist('niftiRead','file');
+if exist('niftiRead','file')
     
 else
     try
@@ -115,7 +115,7 @@ for nn = 1:length(params)
     
     cur_param = params{nn};
     
-    % Use mprfExportDataPath to generate a path and file name for the
+    % Use tmptmttttttttmprfExportDataPath to generate a path and file name for the
     % current parameter's NIFTI file:
     fname = fullfile(main_dir, mprf__get_directory('prf_nifti'),[cur_param '.nii.gz']);
     
@@ -137,7 +137,7 @@ for nn = 1:length(params)
         prf_par_exp.(cur_param) = rmGet(hvol.rm.retinotopyModels{1},cur_param);
     end
     
-    % Store the data as nifti and check against the segmentation to see of
+    % Store the data as nifti and check against the segmentation to see if
     % parameter nifti aligns with the segmentation:
     functionals2nifti(hvol,1 , fname);
     mprfCheckParameterNiftiAlignment(cls, fname);

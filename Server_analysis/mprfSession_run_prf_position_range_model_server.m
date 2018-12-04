@@ -104,9 +104,6 @@ if model.params.n_iterations > 1
     tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
 end
 
-fprintf('Processing %d stimulus periods:\n',opts.n_bars);
-
-
 % for phase ref amplitude/ for computing the most reliable phase per
 % channel
 n_par_it = size(meg_resp,2);
@@ -116,6 +113,7 @@ n_roi = size(meg_resp{1},3);
 n_metric = size(opts.idx,2);
 
 %%
+fprintf('Computing most reliable phase \n');
 tic;
 if strcmpi(opts.metric, 'phase ref amplitude')
     PH_opt_tmp = nan(opts.n_looreps,n_chan,n_par_it);
@@ -146,26 +144,18 @@ if strcmpi(opts.metric, 'phase ref amplitude')
         % Step 3: Repeat this for all the pRF size range scaling values (here it is 19 ratios)
         
         for this_par=1:n_par_it % For every pRf size range value
-            meg_resp_par{1} = meg_resp{this_par}; % There is a meg prediction array of 140x157 for every pRF size range value. 
-                                                  % One is taken at a time to compute the reference phase.
+            meg_resp_par{1} = meg_resp{this_par}; % There is a meg prediction array of 140x157 for every pRF size range value.
+            % One is taken at a time to compute the reference phase.
             
             for this_loorep = 1:opts.n_looreps % For every leave one out condition
                 
                 [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp_par);
-            end    
-                if phase_fit_loo.do == 1 % for flipping the angles by 180 degrees. But this doesn't make sense. Can be deleted later.
-                    phfittype = 'lo';
-%                     for cur_chan =1:opts.n_chan
-%                         xbins = -3.14:0.314:3.14-0.314;
-%                         [N,x] = hist(PH_opt_tmp(:,cur_chan,this_par),xbins);
-%                         idx_max = find(N == max(N));
-%                         idx_close = (x(idx_max(1))-0.1745 < PH_opt_tmp(:,cur_chan,this_par)') & (PH_opt_tmp(:,cur_chan)' < x(idx_max(1))+0.1745);
-%                         PH_opt_tmp(~idx_close,cur_chan,this_par) = wrapToPi(PH_opt_tmp(~idx_close,cur_chan,this_par) + 3.14);
-%                     end
-                end
-                
-            %end
-            
+                fprintf('Done: Leave one out repetition - %d out of %d \n',this_loorep,opts.n_looreps);
+            end
+            if phase_fit_loo.do == 1 % for flipping the angles by 180 degrees. But this doesn't make sense. Can be deleted later.
+                phfittype = 'lo';
+            end
+            fprintf('Done: Position range - %d out of %d \n',this_par,n_par_it);
         end
         
     end
@@ -187,7 +177,7 @@ tseries_std = nan(opts.n_bars, opts.n_chan,size(opts.idx,2),n_par_it,opts.n_loor
 tseries_ste = nan(opts.n_bars, opts.n_chan,size(opts.idx,2),n_par_it,opts.n_looreps);
   
 for this_loorep = 1:opts.n_looreps % For leave one out computation of the phases
-    if strcmpi(opts.metric, 'phase ref amplitude') && phase_fit_loo.do == 1
+    if strcmpi(opts.metric, 'phase ref amplitude') & strcmpi(opts.phs_metric,'model_fit')
         PH_opt = PH_opt_tmp(this_loorep,:,:);
     end
     

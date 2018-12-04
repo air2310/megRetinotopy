@@ -10,6 +10,7 @@ function mprfSession_model_server(save_path,meg_data_file,sub_sess_dir,model_typ
 %                     'pRF size range (phase ref amplitude) (model fit) (leave one out)'
 %                     'pRF position range (phase ref amplitude) (model fit) (leave one out)'
 %                     'scrambled (phase ref amplitude) (model fit) (leave one out)'
+%				      'reliability'		
 %         varargin options available - 
 %                     'n_iterations_scrambled'  
 %                     'n_cores' - to run parallel for loops  
@@ -19,13 +20,7 @@ function mprfSession_model_server(save_path,meg_data_file,sub_sess_dir,model_typ
 %
 
 global mprfSESSION
-
-if ~exist(fullfile(sub_sess_dir,'mprfSESSION.mat'),'file')
-    mprfSESSION = make_mprfSession(sub_sess_dir);
-else
-    load(fullfile(sub_sess_dir,'mprfSESSION.mat')) ;
-    mprfSESSION.init.main_dir = sub_sess_dir;
-end
+mprfSESSION = make_mprfSession(sub_sess_dir);
 
 % Model to run
 if ~exist('model_type','var') || isempty(model_type)
@@ -40,8 +35,13 @@ else
     addArg = [];
 end
 
+
+
 % Creates a file containing all the information about the model to run
 [params,~] = mprf_make_params(save_path,model_type,addArg); 
+
+
+
 
 % Script to run the model based on the parameters from the params_file
 mprfSession_run_model_server(params,meg_data_file,0);

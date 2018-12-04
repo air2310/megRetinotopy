@@ -17,10 +17,11 @@ main_dir = mprf__get_directory('main_dir');
 % Use setVAnatomyPath('.../t1.nii.gz') when using model ran from a
 % different system
 
+%% Smooth pRF parameters
 if mprfSESSION.has.rm_model && ...
         mprfSESSION.has.vista_class && ...
         ~isempty(mprfSESSION.orig.paths.vista_path) && ...
-        exist(mprfSESSION.orig.paths.vista_path,'dir');
+        exist(mprfSESSION.orig.paths.vista_path,'dir')
     
     % If prfs have already been exported, skip it...
     if isfield(mprfSESSION.has,'prf_exported') && exist(fullfile(mprf__get_directory('main_dir'),...
@@ -63,8 +64,10 @@ else
     
     
 end
+%%
+
 % Export the selected ROIs and data from mrVista to the freesurfer surfaces
-success = mprf__export_roi_and_data_to_freesurfer_surface('both');
+success = mprf__export_roi_and_data_to_freesurfer_surface('prf_data');
 
 if success
     

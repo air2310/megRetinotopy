@@ -158,8 +158,8 @@ if prepare_meg_data;
     if model.params.n_iterations > 1
         tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
     end
-    fprintf('Processing %d stimulus periods:\n',opts.n_bars);
     
+    fprintf('Computing most reliable phase \n');
     PH_opt = []; % When the metric is amplitude, function mprf_computemetric still asks for a phase value. So, we just give an empty variable
     VE_opt = []; 
     % For phase ref amplitude/ for computing the most reliable phase per channel
@@ -179,9 +179,9 @@ if prepare_meg_data;
             PH_opt = nan(opts.n_looreps,opts.n_chan);
             VE_opt = nan(opts.n_looreps,opts.n_chan);
             for this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
-                fprintf('leave one out repetition # %d',this_loorep)
-                fprintf('\n');
+                
                 [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
+                fprintf('Done: Leave one out repetition - %d out of %d \n',this_loorep,opts.n_looreps); 
             end
             if phase_fit_loo.do == 1
                 phfittype = 'lo';
@@ -197,7 +197,7 @@ if prepare_meg_data;
     %load('modeling/results/original_model/Run_Stimulus_locked_Model_fit_lo_21_Sep_2018_13_54_12/Results.mat');
     %PH_opt_loo = results.PH_opt;
     for this_loorep = 1:opts.n_looreps % For leave one out computation of the phases
-        if strcmpi(opts.metric, 'phase ref amplitude') && phase_fit_loo.do == 1
+        if strcmpi(opts.metric, 'phase ref amplitude') & strcmpi(opts.phs_metric,'model_fit') & phase_fit_loo.do == 1
             PH_opt = PH_opt_loo(this_loorep,:);
         end
         

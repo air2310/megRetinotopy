@@ -3,11 +3,13 @@
  #$ -N creating parameters for the MEG model to run
  #$ -S /bin/bash
  #$ -j Y
- #$ -q long.q
+ #$ -q verylong.q
  #$ -o /home/edadan/meg_test.o
  #$ -u edadan
+ #$ -m eas
  #$ -M a.edadan@uu.nl 
- 
+
+
  if [ -z "$1" ]
  then
   echo 'Run_mprf_model. Inputs:'
@@ -20,10 +22,10 @@
  fi
 
  # Load environment module 
- # module load matlab/R2018b
+ module load matlab/R2018b
  echo "making params file for running MEG model"
  echo "Running $4"
- 
+
  echo "$1" 
  echo "$2" 
  echo "$3"
@@ -33,6 +35,9 @@
  echo "$7" 
 
  # Run matlab job
- matlab -nodesktop -nosplash -nodisplay  -r "addpath(genpath('/home/akhi/Documents/MATLAB/toolboxes/')); mprfSession_model_server('$1','$2','$3','$4','n_iteration_scrambled','$5','n_cores','$6','phase_fit_loo','$7'); quit"
+ matlab -nodesktop -nosplash -nodisplay  -r "warning('off'); addpath(genpath('/home/edadan/Documents/MATLAB/toolboxes/')); mprfSession_model_server('$1','$2','$3','$4','n_iteration_scrambled','$5','n_cores','$6','phase_fit_loo','$7'); quit"
 
+ # In case to debug the code
+ # Run matlab job
+ #matlab -nodesktop -nosplash -nodisplay  -r "addpath(genpath('/home/edadan/Documents/MATLAB/toolboxes/')); dbstop in mprfSession_model_server at 41; mprfSession_model_server('$1','$2','$3','$4','n_iteration_scrambled','$5','n_cores','$6','phase_fit_loo','$7'); quit"
 

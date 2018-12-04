@@ -56,7 +56,8 @@ function mprf_plot_figures(plot_type,interpmethod,compare_phfits)
 %                                              rel
 %                                              ind_scr
 %......................................................
-
+    global mprfSESSION
+    load mprfSESSION.mat;
 try
     % if ~exist('plot_type','var') || isempty(plot_type)
     %     fprintf('No plot type selected, quitting\n');
@@ -64,7 +65,7 @@ try
     % end
     
     %if nargin > 1
-    
+
     
     if ~exist('interpmethod','var') || isempty(interpmethod)
         interpmethod = [];
@@ -74,7 +75,7 @@ try
         compare_phfits = 0;
     end
     
-    load mprfSESSION.mat;
+
     cur_time = mprf__get_cur_time;
     res_dir = mprf__get_directory('model_plots');
     main_dir = mprf__get_directory('main_dir');

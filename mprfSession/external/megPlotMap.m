@@ -29,6 +29,7 @@ elseif length(sensor_data) >= 157
 end
 
 % Check data
+%cfg.data = permute(sensor_data,[size(sensor_data,3),size(sensor_data,2),size(sensor_data,1)]);
 cfg.data = sensor_data';
 cfg.data(isnan(cfg.data)) = nanmedian(sensor_data);
 cfg.data(isinf(cfg.data)) = max(sensor_data);

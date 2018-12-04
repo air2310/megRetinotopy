@@ -249,6 +249,8 @@ if strcmpi(model.type,'run original model') || ...
     if strcmpi(model.type,'run original model') || ...
             strcmpi(model.type,'fix prf size')
         
+        
+        
         mprfSession_run_original_model_server(pred,meg_data_file_path,plot_figure);
         
     elseif strcmpi(model.type,'prf size range') 
@@ -263,6 +265,7 @@ if strcmpi(model.type,'run original model') || ...
     
     % if we are scrambling pRF parameters:
 elseif strcmpi(model.type, 'scramble prf parameters')
+    rng('shuffle');
     model.params.do_sl = true;
     model.params.do_bb = false;
     % Run the original model first to get a baseline measure of the
@@ -284,7 +287,8 @@ elseif strcmpi(model.type, 'scramble prf parameters')
     
     data_in.first_iteration = true;
     % Do an intial fit and return the data
-    orig_data = mprfSession_run_original_model(pred,meg_data_file_path,plot_figure,data_in);
+    fprintf('Original model without scrambling \n');
+    orig_data = mprfSession_run_original_model_server(pred,meg_data_file_path,plot_figure,data_in);
     
     data_in = orig_data;
     data_in = rmfield(data_in,'cur_corr');
@@ -409,7 +413,9 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             this_pred.meg_resp = this_meg_resp;
             
             
-            this_data_in = mprfSession_run_original_model(this_pred,meg_data_file_path,plot_figure,this_data_in);
+            this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
+            fprintf('SCRAMBLING ITERATION: %d out of %d \n',this_it,n_it);
+            
             scramble_corr(:,this_it) = this_data_in.cur_corr;
             this_data_in = rmfield(this_data_in,'cur_corr');
             
@@ -420,7 +426,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             delete(gcp);
         end
         
-    elseif n_cores == 1;
+    elseif n_cores == 1
         
         % As we are scrambling the pRF parameters, we need to apply the VE
         % and beta thresholds to the parameters before we scramble. We do
@@ -508,8 +514,11 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             this_meg_resp = mprf__compute_predicted_meg_response(bs, this_pred_resp, channels);
             this_pred.meg_resp = this_meg_resp;
             
+            fprintf('SCRAMBLING ITERATION: %d out of %d \n',this_it,n_it);
+            this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
             
-            this_data_in = mprfSession_run_original_model(this_pred,meg_data_file_path,plot_figure,this_data_in);
+            
+            
             scramble_corr(:,this_it) = this_data_in.cur_corr;
             this_data_in = rmfield(this_data_in,'cur_corr');
             
