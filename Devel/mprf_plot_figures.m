@@ -78,8 +78,9 @@ try
 
     cur_time = mprf__get_cur_time;
     res_dir = mprf__get_directory('model_plots');
-    main_dir = mprf__get_directory('main_dir');
-    
+%     main_dir = mprf__get_directory('main_dir');
+    main_dir  = mprfSESSION.init.main_dir;
+
     %plot_type = 1;
     switch plot_type
         case 1
@@ -167,6 +168,10 @@ try
             
             ch = [15,20,10,14,26,62,60];
             
+            [val, idx] = sort(orig_results.results.corr_mat, 'descend');
+            nanChan = ~isnan(val);
+            allCh = idx(nanChan);
+            ch = allCh(1:7);
             for i =1:length(ch)
                 ch_cur = ch(i);
                 figPoint_1{i} = figure;
@@ -365,10 +370,10 @@ try
                     xlabel('sigma ratio');
                     set(gca,'XTickLabel',range_results.model.params.sigma_range);
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('sigma ratio');
+                    xlabel('position (deg)');
                     set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
-                title('Variance explained per sigma ratio sl locked');
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
                 ylabel('Variance explained');
                 F = getframe(fh_sl_VEparams);
                 
@@ -441,10 +446,10 @@ try
                     xlabel('sigma ratio');
                     set(gca,'XTickLabel',range_results.model.params.sigma_range);
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('sigma ratio');
+                    xlabel('position (deg)');
                     set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
-                title('Variance explained per sigma ratio sl locked');
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
                 ylabel('Variance explained');
                 F = getframe(fh_sl_VEparams);
                 

@@ -4,38 +4,58 @@
 % GOAL: Make multiple exemplars or several spatial patterns for testing
 % their effectiveness in driving BOLD responses in visual cortex:
 %
-% (1) Narrow-band curvy patterns (ala SOC paper)
-% (2) Dartboards
-% (3) Checkerboards
+% We only use Checkerboards in this code
 
 % Assumes vistadisp is on you Matlab path and you're on the meg_compatible
 % branch. Note to self: use git checkout master and git checkout
 % meg_compatible
 %
-% addpath(genpath('~/Documents/MATLAB/toolboxes/vistadisp'));
+% addpath(genpath('~/matlab/git/forks/vistadisp'));
 %
 % % Needs psychtoolbox 3
 % tbUse('psychtoolbox-3');
 
-%% In general: check wich has the smaller screen, relative to the subject's position:
+%% Stim params
+
+whichStimToMake = 'mri';
+
+w_pattern    = 'checkerboard';
+flicker_freq = 10; % Hz
+stim_size    = 20; % 'max' or the degrees visual angle it should be (number, not char)
+
+switch whichStimToMake
+    case 'mri'
+        mri_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MRI2/';
+        if ~exist('mri_save_path', 'dir'); mkdir(mri_save_path); end
+        nruns = 6;
+        
+        % Bar orientations (8 for mri)
+        orientations = (0:45:360)./360*(2*pi); % degrees -> rad
+        orientations = orientations([1 6 3 8 5 2 7 4]);
+        
+    case 'meg'
+        meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MEG/';
+        if ~exist('meg_save_path', 'dir'); mkdir(meg_save_path); end
+        nruns = 20;
+        
+        % Bar orientations (5 for meg)
+        orientations = (0:45:360)./360*(2*pi); % degrees -> rad
+        orientations = orientations([1 6 3 4 7]);
+
+        
+end
+
+%% Set display params
+% In general: check wich has the smaller screen, relative to the subject's position:
+
 cal_mri = 'CBI_Propixx';
 cal_meg = 'meg_lcd';
 
-mri_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MRI3/';
-meg_save_path = '/Volumes/server/Projects/MEG/Retinotopy/Stimuli/Retinotopy/20181115_MEGFoV/MEG3/';
-if ~exist('mri_save_path', 'dir'); mkdir(mri_save_path); end
-if ~exist('meg_save_path', 'dir'); mkdir(meg_save_path); end
-
-stim_size = 20; % 'max' or the degrees visual angle it should be (number, not char)
-nruns = 20;
-
-w_pattern = 'checkerboard';
-flicker_freq = 10;
-
 d_mri   = loadDisplayParams(cal_mri);
 d_meg   = loadDisplayParams(cal_meg);
+% Previously used:
 % d_meg.dimensions = [23.8 17.1]; %[23.9 16.6];
-% d_meg.distance = 45;
+% d_meg.distance = 45
 
 mri_res = min(d_mri.numPixels);
 meg_res = min(d_meg.numPixels);
@@ -48,6 +68,7 @@ d_meg.pixelSize = min((d_meg.dimensions./d_meg.numPixels)); % cm per pixel
 
 mri_scr_size = 2*pix2angle(d_mri,mri_res/2);
 meg_scr_size = 2*pix2angle(d_meg,meg_res/2);
+
 
 if ischar(stim_size)
     if strcmpi(stim_size,'max')
@@ -71,58 +92,18 @@ end
 mri_scale = (cur_screen_size / mri_scr_size);
 meg_scale = (cur_screen_size / meg_scr_size);
 
-%% Options:
 
 
-if strcmpi(w_pattern, 'patterns')
-    % Curvy patterns -> Check how this has to change to accommodate the
-    % different screens:
-    num_examples    = 10;  % Amount of patterns generated
-    sparseness      = 1/10;% Sparseness of curvy patterns
-    center_sf       = 3;    % cycles per degree
-    bandwidth       = 2;    % Bandwidth of filter in octaves
-    filter_size     = 31;   % size of filter in pixels
-    
-    % Addpaths
-    addpath(genpath('~/matlab/git/soccode')) % Add paths and load the bpfilter and the base images
-    addpath(genpath('~/matlab/git/knkutils'))
-    addpath(genpath('~/matlab/git/matlabPyrTools'))
-    
-    w_filter_mri        = 'flt_dog_mri';
-    w_filter_meg        = 'flt_dog_meg';
-    
-    
-elseif strcmpi(w_pattern,'dartboard');
-    
-    % Dartboard options
-    n_wedges        = 20; % Amount of wedges making up the dartboard
-    rings_dpc       = 2;  % i.e. degrees visual angle for one black/white repeat
-    
-    
-    n_wedges_meg        = n_wedges;  % Amount of wedges making up the dartboard
-    n_rings_meg         = meg_scr_size / rings_dpc * 2;  % Amount of rings
-    
-    
-    n_wedges_mri        = n_wedges; % Amount of wedges making up the dartboard
-    n_rings_mri         = mri_scr_size / rings_dpc * 2;  % Amount of rings
-    
-elseif strcmpi(w_pattern,'checkerboard');
-    % Checkerboard options
-    rows_dpc        = 2;
-    cols_dpc        = 2;
-    
-    n_rows_meg      = meg_scr_size / rows_dpc * 2; % Amount of checks along the board vertically
-    n_cols_meg      = meg_scr_size / cols_dpc * 2; % Amount of checks along the board horizontally
-    
-    n_rows_mri      = mri_scr_size / rows_dpc * 2;
-    n_cols_mri      = mri_scr_size / cols_dpc * 2;
-    
-else
-    error('Unknown pattern')
-    
-    
-end
+%% Set checkerboard options
+rows_dpc        = 2;
+cols_dpc        = 2;
 
+n_rows_meg      = meg_scr_size / rows_dpc * 2; % Amount of checks along the board vertically
+n_cols_meg      = meg_scr_size / cols_dpc * 2; % Amount of checks along the board horizontally
+
+n_rows_mri      = mri_scr_size / rows_dpc * 2;
+n_cols_mri      = mri_scr_size / cols_dpc * 2;
+   
 
 %% Retinotopy options:
 TR              = 1.5;
@@ -143,7 +124,7 @@ blink_sq_size   = 2;    % Degrees of blink square (width)
 blink_size      = round(2*angle2pix(d_meg,blink_sq_size/2));
 
 outer_rad       = cur_screen_size / 2;
-n_fix_changes   = 20;   % amount of fixation color changes
+n_fix_changes   = 30;   % amount of fixation color changes
 
 stim_frame      = 1/flicker_freq;
 
@@ -152,10 +133,6 @@ step_size           = bar_width / 2;
 add_coverage        = bar_width / 2;
 low_x               = -(outer_rad+add_coverage) : step_size : outer_rad - add_coverage;
 high_x              = low_x + bar_width;
-
-orientations = (0:45:360)./360*(2*pi); % degrees -> rad
-orientations = orientations([1 6 3 8 5 2 7 4]);
-% orientations = orientations([1 6 3 4 7]);
 
 %% General stuff
 
@@ -187,107 +164,23 @@ Ymeg_deg = pix2angle(d_meg,Ymeg);
 
 for run = 1:nruns
     
-    if strcmpi(w_pattern, 'patterns')
-        
-        try
-            [flt_cos_mri, flt_dog_mri] = mprfComputeAndStoreBPFilter('mri_filter');
-            
-        catch
-            [flt_cos_mri, flt_dog_mri] = mprfComputeAndStoreBPFilter([], center_sf, bandwidth, filter_size, mri_res * mri_scale, cur_screen_size, 'mri_filter',false);
-            
-        end
-        
-        
-        try
-            [flt_cos_meg, flt_dog_meg] = mprfComputeAndStoreBPFilter('meg_filter');
-            
-        catch
-            [flt_cos_meg, flt_dog_meg] = mprfComputeAndStoreBPFilter([], center_sf, bandwidth, filter_size, meg_res * meg_scale, cur_screen_size, 'meg_filter',false);
-            
-        end
-        
-        mri_raw_images = nan(mri_res, mri_res, num_examples);
-        meg_raw_images = nan(mri_res, mri_res, num_examples);
-        
-        for n = 1:num_examples
-            mri_raw_images(:,:,n) = createPatternStimulus([mri_res, mri_res], sparseness, eval(w_filter_mri));
-            meg_raw_images(:,:,n) = createPatternStimulus([meg_res, meg_res], sparseness, eval(w_filter_meg));
-            
-        end
-        
-        mri_raw_images = uint8(max(mri_raw_images + 0.5,0) .*255);
-        meg_raw_images = uint8(max(meg_raw_images + 0.5,0) .*255);
-        
-        
-        im_mri = uint8(zeros(mri_res, mri_res, flicker_freq * step_time_mri * length(orientations) * length(low_x)));
-        im_meg = uint8(zeros(meg_res, meg_res, flicker_freq * step_time_meg * length(orientations) * length(low_x)));
-        
-        
-    elseif strcmpi(w_pattern, 'dartboard')
-        
-        
-        
-        
-        wedges_mri = sign(2*round((sin(THmri .* (n_wedges_mri/2))+1)/2)-1);
-        rings_01 = sign(2*round((sin( (Rmri./((mri_res-1)/2)).*2*pi .* (n_rings_mri/2))+1)/2)-1);
-        rings_02 = sign(2*round((sin( (Rmri./((mri_res-1)/2)).*2*pi .* (n_rings_mri/2) +pi)+1)/2)-1);
-        
-        mri_raw_images_01 = zeros(mri_res,mri_res);
-        mri_raw_images_01(wedges_mri < 0) = rings_01(wedges_mri < 0);
-        mri_raw_images_01(wedges_mri > 0) = rings_02(wedges_mri > 0);
-        
-        mri_raw_images_02 = zeros(mri_res,mri_res);
-        mri_raw_images_02(wedges_mri < 0) = rings_02(wedges_mri < 0);
-        mri_raw_images_02(wedges_mri > 0) = rings_01(wedges_mri > 0);
-        
-        
-        
-        wedges_meg = sign(2*round((sin(THmeg .* (n_wedges_meg/2))+1)/2)-1);
-        rings_01 = sign(2*round((sin( (Rmeg./((meg_res-1)/2)).*2*pi .* (n_rings_meg/2))+1)/2)-1);
-        rings_02 = sign(2*round((sin( (Rmeg./((meg_res-1)/2)).*2*pi .* (n_rings_meg/2) +pi)+1)/2)-1);
-        
-        meg_raw_images_01 = zeros(meg_res,meg_res);
-        meg_raw_images_01(wedges_meg < 0) = rings_01(wedges_meg < 0);
-        meg_raw_images_01(wedges_meg > 0) = rings_02(wedges_meg > 0);
-        
-        meg_raw_images_02 = zeros(meg_res,meg_res);
-        meg_raw_images_02(wedges_meg < 0) = rings_02(wedges_meg < 0);
-        meg_raw_images_02(wedges_meg > 0) = rings_01(wedges_meg > 0);
-        
-        
-        
-        im_mri = uint8(zeros(mri_res, mri_res, 2 * length(orientations) * length(low_x)));
-        im_meg = uint8(zeros(meg_res, meg_res, 2 * length(orientations) * length(low_x)));
-        
-        
-    elseif strcmpi(w_pattern,'checkerboard');
-        
-        
-        im_mri = uint8(zeros(mri_res, mri_res, 2 * length(orientations) * length(low_x)));
-        im_meg = uint8(zeros(meg_res, meg_res, 2 * length(orientations) * length(low_x)));
-        
-        
-    else
-        error('Unknown pattern')
-        
-    end
+    % Pre allocate space for images
+    im_mri = uint8(zeros(mri_res, mri_res, 2 * length(orientations) * length(low_x)));
+    im_meg = uint8(zeros(meg_res, meg_res, 2 * length(orientations) * length(low_x)));
     
-    
-    
+    % Set start of image for each run
     cur_im = 0;
     cur_im2 = 0;
     cur_im3 = 0;
     
+    % Set background
     back_ground_mri = uint8(zeros(mri_res, mri_res) + 128);
     back_ground_meg = uint8(zeros(meg_res, meg_res) + 128);
     
     all_orientations = nan(1,size(im_mri,3));
     
-    
-    
     first_idx = 1:2:size(im_mri,3);
     second_idx = 2:2:size(im_mri,3);
-    
     
     fprintf('Creating %d images:',length(orientations) * length(low_x))
     
@@ -300,43 +193,42 @@ for run = 1:nruns
         rph3 = rand .* (2*pi);
         rph4 = rand .* (2*pi);
         
-        
-        if strcmpi(w_pattern, 'checkerboard')
-            newX_mri = Xmri .* cos(cur_or) - Ymri .* sin(cur_or);
-            newX_meg = Xmeg .* cos(cur_or) - Ymeg .* sin(cur_or);
-            
-            newY_mri = Xmri .* sin(cur_or) + Ymri .* cos(cur_or);
-            newY_meg = Xmeg .* sin(cur_or) + Ymeg .* cos(cur_or);
-            
-            
-            
-            rows_mri = sign(2*round((sin((newY_mri./((mri_res-1)/2)).*2*pi .* (n_rows_mri/4) + rph1)+1)/2)-1);
-            cols_mri_01 = sign(2*round((sin( (newX_mri./((mri_res-1)/2)).*2*pi .* (n_cols_mri/4) + rph2)+1)/2)-1);
-            cols_mri_02 = sign(2*round((sin( (newX_mri./((mri_res-1)/2)).*2*pi .* (n_cols_mri/4) +pi + rph2)+1)/2)-1);
-            
-            mri_raw_images_01 = zeros(mri_res,mri_res);
-            mri_raw_images_01(rows_mri < 0) = cols_mri_01(rows_mri < 0);
-            mri_raw_images_01(rows_mri > 0) = cols_mri_02(rows_mri > 0);
-            
-            
-            mri_raw_images_02 = zeros(mri_res,mri_res);
-            mri_raw_images_02(rows_mri < 0) = cols_mri_02(rows_mri < 0);
-            mri_raw_images_02(rows_mri > 0) = cols_mri_01(rows_mri > 0);
-            
-            
-            rows_meg = sign(2*round((sin((newY_meg./((meg_res-1)/2)).*2*pi .* (n_rows_meg/4) + rph3)+1)/2)-1);
-            cols_meg_01 = sign(2*round((sin( (newX_meg./((meg_res-1)/2)).*2*pi .* (n_cols_meg/4) + rph4)+1)/2)-1);
-            cols_meg_02 = sign(2*round((sin( (newX_meg./((meg_res-1)/2)).*2*pi .* (n_cols_meg/4) +pi + rph4)+1)/2)-1);
-            
-            meg_raw_images_01 = zeros(meg_res,meg_res);
-            meg_raw_images_01(rows_meg < 0) = cols_meg_01(rows_meg < 0);
-            meg_raw_images_01(rows_meg > 0) = cols_meg_02(rows_meg > 0);
-            
-            
-            meg_raw_images_02 = zeros(meg_res,meg_res);
-            meg_raw_images_02(rows_meg < 0) = cols_meg_02(rows_meg < 0);
-            meg_raw_images_02(rows_meg > 0) = cols_meg_01(rows_meg > 0);
-        end
+
+        newX_mri = Xmri .* cos(cur_or) - Ymri .* sin(cur_or);
+        newX_meg = Xmeg .* cos(cur_or) - Ymeg .* sin(cur_or);
+
+        newY_mri = Xmri .* sin(cur_or) + Ymri .* cos(cur_or);
+        newY_meg = Xmeg .* sin(cur_or) + Ymeg .* cos(cur_or);
+
+
+
+        rows_mri = sign(2*round((sin((newY_mri./((mri_res-1)/2)).*2*pi .* (n_rows_mri/4) + rph1)+1)/2)-1);
+        cols_mri_01 = sign(2*round((sin( (newX_mri./((mri_res-1)/2)).*2*pi .* (n_cols_mri/4) + rph2)+1)/2)-1);
+        cols_mri_02 = sign(2*round((sin( (newX_mri./((mri_res-1)/2)).*2*pi .* (n_cols_mri/4) +pi + rph2)+1)/2)-1);
+
+        mri_raw_images_01 = zeros(mri_res,mri_res);
+        mri_raw_images_01(rows_mri < 0) = cols_mri_01(rows_mri < 0);
+        mri_raw_images_01(rows_mri > 0) = cols_mri_02(rows_mri > 0);
+
+
+        mri_raw_images_02 = zeros(mri_res,mri_res);
+        mri_raw_images_02(rows_mri < 0) = cols_mri_02(rows_mri < 0);
+        mri_raw_images_02(rows_mri > 0) = cols_mri_01(rows_mri > 0);
+
+
+        rows_meg = sign(2*round((sin((newY_meg./((meg_res-1)/2)).*2*pi .* (n_rows_meg/4) + rph3)+1)/2)-1);
+        cols_meg_01 = sign(2*round((sin( (newX_meg./((meg_res-1)/2)).*2*pi .* (n_cols_meg/4) + rph4)+1)/2)-1);
+        cols_meg_02 = sign(2*round((sin( (newX_meg./((meg_res-1)/2)).*2*pi .* (n_cols_meg/4) +pi + rph4)+1)/2)-1);
+
+        meg_raw_images_01 = zeros(meg_res,meg_res);
+        meg_raw_images_01(rows_meg < 0) = cols_meg_01(rows_meg < 0);
+        meg_raw_images_01(rows_meg > 0) = cols_meg_02(rows_meg > 0);
+
+
+        meg_raw_images_02 = zeros(meg_res,meg_res);
+        meg_raw_images_02(rows_meg < 0) = cols_meg_02(rows_meg < 0);
+        meg_raw_images_02(rows_meg > 0) = cols_meg_01(rows_meg > 0);
+
         
         for nn = 1:length(low_x)
             cur_im = cur_im + 1;
@@ -351,55 +243,19 @@ for run = 1:nruns
             window_mri = ( (newX_mri_deg>=low_x(nn) & newX_mri_deg<=high_x(nn)) & Rmri_deg<outer_rad);
             window_meg = ( (newX_meg_deg>=low_x(nn) & newX_meg_deg<=high_x(nn)) & Rmeg_deg<outer_rad);
             
-            if strcmpi(w_pattern,'patterns')
-                %% Curvy patterns
-                
-                for nnn = 1:flicker_freq * step_time_mri
-                    idx = ceil(rand * num_examples);
-                    
-                    tmp = back_ground_mri;
-                    tmp2 = mri_raw_images(:,:,idx);
-                    tmp(window_mri) = tmp2(window_mri);
-                    
-                    cur_im2 = cur_im2+1;
-                    im_mri(:,:,cur_im2) = tmp;
-                    
-                end
-                
-                for nnn = 1:flicker_freq * step_time_meg
-                    cur_im3 = cur_im3+1;
-                    
-                    tmp = back_ground_meg;
-                    tmp2 = meg_raw_images(:,:,idx);
-                    tmp(window_meg) = tmp2(window_meg);
-                    
-                    im_meg(:,:,cur_im3) = tmp;
-                    
-                end
-                
-            elseif strcmpi(w_pattern,'checkerboard') || ...
-                    strcmpi(w_pattern,'dartboard')
-                
-                im_mri(:,:,first_idx(cur_im)) = uint8(((mri_raw_images_01 / 2) .* window_mri + 0.5) .* 255);
-                im_mri(:,:,second_idx(cur_im)) = uint8(((mri_raw_images_02 / 2) .* window_mri + 0.5).*255);
-                
-                im_meg(:,:,first_idx(cur_im)) = uint8(((meg_raw_images_01 / 2) .* window_meg + 0.5) .* 255);
-                im_meg(:,:,second_idx(cur_im)) = uint8(((meg_raw_images_02 / 2) .* window_meg + 0.5) .* 255);
-                
-            else
-                error('Unknown pattern')
-                
-            end
-            
-            
-            
+            im_mri(:,:,first_idx(cur_im)) = uint8(((mri_raw_images_01 / 2) .* window_mri + 0.5) .* 255);
+            im_mri(:,:,second_idx(cur_im)) = uint8(((mri_raw_images_02 / 2) .* window_mri + 0.5).*255);
+
+            im_meg(:,:,first_idx(cur_im)) = uint8(((meg_raw_images_01 / 2) .* window_meg + 0.5) .* 255);
+            im_meg(:,:,second_idx(cur_im)) = uint8(((meg_raw_images_02 / 2) .* window_meg + 0.5) .* 255);
+
         end
         
     end
     
     fprintf('.Done.\n');
     
-    %
+    % Visualization for debugging
     % figure;
     % for n = 1:size(im_mri,3)
     %     imshow(im_meg(:,:,n));
@@ -414,10 +270,7 @@ for run = 1:nruns
     blank_im_meg = uint8(ones(meg_res, meg_res) .* 128);
     
     mri_ori_idx = [1 3 5 7];
-    meg_ori_idx = 1:7;
-        
-%     mri_ori_idx = [1 3];
-%     meg_ori_idx = 1:5;
+    meg_ori_idx = 1:5;
     
     blanks_after_these_orientations_mri = orientations(mri_ori_idx) ./ pi * 4;
     blanks_after_these_orientations_meg = orientations(meg_ori_idx) ./ pi * 4;
@@ -452,7 +305,8 @@ for run = 1:nruns
     % n_im_per_step_mri =  step_time_mri * flicker_freq /2;
     % n_im_per_step_meg =  step_time_meg * flicker_freq /2;
     
-    % Compile MRI sequence
+    if strcmp(whichStimToMake,'mri')
+    % Compile MRI sequence 
     aa_mri = mod(2:n_stim_frames_mri+(2-1),2)+1;
     n_steps = stim_sec_mri / step_time_mri;
     bb_mri = repmat(0:2:(2*n_steps)-1,(n_stim_frames_mri / (n_images_mri/2)),1);
@@ -484,7 +338,7 @@ for run = 1:nruns
         
     end
     
-    if sum(isnan(seq_mri)) == 4 * blank_frames_pp_mri;
+    if sum(isnan(seq_mri)) == 2 * blank_frames_pp_mri;
         
     else
         error('Something went wrong')
@@ -512,7 +366,7 @@ for run = 1:nruns
     end
     clear stimulus
     
-    
+    elseif strcmp(whichStimToMake,'mri')
     % Compile MEG sequence
     aa_meg = mod(2:n_stim_frames_meg+(2-1),2)+1;
     n_steps = stim_sec_meg / step_time_meg;
@@ -527,7 +381,6 @@ for run = 1:nruns
         
     else
         bb_meg = repmat(0:2:(2*n_steps)-1,(n_stim_frames_meg / (n_images_meg/2)),1);
-        
         
     end
     
@@ -607,9 +460,10 @@ for run = 1:nruns
         save(fullfile(meg_save_path,sprintf('MEG_retinotopy_stimulus_run_%d',run)),'stimulus');
     end
     clear stimulus
+    end
 end
 
-if ~isempty(meg_save_path)
+if  strcmp(whichStimToMake,'meg')
     grid.Xd = Xmeg_deg;
     grid.Yd = Ymeg_deg;
     grid.Rd = Rmeg_deg;
@@ -621,7 +475,7 @@ if ~isempty(meg_save_path)
     clear grid
 end
 
-if ~isempty(mri_save_path)
+if strcmp(whichStimToMake,'meg')
     grid.Xd = Xmri_deg;
     grid.Yd = Ymri_deg;
     grid.Rd = Rmri_deg;
@@ -634,6 +488,8 @@ if ~isempty(mri_save_path)
 end
 
 return
+
+% Debug stim
 figure;
 colormap gray
 for n = 1:length(seq_meg)

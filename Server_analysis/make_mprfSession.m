@@ -15,7 +15,9 @@ mprfSESSION.source.vista_rois.rhs = strcat(sub_sess_dir,'/source/mrvista/rois/rh
 mprfSESSION.source.mrv_t1 = strcat(sub_sess_dir,'/source/mrvista/anatomy/t1.nii.gz');
 mprfSESSION.source.mrv_class = strcat(sub_sess_dir,'/source/mrvista/anatomy/t1_class.nii.gz');
 mprfSESSION.source.bs_anat_file = strcat(sub_sess_dir,'/source/brainstorm/anatomy/subjectimage_T1.mat');
-mprfSESSION.source.rm_stim_file = strcat(sub_sess_dir,'/source/mrvista/rm_stimulus/rm_stim_retModel-20170519-155117-fFit.mat');
+
+d = dir(fullfile(sub_sess_dir,'/source/mrvista/rm_stimulus/*.mat'));
+mprfSESSION.source.rm_stim_file = fullfile(d.folder, d.name);
 mprfSESSION.source.prf_data_file = strcat(sub_sess_dir,'/prf_data/data_dir/exported_prf_params.mat');
 
 % Surface ROI directories

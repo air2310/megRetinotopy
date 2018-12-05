@@ -158,7 +158,7 @@ end % paramLabels
 % It is primarily used for rendering the data on a mesh, but will also
 % exclude pRF that are 'obtained' by the smoothing.
 prfParamsExp.mask = prfParamsExp.recomp_beta == 0;
-fname = fullfile(savePth,'allPRFParams.mat');
+fname = fullfile(savePth,'exported_prf_params.mat');
 save(fname, 'prfParamsExp');
 
 cd(mainDir);

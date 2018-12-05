@@ -118,7 +118,12 @@ prfModels = 'one gaussian';
 sParams = rmCreateStim(gr);
 sParams.stimType   = 'StimFromScan'; % This means the stimulus images will
                                      % be read from a file.
-sParams.stimSize   = 11.1859;        % usually 12.4; but for experiment the stimsize is limited by MEG screen fov           % stimulus radius (deg visual angle)
+if strcmp(subject, 'wlsubj030')
+    sParams.stimSize   = 11.1859;        % usually 12.4; but for experiment the stimsize is limited by MEG screen fov           % stimulus radius (deg visual angle)
+elseif strcmp(subject, 'wlsubj068')
+    sParams.stimSize   = 10;
+end
+
 sParams.nDCT       = 1;              % detrending frequeny maximum (cycles
                                      % per scan): 1 means 3 detrending
                                      % terms, DC (0 cps), 0.5, and 1 cps

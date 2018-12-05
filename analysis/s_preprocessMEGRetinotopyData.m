@@ -14,18 +14,17 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject_nr    = 'wlsubj030';
-fnameCombined = 'R0942_RetCombined'; % if session had multiple sqd files, we can combine them with another function and load that file
-fnameSingle   =  '*_Ret_*';          % .. or just load the individual files
+subject    = 'wlsubj058';
+fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 
 % Derive other file paths
-rawSqdPath = fullfile(dataPth, subject_nr, 'raw');
-paramFilePth = fullfile(rawSqdPath, 'R0942_MegRet_9.11.18', 'behavior');
-stimFilePth = fullfile(rawSqdPath, 'R0942_MegRet_9.11.18', 'stimFiles');
+rawSqdPath = fullfile(dataPth, subject, 'raw');
+paramFilePth = fullfile(dataPth, subject, 'paramFiles');
+stimFilePth = fullfile(dataPth, subject, 'stimFiles');
 
 % Make 'processed' folder to save time series
-savePth = fullfile(dataPth, subject_nr, 'processed');
+savePth = fullfile(dataPth, subject, 'processed');
 if ~exist(savePth, 'dir'); mkdir(savePth); end
 
  % MEG Channel information:
@@ -39,6 +38,7 @@ verbose       = true;
 doFiltering   = true;
 doDenoise     = true;
 doSaveData    = true;
+verbose       = true;
 
 % Go to dataPth
 curDir = pwd;
@@ -60,11 +60,14 @@ if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 % 10  = blink
 % 
 
-triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
-triggers.timing = find(triggers.ts);
+if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
+    triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
+else
+    triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
+end
 
 % remove first trigger (not sure why this one is here)
-triggers.ts(triggers.timing(1)) = 0;
+if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; end;
 triggers.timing = find(triggers.ts);
 
 medianTriggerLength = median(diff(triggers.timing));
@@ -100,6 +103,9 @@ flickerFreq                   = 10; % Hz
 
 if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
 [data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs); % time x epochs x channels
+
+% get size of data before removing epochs
+sz = size(data);
 
 % Set blink epochs to NaNs, leave blanks as is
 data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
@@ -167,6 +173,12 @@ if doDenoise
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     designConditions = triggers.stimConditions;
     designConditions(designConditions > 9)=0;
+    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058')
+        designConditions(designConditions==3) = 2;
+        designConditions(designConditions==4) = 3;
+        designConditions(designConditions==6) = 4;
+        designConditions(designConditions==7) = 5;
+    end
     designMatrix     = conditions2design(designConditions);
 
     dataToDenoise = permute(data, [3,1,2]);
@@ -186,7 +198,7 @@ if doDenoise
         xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
     end
 
-    dataDenoised = NaN(size(denoised_data{1}));
+    dataDenoised = NaN(sz(3),sz(1),sz(2));
     dataDenoised(~badChannels, :, ~badEpochs) = denoised_data{1};
 end
 
@@ -196,41 +208,15 @@ end
 
 if doSaveData
 
-    if verbose; sprintf('(%s) Save data...\n', mfilename); end
-    
     % to do reshape back to time x epochs x channels x runs
-    
-        % SPLIT UP IN 20 blocks
-        % (maybe split up the runs to get same as old data sets)
-        %     clear dataBlocked;
-        %     numTrigPerBlock = (numOfEpochsPerOrientation + (3*(numOfEpochsPerOrientation+5)));
-        %     startEpoch = 1;
-        %     figure; plot(triggers.stimConditions); hold all;
-        %     for n = 1:numRuns*2
-        %         
-        %         if n == 1
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
-        %         elseif (mod(n,2)==1)
-        %             startEpoch = theseEpochs(end)+1;
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);   
-        %         else
-        %             startEpoch = theseEpochs(end)+6;
-        %             theseEpochs = startEpoch:(startEpoch+numTrigPerBlock-1);
-        %         end
-        %         
-        %         dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
-        %         plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
-        %     end   
-        %     
-        %     data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels 
-        %     save(fullfile(savePth, 'MEG_timeseries.mat'), 'data', '-v7.3')
+    if verbose; sprintf('(%s) Save data...\n', mfilename); end
      
-    % SPLIT UP IN 10 blocks   (i.e. number of RUNS)
-    dataBlocked =  NaN([size(dataDenoised,1),size(dataDenoised,2), size(dataDenoised,3)/numRuns, numRuns]);
+    % SPLIT UP IN blocks   (i.e. number of RUNS)
+    dataBlocked =  NaN(sz(3), sz(1), sz(2)/numRuns, numRuns);
     
      % plot all triggers
     figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
-
+    startOfRun = 1:140:(19*140);
     for n = 1:numRuns
        
         % Get first epoch
@@ -241,8 +227,8 @@ if doSaveData
             lastEpoch  = startOfRun(n+1)-1;
             theseEpochs = startEpoch:lastEpoch;
         else
-            lastEpoch  = size(dataDenoised,3);
-            theseEpochs = startEpoch:lastEpoch;
+            lastEpoch  = size(dataBlocked,3);
+            theseEpochs = startEpoch:(startEpoch+lastEpoch-1);
         end
         
         % Get data and put in dataBlocked variable
@@ -255,6 +241,7 @@ if doSaveData
     clear data;
     data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
     save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
+    save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
 end
 
 

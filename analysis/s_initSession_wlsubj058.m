@@ -1,10 +1,10 @@
-%% s_initSession_wlsubj030
+%% s_initSession_wlsubj058
 
 % This is a script to define the paths of the files we need to run a model.
 % 
 
 % Define subject and its paths
-subject            = 'wlsubj030';
+subject            = 'wlsubj058';
 dataDir            = '/Volumes/server/Projects/MEG/Retinotopy/Data/';
 freeSurferDir      = '/Volumes/server/Freesurfer_subjects/';
 brainstormDBDir    = '/Volumes/server/Projects/MEG/brainstorm_db/';
@@ -37,6 +37,8 @@ s.MRIStimIm.pth     = fullfile(vistaSessionDir, 'Stimuli', 'scan_images.mat');
 s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'scan_params.mat');
 s.MEGStim.pth       = fullfile(megDataDir,'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
 s.MEGStimGrid.pth   = fullfile(megDataDir,'stimFiles', 'MEG_grid.mat');
+
+% Find BS surfaces
 s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
 
 %% Find Brainstorm headmodel and copy to output dir
@@ -58,6 +60,8 @@ s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
 % Go from FS to BS
 roiType = 'allRoisWangAtlas'; % What rois?
 megRet_FS2BS(s, roiType)
+
+
 
 
 

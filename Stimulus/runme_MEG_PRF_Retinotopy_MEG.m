@@ -40,7 +40,7 @@ params.fixation         = 'dot with grid';
 params.loadMatrix = stimfile;
 ret(params)
 
-f = dir('~/Desktop/2017*.mat');
+f = dir('~/Desktop/2018*.mat');
 load(fullfile('~', 'Desktop', f(end).name));
 
 % desired inter-stimulus duration

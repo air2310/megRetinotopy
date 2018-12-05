@@ -17,35 +17,30 @@ outputPath = fullfile(sessionDir, 'Outputs');
 %  for the purposes of deducing various paths.
 
 % First, get the session path and subject name
-if ~exist('sub_name', 'var')
+if ~exist('subject', 'var')
     scriptPath = mfilename('fullpath');
+    disp(scriptPath);
     [codePath,     scriptName,  ~] = fileparts(scriptPath);
-    [sessionDir,  codeName,    ~] = fileparts(codePath);
-    [subPath,      sessionName, ~] = fileparts(sessionDir);
+    [sessionPath,  codeName,    ~]  = fileparts(codePath);
+    [subPath,      sessionName, ~] = fileparts(sessionPath);
     [subjectsPath, subject,     ~] = fileparts(subPath);
-
+    
     if ~strcmpi(codeName, 'code')
-        error(['If initialization script is not in <subj>/<sess>/code' ...
-               ' then it must be edited manually to include paths']);
+        error(['If initialization script is not in <subj>/<sess>/code'
+            ' then it must be edited manually to include paths']);
     end
 end
-if ~exist('sessionName', 'var') || ~exist('sessionPath', 'var')
+if ~exist('sessionName', 'var') && ~exist('sessionDir', 'var')
     error('No session name/path deduced or provided');
 end
+
+[~,      sessionName, ~] = fileparts(sessionDir);
 fprintf('Subject: %-12s  Session: %-20s\n', subject, sessionName);
-   
+
 % Next, figure out freesurfer data if not given
 if ~exist('freesurferID', 'var'), freesurferID = subject; end
-if ~exist('fsSubjectsDir', 'var')
-    fsSubjectsDir = getenv('SUBJECTS_DIR');
-end
-
-% Last, figure out the output directory if not given
-if ~exist('outputPath', 'var')
-    outputPath = fullfile(sessionDir, 'Outputs');
-end
-if ~exist(outputPath, 'dir')
-    error(sprintf('outputPath (%s) not found', outputPath));
+if ~exist('freesurferSubjectDir', 'var')
+    freesurferSubjectDir = getenv('SUBJECTS_DIR');
 end
 
 

@@ -3,8 +3,8 @@ function [] = makeStimFiles(subject, sessionDir, sessionName, bidsSession)
 % Create scan_params and scan_images matfiles to run retinotopy model
 
 % Where to find stimuli params?
-d1 = dir(fullfile(sessionDir, 'Stimuli','vistadisp_files', 'stim_input_matrices', '*stimulus*'));
-d2 = dir(fullfile(sessionDir, 'Stimuli','vistadisp_files', 'stim_output_matrices', '*.mat'));
+d1 = dir(fullfile(sessionDir, 'Stimuli','stimFiles', '*stimulus*'));
+d2 = dir(fullfile(sessionDir, 'Stimuli','paramsFiles', '*.mat'));
 
 % Where to save stimuli params?
 stimFolder = fullfile(sessionDir, 'Stimuli');
@@ -41,12 +41,19 @@ params.seq          =  im.stimulus.seq;
 params.seqtiming    =  im.stimulus.seqtiming;
 params.ncycles      =  1;
 params.numCycles    =  params.ncycles;
-params.prescanDuration = 8*1.5; % Sec
-params.scanDuration =  244-8; % TRs
+if strcmp(subject, 'wlsubj030')
+    params.prescanDuration = 8*1.5; % Sec
+    params.scanDuration =  244-8; % TRs
+elseif strcmp(subject, 'wlsubj068')
+    params.prescanDuration = 0; %12*1.5; % Sec
+    params.scanDuration =  244; %244-12; % TRs
+elseif strcmp(subject, 'wlsubj058')
+    params.prescanDuration = 0; %12*1.5; % Sec
+    params.scanDuration =  244; %244-12; % TRs
+end
+
 params.period       =  params.scanDuration;
-
-
-images = im.stimulus.images;
+images              = im.stimulus.images;
 
 save(fullfile(stimFolder,'scan_images.mat'), 'images')
 
