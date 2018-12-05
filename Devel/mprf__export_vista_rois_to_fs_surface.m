@@ -12,8 +12,7 @@ success = false;
 % Remove file name dependence at line 108 and 140
 % Make sure this file also works with ROIs defined on both Hemispheres
 %%
-% main_dir = mprf__get_directory('main_dir');
-main_dir = '~/matlab/git/toolboxes/megRetinotopy/data/subjectSession/wlsubj058/';
+main_dir = mprf__get_directory('main_dir');
 cd(main_dir);
 
 % Load mprfSESSION and do the necessary checks:
