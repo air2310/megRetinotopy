@@ -515,10 +515,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             
             fprintf('SCRAMBLING ITERATION: %d out of %d \n',this_it,n_it);
             this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
-            
-%=======
-            %this_data_in = mprfSession_run_original_model_server(this_pred,meg_data_file_path,plot_figure,this_data_in);
-%>>>>>>> 847966ef8d7fa9e858d5ad259618662ad511989a
+          
             scramble_corr(:,this_it) = this_data_in.cur_corr;
             this_data_in = rmfield(this_data_in,'cur_corr');
             
