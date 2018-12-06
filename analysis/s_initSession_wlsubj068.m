@@ -10,7 +10,7 @@ freeSurferDir      = '/Volumes/server/Freesurfer_subjects/';
 brainstormDBDir    = '/Volumes/server/Projects/MEG/brainstorm_db/';
 vistaSessionDir    = fullfile(dataDir, 'fMRI', subject, 'VistaSession');
 megDataDir         = fullfile(dataDir, 'MEG', subject);
-outPutDir          = fullfile(mprfRootPath, 'data', subject);
+outPutDir          = fullfile(mprfRootPath, 'data', 'subjectSession', [subject]);
 
 % Predefine struct
 s = struct();
@@ -38,22 +38,24 @@ s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'scan_params.mat');
 s.MEGStim.pth       = fullfile(megDataDir, 'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
 s.MEGStimGrid.pth   = fullfile(megDataDir, 'stimFiles', 'MEG_grid.mat');
 
-% Load stimulus (To Do: check where coordinates fall wrt image)
-s.stim = loadStim(s); 
-
-% Smooth prf parameters
-megRet_smoothPRFParams(s)
-
-% Find ROIS in Freesurfer directory
-s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
+% Find BS surfaces
+s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
 
 % Find Brainstorm headmodel and copy to output dir
 d = dir(fullfile(brainstormDBDir, 'MEG_Retinopy', 'data', subject, '*', 'headmodel*.mat'));
 s.BS.gainMatrix.pth = fullfile(d.folder,d.name);
-status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, 'gainmatrix.mat'));
 
-% Find BS surfaces
-s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
+%% Find ROIS in Freesurfer directory
+s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
+
+%% Copy gainmatrix to subject folder
+status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, d.name));
+
+%% Load stimulus (To Do: check where coordinates fall wrt image)
+s.stim = loadStim(s); 
+
+%% Smooth prf parameters
+megRet_smoothPRFParams(s)
 
 % Go from FS to BS
 roiType = 'allRoisWangAtlas'; % What rois?

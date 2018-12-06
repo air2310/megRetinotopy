@@ -37,12 +37,14 @@ s.MRIStimIm.pth     = fullfile(vistaSessionDir, 'Stimuli', 'scan_images.mat');
 s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'scan_params.mat');
 s.MEGStim.pth       = fullfile(megDataDir,'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
 s.MEGStimGrid.pth   = fullfile(megDataDir,'stimFiles', 'MEG_grid.mat');
+
+% Find BS surfaces
 s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
 
 %% Find Brainstorm headmodel and copy to output dir
 d = dir(fullfile(brainstormDBDir, 'MEG_Retinopy', 'data', subject, '*', 'headmodel*.mat'));
 s.BS.gainMatrix.pth = fullfile(d.folder,d.name);
-status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, d.name));
+status = copyfile(s.BS.gainMatrix.pth, fullfile(outPutDir, 'source', 'brainstorm', 'head_model', 'head_model_tess_cortex_pial_low.mat'));
 
 %% Load stimulus (To Do: check where coordinates fall wrt image)
 s.stim = loadStim(s); 
