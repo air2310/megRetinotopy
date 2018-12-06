@@ -49,7 +49,7 @@ if ~exist('data','var') || isempty(data)
 end
 
 [~, subjectName] = fileparts(fileparts(fileparts(fileparts(fileparts(fileparts(meg_data_file_path))))));
-if strcmp(subjectName, 'wlsubj030')
+if strcmp(subjectName, 'wlsubj030') || strcmp(subjectName, 'wlsubj058') || strcmp(subjectName, 'wlsubj068')
     preproc_dir = fileparts(meg_data_file_path);
     load(fullfile(preproc_dir,'megStimConditions.mat'),'designConditions');
     periods.blink = find(designConditions==10);
