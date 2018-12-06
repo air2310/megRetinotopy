@@ -44,8 +44,8 @@ switch roiType
         
         % do interpolation
         wangROI_BS = tess_fs2bst(s.bsSubject, fsSubjDir, lh.ROI_data, rh.ROI_data);
-        wangROI_BS_mask = tess_fs2bst(s.bsSubject, fsSubjDir, lh.ROI_data_mask, rh.ROI_data_mask);
-
+        wangROI_BS_mask = double(tess_fs2bst(s.bsSubject, fsSubjDir, lh.ROI_data_mask, rh.ROI_data_mask));
+        wangROI_BS_mask(wangROI_BS_mask==0)=NaN;
         
         % Create file names for interpolated data
         subBSAllROImgzfile = sprintf('%s/pial.all_rois.mgz', saveRoiDir);
@@ -57,10 +57,13 @@ switch roiType
         MRIwrite(struct('vol', wangROI_BS), subBSAllROImgzfile);
         MRIwrite(struct('vol', wangROI_BS_mask), subBSAllROIMaskmgzfile);
         
+%         fnum = numel(mrv_msh.triangles);
         % still need to figure this out.. what file format??
-        write_curv(sprintf('%s/surface/brainstorm/pial.all_rois', saveRoiDir), wangROI_BS, 1)
-        write_curv(sprintf('%s/surface/brainstorm/pial.all_rois_mask', saveRoiDir), wangROI_BS_mask, 1)
-
+        cur_dir = pwd; 
+        cd(fullfile(saveRoiDir, 'surface', 'brainstorm'))
+        write_curv('pial.all_rois',  wangROI_BS, 1)
+        write_curv('pial.all_rois_mask', wangROI_BS_mask, 1)
+        cd(cur_dir)
         
         % save ROIs as mat file
         save(subBSAllROImatfile, 'wangROI_BS');
@@ -75,12 +78,15 @@ end
 %% Separate PRF data into Left and Right Hemi, then project to FS mesh?
 
 % location of smoothed prf data
-prfDataDir = fullfile(s.outPut.pth, 'prf_data');
+loadPrfDataDir = fullfile(s.outPut.pth, 'prf_data');
+savePrfDataDirFS = fullfile(loadPrfDataDir, 'surface', 'freesurfer');
+savePrfDataDirBS = fullfile(loadPrfDataDir, 'surface', 'brainstorm');
 
-load(fullfile(prfDataDir, 'data_dir', 'exported_prf_params.mat'), 'prfParamsExp');
+
+load(fullfile(loadPrfDataDir, 'data_dir', 'exported_prf_params.mat'), 'prf_par_exp');
 
 % Get all the parameters stored in the prf parameter data file:
-parNames = fieldnames(prfParamsExp);
+parNames = fieldnames(prf_par_exp);
 
 % Keep track of the X and Y variables, both smoothed and unsmoothed to
 % compute the eccenricity and polar angle maps as well:
@@ -89,9 +95,9 @@ has_y = false;
 has_x_sm = false;
 has_y_sm = false;
 
-% surfaces to transform from FS to BS
-% fsSurfaces = {'lh.pial','rh.pial'};
-fsSurfaces = {'lh.white','rh.white'};
+% surfaces to transform from Vista to FS
+fsSurfaces = {'lh.pial','rh.pial'};
+% fsSurfaces = {'lh.white','rh.white'};
 
 
 currPath = pwd;
@@ -136,11 +142,11 @@ for n = 1:length(fsSurfaces)
         tmp = nan(size(currentVista2Graymap));
         
         if sum(double(currentParameterName)) == sum(double('beta'))
-            tmp_data = squeeze(prfParamsExp.(currentParameterName)(:,:,1));
+            tmp_data = squeeze(prf_par_exp.(currentParameterName)(:,:,1));
             tmp(goodVerticesForMapping) = tmp_data(currentVista2Graymap(goodVerticesForMapping));
             
         else
-            tmp(goodVerticesForMapping) = prfParamsExp.(currentParameterName)(currentVista2Graymap(goodVerticesForMapping));
+            tmp(goodVerticesForMapping) = prf_par_exp.(currentParameterName)(currentVista2Graymap(goodVerticesForMapping));
             
         end
         % Check if we have x, y, x_smoothed or y_smoothed:
@@ -168,11 +174,11 @@ for n = 1:length(fsSurfaces)
         if has_x && has_y
             [tmp_ang, tmp_ecc] = cart2pol(x_pos, y_pos);
             
-            fname = fullfile(prfDataDir,[currentHemi '.polar_angle']);
+            fname = fullfile(savePrfDataDirFS,[currentHemi '.polar_angle']);
             write_curv( fname,tmp_ang, fnum);
             fprintf('Polar angle\n')
             
-            fname = fullfile(prfDataDir,[currentHemi '.eccentricity']);
+            fname = fullfile(savePrfDataDirFS,[currentHemi '.eccentricity']);
             write_curv( fname,tmp_ecc, fnum);
             fprintf('Eccentricity\n')
             has_x = false;
@@ -185,12 +191,12 @@ for n = 1:length(fsSurfaces)
             [tmp_ang, tmp_ecc] = cart2pol(x_pos_sm, y_pos_sm);
             
             
-            fname = fullfile(prfDataDir,[currentHemi '.polar_angle_smoothed']);
+            fname = fullfile(savePrfDataDirFS,[currentHemi '.polar_angle_smoothed']);
             write_curv( fname,tmp_ang, fnum);
             fprintf('Polar angle smoothed\n')
             
             
-            fname = fullfile(prfDataDir,[currentHemi '.eccentricity_smoothed']);
+            fname = fullfile(savePrfDataDirFS,[currentHemi '.eccentricity_smoothed']);
             write_curv( fname,tmp_ecc, fnum);
             fprintf('Eccentricity smoothed\n')
             
@@ -199,7 +205,7 @@ for n = 1:length(fsSurfaces)
             
         end
         % output the results:
-        fname = fullfile(prfDataDir,[currentHemi '.' currentParameterName]);
+        fname = fullfile(savePrfDataDirFS,[currentHemi '.' currentParameterName]);
         write_curv(fname,tmp, fnum);
         fprintf('%s\n', currentParameterName)
         
@@ -221,7 +227,7 @@ for nn = 1:length(prfParamsToUse)
     
     thisParam = prfParamsToUse{nn};
     % Get the prf surface
-    prfParamfname = @(hem)(sprintf('%s/%s.%s', prfDataDir, hem, thisParam));
+    prfParamfname = @(hem)(sprintf('%s/%s.%s', savePrfDataDirFS, hem, thisParam));
     
     surfdataFS.lh = read_curv(prfParamfname('lh')); 
     surfdataFS.rh = read_curv(prfParamfname('rh'));
@@ -231,8 +237,9 @@ for nn = 1:length(prfParamsToUse)
     surfdataBS = tess_fs2bst(s.bsSubject, fsSubjDir, surfdataFS.lh, surfdataFS.rh);
         
     % Create file names for interpolated data
-    surfdataBSfile = sprintf('%s/%s.%s', prfDataDir, 'pial', thisParam);
- 
+    surfdataBSfile = sprintf('%s/%s.%s', savePrfDataDirBS, 'pial', thisParam);
+    if ~exist(savePrfDataDirFS, 'dir'); mkdir(savePrfDataDirFS); end;
+    
     % save ROIs as mgz file
     write_curv(surfdataBSfile,surfdataBS,1);
 end  
