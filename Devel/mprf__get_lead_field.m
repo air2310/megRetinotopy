@@ -5,7 +5,12 @@ if isempty(which('bst_gain_orient.m'))
     error('Need brainstorm files')
 end
 
-load(bs.model_file)
+bs_model = load(bs.model_file);
+
+fn = fieldnames(bs_model);  
+if fn{1} == 'bs_model'
+    bs_model = bs_model.bs_model;
+end
 
 bs.lead_field = bst_gain_orient(bs_model.Gain,bs_model.GridOrient);
 bs.lead_field2 = bs.lead_field(~isnan(bs.lead_field(:,1)),:); % Remove NaNs....
