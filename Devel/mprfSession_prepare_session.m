@@ -67,7 +67,7 @@ end
 %%
 
 % Export the selected ROIs and data from mrVista to the freesurfer surfaces
-success = mprf__export_roi_and_data_to_freesurfer_surface('prf_data');
+success = mprf__export_roi_and_data_to_freesurfer_surface('both');
 
 if success
     

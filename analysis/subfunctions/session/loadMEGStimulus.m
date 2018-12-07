@@ -71,8 +71,8 @@ meg_stim.Y  = meg_stim.resizedY(:);
 meg_stim.X  = meg_stim.X(meg_stim.window);
 meg_stim.Y  = meg_stim.Y(meg_stim.window);
 
-saveDir = fullfile(s.outPut.pth, 'stim');
+saveDir = fullfile(s.outPut.pth, 'stimuli', 'meg', 'imported_stimulus');
 if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
-save(fullfile(saveDir, 'meg_stimulus'),'meg_stim')
+save(fullfile(saveDir,'meg_stimulus.mat'), 'meg_stim');
 
 end

@@ -52,7 +52,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;
@@ -113,7 +113,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;
@@ -173,7 +173,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;
@@ -233,7 +233,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;
@@ -293,7 +293,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;
@@ -354,7 +354,7 @@ switch model_type
         
         mprf_model.params.comb_lr_rois = 1;
         mprf_model.params.comb_dv_rois = 1;
-        mprf_model.params.roi_mask = 0;
+        mprf_model.params.roi_mask = 1;
         
         mprf_model.params.ve_thr = 1;
         mprf_model.params.beta_thr = 1;

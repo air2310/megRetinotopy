@@ -48,7 +48,7 @@ load(fullfile(s.PRFParams.pth));
 % Initialize the weighted connectivity matrix used in the smoothing
 wConMat = [];
 
-savePth = fullfile(s.outPut.pth, 'prfParams');
+savePth = fullfile(s.outPut.pth, 'prf_data', 'nifti');
 if ~exist('savePth', 'dir'); mkdir(savePth); end
 
 % Loop over the needed parameters:
@@ -70,10 +70,10 @@ for nn = 1:length(paramLabels)
     % data that we use to smooth and store for further analyses:
     if strcmpi(curParam,'beta') % [EK]: why not beta?
         tmp = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
-        prfParamsExp.(curParam) = squeeze(tmp);
+        prf_par_exp.(curParam) = squeeze(tmp);
         
     else        
-        prfParamsExp.(curParam) = rmGet(hvol.rm.retinotopyModels{1},curParam);
+        prf_par_exp.(curParam) = rmGet(hvol.rm.retinotopyModels{1},curParam);
     end
     
     % Store the data as nifti and check against the segmentation to see of
@@ -88,16 +88,16 @@ for nn = 1:length(paramLabels)
             % reconstructing the pRF, multiplying it with the stimulus and
             % it's beta, and taking the maximum response from the
             % predicted time series
-            mresp = mprfComputeMaximumResponse(s.stim.MRI,sigma_us,x0,y0,prfParamsExp.(curParam),VEmask);
+            mresp = mprfComputeMaximumResponse(s.stim.MRI,sigma_us,x0,y0,prf_par_exp.(curParam),VEmask);
             
             % Store the maximum responses as a nifti file:
             fname = fullfile(savePth,'mresp.nii.gz');
-            prfParamsExp.('mresp') = mresp;
+            prf_par_exp.('mresp') = mresp;
             hvol = viewSet(hvol,'map',{mresp});
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(classFile, fname);
             
-            prfParamsExp.('mresp') = mresp;
+            prf_par_exp.('mresp') = mresp;
             
             
             % Smooth the maximum responses on the cortical surface
@@ -109,7 +109,7 @@ for nn = 1:length(paramLabels)
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(classFile, fname);
             
-            prfParamsExp.('mresp_smoothed') = mresp_sm;
+            prf_par_exp.('mresp_smoothed') = mresp_sm;
             
             % Recompute the beta using by dividing the smoothed maxumimum
             % responses by the maximum response given the stimulus and
@@ -122,14 +122,14 @@ for nn = 1:length(paramLabels)
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(classFile, fname);
             
-            prfParamsExp.('recomp_beta') = recomp_beta;
+            prf_par_exp.('recomp_beta') = recomp_beta;
             
         case 'varexplained'
             
         case {'x','y','sigma'}
             
             % Smooth the current paramter:
-            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prfParamsExp.(curParam),[ ],wConMat, VEmask);
+            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(curParam),[ ],wConMat, VEmask);
             
             
             % Export smoothed data as nifti:
@@ -138,18 +138,18 @@ for nn = 1:length(paramLabels)
             functionals2nifti(hvol,1 , fname);
             mprfCheckParameterNiftiAlignment(classFile, fname);
             
-            prfParamsExp.([curParam '_smoothed']) = tmp_sm_par;
+            prf_par_exp.([curParam '_smoothed']) = tmp_sm_par;
             
             % Store the current parameters as we need them for the Beta
             % computations above:
             if strcmpi(curParam,'x')
-                x0 = prfParamsExp.(curParam);
+                x0 = prf_par_exp.(curParam);
                 x0_smooth = tmp_sm_par;
             elseif strcmpi(curParam,'y')
-                y0  = prfParamsExp.(curParam);
+                y0  = prf_par_exp.(curParam);
                 y0_smooth = tmp_sm_par;
             elseif strcmpi(curParam,'sigma')
-                sigma_us = prfParamsExp.(curParam);
+                sigma_us = prf_par_exp.(curParam);
                 sigma_smooth = tmp_sm_par;
             end                 
     end % switch    
@@ -157,9 +157,9 @@ end % paramLabels
 
 % It is primarily used for rendering the data on a mesh, but will also
 % exclude pRF that are 'obtained' by the smoothing.
-prfParamsExp.mask = prfParamsExp.recomp_beta == 0;
-fname = fullfile(savePth,'exported_prf_params.mat');
-save(fname, 'prfParamsExp');
+prf_par_exp.mask = prf_par_exp.recomp_beta == 0;
+fname = fullfile(s.outPut.pth, 'prf_data','data_dir','exported_prf_params.mat');
+save(fname, 'prf_par_exp');
 
 cd(mainDir);
 mrvCleanWorkspace;

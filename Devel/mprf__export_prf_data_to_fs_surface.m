@@ -31,6 +31,7 @@ load(fullfile(main_dir, mprf__get_directory('prf_mat'),data_file.name));
 % Loop over all the parameters stored in the exported data file:
 if ~exist('prf_par_exp', 'var')
     par_names = fieldnames(prfParamsExp);
+    prf_par_exp = prfParamsExp;
 else
     par_names = fieldnames(prf_par_exp);
 end
