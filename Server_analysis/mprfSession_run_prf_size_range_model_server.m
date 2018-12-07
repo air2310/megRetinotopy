@@ -51,7 +51,8 @@ end
 [~, subjectName] = fileparts(fileparts(fileparts(fileparts(fileparts(fileparts(meg_data_file_path))))));
 if strcmp(subjectName, 'wlsubj030') || strcmp(subjectName, 'wlsubj058') || strcmp(subjectName, 'wlsubj068')
     preproc_dir = fileparts(meg_data_file_path);
-    load(fullfile(preproc_dir,'megStimConditions.mat'),'designConditions');
+    load(fullfile(preproc_dir,'megStimConditions.mat'),'triggers');
+    designConditions = triggers.stimConditions;
     periods.blink = find(designConditions==10);
     periods.blank = find(designConditions==20);
     periods.stim  = find(designConditions<9);
