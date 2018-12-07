@@ -53,17 +53,17 @@ if strcmpi(model.type,'reliability check')
         if model.params.do_sl && model.params.do_bb
             fprintf('Running reliability for stimulus locked and broad band signal\n')
             data = [];
-            data = mprf__do_reliability_analysis(model,'stimulus_locked',data);
-            mprf__do_reliability_analysis(model,'broadband',data);
+            data = mprf__do_reliability_analysis(model,'stimulus_locked',data,meg_data_file_path);
+            mprf__do_reliability_analysis(model,'broadband',data,'meg_data_file_path');
             
             
         elseif  model.params.do_sl && ~model.params.do_bb
             fprintf('Running reliability for stimiulus locked only\n')
-            mprf__do_reliability_analysis(model,'stimulus_locked');
+            mprf__do_reliability_analysis(model,'stimulus_locked',[],'meg_data_file_path');
             
         elseif  ~model.params.do_sl && model.params.do_bb
             fprintf('Running reliability for broad band only\n')
-            mprf__do_reliability_analysis(model,'broadband');
+            mprf__do_reliability_analysis(model,'broadband',[],'meg_data_file_path');
       
         end
     end

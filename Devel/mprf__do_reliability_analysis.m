@@ -1,4 +1,4 @@
-function data = mprf__do_reliability_analysis(model,type, data)
+function data = mprf__do_reliability_analysis(model,type, data, meg_data_file_path)
 % Keep fpath and fname for storage, i.e. keep track of input data set.
 
 if ~exist('type','var') || isempty(type)
@@ -64,24 +64,33 @@ cur_dir = pwd;
 
 
 if ~exist('data','var') || isempty(data)
-    preproc_dir =  mprf__get_directory('meg_preproc');
-    cd(preproc_dir)
-    [fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
+    %preproc_dir =  mprf__get_directory('meg_preproc');
+    %cd(preproc_dir)
+    %[fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
     
     
-    if fname == 0
-        fprintf('No file selected, quitting\n');
-        return
+    %if fname == 0
+    %    fprintf('No file selected, quitting\n');
+    %    return
         
-    end
+    %end
     
+    %fprintf('Loading raw data...\n')
+    %tmp = load(fullfile(fpath, fname));
+    %var_name = fieldnames(tmp);
+    %data = tmp.(var_name{1});
+    %clear tmp
+
+    %cd(cur_dir)
+
+
+    % Load the raw data from .mat file
     fprintf('Loading raw data...\n')
-    tmp = load(fullfile(fpath, fname));
+    tmp = load(meg_data_file_path);
     var_name = fieldnames(tmp);
     data = tmp.(var_name{1});
     clear tmp
-    
-    cd(cur_dir)
+
 end
 
 periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
