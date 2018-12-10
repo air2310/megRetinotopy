@@ -64,7 +64,7 @@ cur_dir = pwd;
 
 
 if ~exist('data','var') || isempty(data)
-    %preproc_dir =  mprf__get_directory('meg_preproc');
+%     preproc_dir =  mprf__get_directory('meg_preproc');
     %cd(preproc_dir)
     %[fname, fpath] = uigetfile('*.mat', 'Select raw data to model');
     
@@ -76,26 +76,45 @@ if ~exist('data','var') || isempty(data)
     %end
     
     %fprintf('Loading raw data...\n')
-    %tmp = load(fullfile(fpath, fname));
-    %var_name = fieldnames(tmp);
-    %data = tmp.(var_name{1});
-    %clear tmp
+%     tmp = load(fullfile(fpath, fname));
+%     var_name = fieldnames(tmp);
+%     data = tmp.(var_name{1});
+%     clear tmp
 
     %cd(cur_dir)
 
 
     % Load the raw data from .mat file
     fprintf('Loading raw data...\n')
-    tmp = load(meg_data_file_path);
+    preproc_dir =  mprf__get_directory('meg_preproc');
+    d = dir(fullfile(preproc_dir,'*','*data*.mat'));
+    tmp = load(fullfile(d.folder,d.name));
     var_name = fieldnames(tmp);
     data = tmp.(var_name{1});
     clear tmp
 
 end
 
-periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
-periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137];
-periods.stim = setdiff(1:140,[periods.blink periods.blank]);
+[~, subjectName] = fileparts(cur_dir);
+if strcmp(subjectName, 'wlsubj030') || strcmp(subjectName, 'wlsubj058') || strcmp(subjectName, 'wlsubj068')
+    preproc_dir = fileparts(meg_data_file_path);
+    load(fullfile(preproc_dir,'pp','megStimConditions.mat'));
+    if ~exist('designConditions','var')
+        designConditions = triggers.stimConditions;
+    end
+    designConditions = designConditions(1:140);
+    periods.blink = find(designConditions==10);
+    periods.blank = find(designConditions==20);
+    periods.stim  = find(designConditions<9);
+else
+    periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
+    periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137];
+    periods.stim = setdiff(1:140,[periods.blink periods.blank]);
+end
+
+% periods.blank = [3:5 30:32 57:59 84:86 111:113 138:140];
+% periods.blink = [1 2 28 29 55 56 82 83 109 110 136 137];
+% periods.stim = setdiff(1:140,[periods.blink periods.blank]);
 %upr = [73:81 115:123];
 %lwr = [60:69 127:135];
 %periods.stim = setdiff([upr lwr],[periods.blink periods.blank]);
@@ -151,9 +170,14 @@ elseif strcmpi(model.params.metric,'phase ref amplitude')
     % channel
     opts.phs_metric = model.params.phase_fit;
     if strcmpi(opts.phs_metric,'data_fit')
-        [PH_opt,VE_opt] = mprf_mostreliablephase_data(ft_data,opts,model);
+%         [PH_opt,VE_opt] = mprf_mostreliablephase_data(ft_data,opts,model);
+        [PH_opt,VE_opt] = mprf_mostreliablephase_data(ft_data,opts);
+
     elseif strcmpi(opts.phs_metric,'model_fit')
-        [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model);
+%         [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,meg_resp,opts,model);
+        opts.n_iter = model.params.n_iterations;
+        [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,opts,meg_resp);
+
     end
     
     fprintf('Computing phase referenced amplitudes\n')
@@ -192,14 +216,14 @@ if n_cores == 1
     if do_split_half
         fprintf('Starting split half test\n')
         
-        fprintf('Doing %d iterations:\n',n_it)
-        cor_stuff = nan(n_chan, n_it*2);
+        fprintf('Doing %d iterations:\n',opts.n_iter)
+        cor_stuff = nan(n_chan, opts.n_iter*2);
         
         n_01 = ceil(n_reps/2);
         
-        fb = n_it .* (0.1:0.1:1) .*2;
+        fb = opts.n_iter .* (0.1:0.1:1) .*2;
         nfb = 0;
-        for n = 1:2:(n_it*2)%model.params.n_iterations_rel
+        for n = 1:2:(opts.n_iter*2)%model.params.n_iterations_rel
             
             if n > fb(1)
                 nfb = nfb+1;
