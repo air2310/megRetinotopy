@@ -14,7 +14,7 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject    = 'wlsubj058';
+subject    = 'wlsubj030';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 
@@ -47,7 +47,7 @@ cd(dataPth);
 %% 1. Load MEG data
 
 if verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
-ts = meg_load_sqd_data(rawSqdPath, fnameSingle);
+[ts, meg_files] = meg_load_sqd_data(rawSqdPath, fnameSingle);
        
 
 %% 2. Get Triggers
@@ -67,8 +67,8 @@ else
 end
 
 % remove first trigger (not sure why this one is here)
-if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; end;
 triggers.timing = find(triggers.ts);
+if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; triggers.timing = find(triggers.ts); end;
 
 medianTriggerLength = median(diff(triggers.timing));
 if verbose
@@ -88,6 +88,10 @@ end
 % Epoch information about all epochs
 triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
+
+% save stimulus conditions
+save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
+
 
 % Epoch information about stimulus (bar sweep) epochs
 triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
@@ -241,7 +245,6 @@ if doSaveData
     clear data;
     data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
     save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
-    save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
 end
 
 
