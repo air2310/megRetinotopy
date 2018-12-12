@@ -57,10 +57,12 @@ switch roiType
         MRIwrite(struct('vol', wangROI_BS), subBSAllROImgzfile);
         MRIwrite(struct('vol', wangROI_BS_mask), subBSAllROIMaskmgzfile);
         
-%         fnum = numel(mrv_msh.triangles);
-        % still need to figure this out.. what file format??
+        % save ROIs as BS binary files
         cur_dir = pwd; 
+        if ~exist(fullfile(saveRoiDir, 'surface', 'brainstorm'), 'dir'); mkdir(fullfile(saveRoiDir, 'surface', 'brainstorm')); end;
+        
         cd(fullfile(saveRoiDir, 'surface', 'brainstorm'))
+
         write_curv('pial.all_rois',  wangROI_BS, 1)
         write_curv('pial.all_rois_mask', wangROI_BS_mask, 1)
         cd(cur_dir)
