@@ -8,8 +8,8 @@ subject            = 'wlsubj040';
 dataDir            = '/Volumes/server/Projects/MEG/Retinotopy/Data/';
 freeSurferDir      = '/Volumes/server/Freesurfer_subjects/';
 brainstormDBDir    = '/Volumes/server/Projects/MEG/brainstorm_db/';
-vistaSessionDir    = fullfile(dataDir, 'fMRI', 'wl_subj040');
-megDataDir         = fullfile(dataDir, 'MEG', 'wl_subj040','wl_subj040_20170406');
+vistaSessionDir    = fullfile(dataDir, 'fMRI', 'wlsubj040', 'vistaSession');
+megDataDir         = fullfile(dataDir, 'MEG', 'wlsubj040');
 outPutDir          = fullfile(mprfRootPath, 'data', 'subjectSession', subject);
 
 % Predefine struct
@@ -29,14 +29,14 @@ s.megData.pth      = megDataDir;
 s.outPut.pth       = outPutDir;
 
 % Find MRI PRF params
-d = dir(fullfile(vistaSessionDir, 'FreesurferGray', '*','*150202-fFit.mat'));
+d = dir(fullfile(vistaSessionDir, 'Gray', '*','*-fFit.mat'));
 s.PRFParams.pth    = fullfile(d.folder, d.name);
 
 % Find MEG & MRI stimulus (and check if they are the same)
 s.MRIStimIm.pth     = fullfile(vistaSessionDir, 'Stimuli', 'bars_images.mat');
 s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'bars_params.mat');
-s.MEGStim.pth       = fullfile(megDataDir,'Stimulus','Stimulus_files', 'MEG_retinotopy_stimulus_run_1.mat');
-s.MEGStimGrid.pth   = fullfile(megDataDir,'Stimulus','Stimulus_files', 'MEG_grid.mat');
+s.MEGStim.pth       = fullfile(megDataDir,'stimFiles', 'MEG_retinotopy_stimulus_run_1.mat');
+s.MEGStimGrid.pth   = fullfile(megDataDir,'stimFiles', 'MEG_grid.mat');
 
 % Find BS surfaces
 s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
