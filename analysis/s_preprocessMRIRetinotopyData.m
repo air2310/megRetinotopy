@@ -13,10 +13,10 @@
 %    - have the freesurfer subject directory defined as as an environmental
 %    variable: setenv('SUBJECTS_DIR', '/Volumes/server/Freesurfer_subjects')
 
-subject      = 'wlsubj058';
+subject      = 'wlsubj040';
 sessionDir   = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession/', subject);
 sessionName  = 'raw';
-bidsSession  = 'nyu3t01';
+bidsSession  = 'nyu3TAllegra'; %'nyu3t01' or 'nyu3TAllegra' for subj004 and subj040
 
 %% 1. Init session
 megRet_initVista(subject, sessionDir, bidsSession)
