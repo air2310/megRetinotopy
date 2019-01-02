@@ -29,14 +29,14 @@ s.megData.pth      = megDataDir;
 s.outPut.pth       = outPutDir;
 
 % Find MRI PRF params
-d = dir(fullfile(vistaSessionDir, 'Gray', '*','*150202-fFit.mat'));
+d = dir(fullfile(vistaSessionDir, 'FreesurferGray', '*','*150202-fFit.mat'));
 s.PRFParams.pth    = fullfile(d.folder, d.name);
 
 % Find MEG & MRI stimulus (and check if they are the same)
 s.MRIStimIm.pth     = fullfile(vistaSessionDir, 'Stimuli', 'bars_images.mat');
 s.MRIStimParams.pth = fullfile(vistaSessionDir, 'Stimuli', 'bars_params.mat');
 s.MEGStim.pth       = fullfile(megDataDir,'Stimulus','Stimulus_files', 'MEG_retinotopy_stimulus_run_1.mat');
-s.MEGStimGrid.pth   = fullfile(megDataDir,'Stimulus','Other_files', 'MEG_grid.mat');
+s.MEGStimGrid.pth   = fullfile(megDataDir,'Stimulus','Stimulus_files', 'MEG_grid.mat');
 
 % Find BS surfaces
 s.BS.surface.pth = fullfile(brainstormDBDir, 'MEG_Retinopy', 'anat', subject);
@@ -55,7 +55,7 @@ megRet_smoothPRFParams(s)
 %% Transform FS 2 BS 
 
 % Find ROIS in Freesurfer directory
-s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
+% s.ROIs.pth = fullfile(freeSurferDir, subject, 'surf', 'WangIndividualROIs');
 
 % Go from FS to BS
 roiType = 'allRoisWangAtlas'; % What rois?
