@@ -101,7 +101,8 @@ if isempty(preprocPath), error('Could not find a preproc directory');
 else fprintf('Using preproc directory %s...\n', preprocPath);
 end
 
-d = dir(fullfile(preprocPath, sprintf('sub-%s', subject), sprintf('ses-%s',bidsSession), '*preproc.nii.gz'));
+d = dir(fullfile(preprocPath, sprintf('sub-%s', subject), sprintf('ses-%s',bidsSession), '*preproc.nii*'));
+
 for ii = 1:length(d)
     epiFiles{ii} = fullfile(preprocPath, sprintf('sub-%s', subject), sprintf('ses-%s',bidsSession), d(ii).name);
 end
@@ -109,6 +110,9 @@ fprintf('Found %d preprocessed EPI files...\n', numel(epiFiles));
 
 % Inplane (mean of unwarped, merged, distortion scan)
 ip = fullfile(preprocPath, sprintf('sub-%s', subject), sprintf('ses-%s',bidsSession), 'distortion_merged_corrected_mean.nii.gz');
+if ~exist(ip, 'file')
+    ip = fullfile(preprocPath, sprintf('sub-%s', subject), sprintf('ses-%s',bidsSession), 'distortion_merged_corrected_mean.nii');
+end
 if ~exist(ip, 'file'), error('Inplane file %s not found', ip); end
 
 % alignment file
