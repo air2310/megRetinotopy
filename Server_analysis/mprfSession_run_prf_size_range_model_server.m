@@ -110,7 +110,18 @@ else
     idx_train = 1:opts.n_reps;
 end
 
-if model.params.n_iterations > 1
+
+% starting the parallel pool for running par for loop for reference
+% phase fitting for Leave one out repetitions
+n_cores = model.params.n_cores;
+sys = model.params.system;
+if n_cores > 1
+    if isempty(gcp('nocreate'))
+       mpool = open_parallel_pool(n_cores, sys);
+    end
+end
+
+if model.params.n_iterations > 1 || n_cores > 1
     tseries_raw = nan(opts.n_bars, opts.n_reps, opts.n_chan,size(opts.idx,2));
 end
 
@@ -156,11 +167,17 @@ if strcmpi(opts.metric, 'phase ref amplitude')
         for this_par=1:n_par_it % For every pRf size range value
             meg_resp_par{1} = meg_resp{this_par}; % There is a meg prediction array of 140x157 for every pRF size range value.
             % One is taken at a time to compute the reference phase.
-            
-            for this_loorep = 1:opts.n_looreps % For every leave one out condition
-                
-                [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp_par);
-                fprintf('Done: Leave one out repetition - %d out of %d \n',this_loorep,opts.n_looreps);
+            if n_cores > 1
+                parfor this_loorep = 1:opts.n_looreps % For every leave one out condition
+                    
+                    [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp_par);
+                end
+            else
+                for this_loorep = 1:opts.n_looreps % For every leave one out condition
+                    
+                    [PH_opt_tmp(this_loorep,:,this_par),VE_opt_tmp(this_loorep,:,this_par)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp_par);
+                    fprintf('Done: Leave one out repetition - %d out of %d \n',this_loorep,opts.n_looreps);
+                end
             end
             if phase_fit_loo.do == 1
                 phfittype = 'lo';
@@ -172,6 +189,7 @@ if strcmpi(opts.metric, 'phase ref amplitude')
     results.PH_opt = PH_opt_tmp;
     results.VE_opt = VE_opt_tmp;
 end
+
 % tot_time = toc;
 % t_hms = datevec(tot_time./(60*60*24));
 % fprintf('total time for the fitting : [%d %d %d %d %d %d] in Y M D H M S',t_hms);
@@ -203,80 +221,42 @@ if strcmpi(phase_fit_loo.type,'Amp')
 end
 
 
-n_cores = model.params.n_cores;
-
-if  n_cores > 1
-    if isempty(gcp('nocreate'))
-        fprintf('No open pool found\n')
-    else
-        answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
-            'Open Matlab pool found','Close','Single core','Cancel','Close');
-        
-        switch lower(answer)
-            
-            case 'close'
-                delete(gcp);
-                
-            case 'single core'
-                pred.model.params.n_cores = 1;
-                mprfSession_run_original_model(pred);
-                
-            case 'cancel'
-                return
-        end
-    end
-    
-    
-end
+% if  n_cores > 1
+%     if isempty(gcp('nocreate'))
+%         fprintf('No open pool found\n')
+%     else
+%         answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
+%             'Open Matlab pool found','Close','Single core','Cancel','Close');
+%         
+%         switch lower(answer)
+%             
+%             case 'close'
+%                 delete(gcp);
+%                 
+%             case 'single core'
+%                 pred.model.params.n_cores = 1;
+%                 mprfSession_run_original_model(pred);
+%                 
+%             case 'cancel'
+%                 return
+%         end
+%     end
+%     
+%     
+% end
 
 
 all_corr = nan(n_it, n_par_it,n_chan, n_roi, n_metric);
+preds = nan(opts.n_bars, n_chan, n_roi, n_metric);
 
 if n_cores > 1
     
-    mpool = parpool(n_cores);
-    
+    if isempty(gcp('nocreate'))
+        mpool = open_parallel_pool(n_cores, sys);
+    end
     
     parfor this_it = 1:n_it
         cur_idx = ceil(rand(1,opts.n_reps) .* opts.n_reps);
-        
-        for this_par = 1:n_par_it
-            for this_chan = 1:n_chan
-                for this_roi = 1:n_roi
-                    for this_metric = 1:n_metric
-                        if model.params.n_iterations > 1
-                            cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric),2);
-                            
-                        else
-                            cur_data = tseries_av(:,this_chan,this_metric);
-                        end
-                        
-                        cur_pred = meg_resp{this_par}(:,this_chan);
-                        not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
-                        
-                        tmp = corrcoef(abs(cur_pred(not_nan)), cur_data(not_nan));
-                        
-                        all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp(2);
-                    end
-                end
-            end
-        end
-    end
-    
-    delete(mpool)
-    
-    
-    
-    
-    
-    
-    
-elseif n_cores == 1
-    
-    for this_it = 1:n_it
-        cur_idx = ceil(rand(1,opts.n_reps) .* opts.n_reps);
-        
-        
         for this_par = 1:n_par_it
             for this_chan = 1:n_chan
                 for this_roi = 1:n_roi
@@ -286,11 +266,52 @@ elseif n_cores == 1
                             cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric,this_par),2);
                             
                         else
-                            if strcmpi(opts.metric,'phase ref amplitude')
-                                cur_data = tseries_av(:,this_chan,this_metric,this_par);
-                            else
-                                cur_data = tseries_av(:,this_chan,this_metric);
-                            end
+                            cur_data = tseries_av(:,this_chan,this_metric,this_par);
+                        end
+                        
+                        cur_pred = meg_resp{this_par}(:,this_chan);
+                        not_nan = ~isnan(cur_pred(:)) & ~isnan(cur_data(:));
+                        
+                        % Make X matrix (predictor)
+                        if strcmpi(opts.metric, 'amplitude')
+                            X = [ones(size(cur_pred(not_nan))) abs(cur_pred(not_nan))];
+                        elseif strcmpi(opts.metric,'phase ref amplitude')
+                            X = [ones(size(cur_pred(not_nan))) (cur_pred(not_nan))];
+                        end
+                        % Compute Beta's:
+                        B = X \ cur_data(not_nan);
+                        % Store the predicted times series:
+                        % preds(not_nan, this_chan, this_roi, this_metric) =  X * B;
+                        % Compute coefficient of determination (i.e. R square /
+                        % variance explained):
+                        tmp = 1- (var(cur_data(not_nan) - (X * B)) ./ var(cur_data(not_nan)));
+                        all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp;
+                        
+                        
+                        %tmp = corrcoef(abs(cur_pred(not_nan)), cur_data(not_nan));
+                        %all_corr(this_it, this_par,this_chan, this_roi, this_metric) = tmp(2);
+                    end
+                end
+            end
+            %results.preds(:,:,:,:,this_par) = preds;
+            %results.fit_data(:,:,:,this_par) = cur_data;
+        end
+    end
+   
+elseif n_cores == 1
+    
+    for this_it = 1:n_it
+        cur_idx = ceil(rand(1,opts.n_reps) .* opts.n_reps);
+        for this_par = 1:n_par_it
+            for this_chan = 1:n_chan
+                for this_roi = 1:n_roi
+                    for this_metric = 1:n_metric
+                        
+                        if model.params.n_iterations > 1
+                            cur_data = nanmean(tseries_raw(:,cur_idx,this_chan, this_metric,this_par),2);
+                            
+                        else
+                            cur_data = tseries_av(:,this_chan,this_metric,this_par);
                         end
                         
                         cur_pred = meg_resp{this_par}(:,this_chan);
@@ -317,6 +338,8 @@ elseif n_cores == 1
                     end
                 end
             end
+            results.preds(:,:,:,:,this_par) = preds;
+            results.fit_data(:,:,:,this_par) = cur_data;
         end
     end
     
@@ -328,7 +351,7 @@ corr_ci = prctile(all_corr, [2.5 50 97.5],1);
 [max_corr, mc_idx] = max(corr_ci(1,:,:,:,:),[],2);
 
 
-if min(model.params.sigma_range) < 0;
+if min(model.params.sigma_range) < 0
     one_idx = find(model.params.sigma_range == 0);
 else
     one_idx = find(model.params.sigma_range == 1);
@@ -571,5 +594,12 @@ if ~isempty(fh_bb_VEparams)
 end
 
 save(fullfile(save_dir, 'Results'),'results','model')
+
+% close all the open parallel pool
+if isempty(gcp('nocreate'))
+    fprintf('?? no open pool found ??');
+else
+    delete(mpool);
+end
 
 end

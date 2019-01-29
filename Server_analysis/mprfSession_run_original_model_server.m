@@ -179,7 +179,7 @@ if prepare_meg_data;
             PH_opt = nan(opts.n_looreps,opts.n_chan);
             VE_opt = nan(opts.n_looreps,opts.n_chan);
             for this_loorep = 1:opts.n_looreps % For the leave out computation. For original condition, opts.n_looreps is 1
-                
+
                 [PH_opt(this_loorep,:),VE_opt(this_loorep,:)] = mprf_mostreliablephase(ft_data(:,:,idx_train(this_loorep,:),:),opts,meg_resp);
                 fprintf('Done: Leave one out repetition - %d out of %d \n',this_loorep,opts.n_looreps); 
             end
@@ -274,29 +274,29 @@ if strcmpi(model.type,'run original model') || ...
     
     % If we want more than 1 core, check if there is already a pool open,
     % ask the user what to do:
-    if  n_cores > 1
-        if isempty(gcp('nocreate'))
-            fprintf('No open pool found\n')
-        else
-            answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
-                'Open Matlab pool found','Close','Single core','Cancel','Close');
-            
-            switch lower(answer)
-                
-                case 'close'
-                    delete(gcp);
-                    
-                case 'single core'
-                    pred.model.params.n_cores = 1;
-                    mprfSession_run_original_model(pred);
-                    
-                case 'cancel'
-                    return
-            end
-        end
-        
-        
-    end
+%     if  n_cores > 1
+%         if isempty(gcp('nocreate'))
+%             fprintf('No open pool found\n')
+%         else
+%             answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
+%                 'Open Matlab pool found','Close','Single core','Cancel','Close');
+%             
+%             switch lower(answer)
+%                 
+%                 case 'close'
+%                     delete(gcp);
+%                     
+%                 case 'single core'
+%                     pred.model.params.n_cores = 1;
+%                     mprfSession_run_original_model(pred);
+%                     
+%                 case 'cancel'
+%                     return
+%             end
+%         end
+%         
+%         
+%     end
     
     all_corr = nan(n_it, n_chan, n_roi, n_metric);
     % Same as above, but now for multiple iterations

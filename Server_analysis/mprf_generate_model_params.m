@@ -64,6 +64,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.systemtem = 'Spinoza_grid_matlab2018';
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -125,6 +126,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.systemtem = 'Spinoza_grid_matlab2018';
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -185,6 +187,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.system = 'Spinoza_grid_matlab2018';
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -245,6 +248,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.system = 'Spinoza_grid_matlab2018';
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -305,6 +309,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1000;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.system = 'Spinoza_grid_matlab2018';
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -366,6 +371,8 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
+        mprf_model.params.system = 'Spinoza_grid_matlab2018';
+        
         mprf_model.params.samp_rate = 1000;
         
         mprf_model.params.phase_fit = 'model_fit';
@@ -409,7 +416,18 @@ for n=1:2:numel(vararg)
                 data = str2double(data);
             end
             mprf_model.params.n_cores = data;
+        
+        case {'parpool_sys'}
+            if ischar(data)
+                data = str2double(data);
+            end
+            mprf_model.params.system = data;    
             
+        case {'roi_mask'}
+            if ischar(data)
+                data = str2double(data);
+            end
+            mprf_model.params.roi_mask = data;
     end
     
 end

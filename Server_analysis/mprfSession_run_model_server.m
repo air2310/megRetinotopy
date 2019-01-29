@@ -132,7 +132,7 @@ elseif strcmpi(model.type,'scramble pRF parameters') || ...
         end
         
         % if only 1 scramble parameter
-    elseif n_scramble >= 1 && n_range == 0;
+    elseif n_scramble >= 1 && n_range == 0
         if n_grouped >=1
             iter.method = 'scramble';
             w_iter_var = cell(1,1);
@@ -265,7 +265,13 @@ if strcmpi(model.type,'run original model') || ...
     
     % if we are scrambling pRF parameters:
 elseif strcmpi(model.type, 'scramble prf parameters')
+    
+    % To generate same scrambling of pRF parameters for checking results
     rng('shuffle');
+    
+    %load('/home/edadan/data/Project/MEG/Retinotopy/Subject_sessions/wlsubj004/s.mat');
+    %rng(s);
+    
     model.params.do_sl = true;
     model.params.do_bb = false;
     % Run the original model first to get a baseline measure of the
@@ -275,6 +281,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
     
     
     n_cores = model.params.n_cores;
+    sys = model.params.system;
     n_it = model.params.n_iterations;
     
     % Get predicted MEG responses for main model
@@ -300,22 +307,23 @@ elseif strcmpi(model.type, 'scramble prf parameters')
         
         
         if isempty(gcp('nocreate'))
-            fprintf('No open pool found\n')
-        else
-            answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
-                'Open Matlab pool found','Close','Single core','Cancel','Close');
+            mpool = open_parallel_pool(n_cores, sys);
             
-            switch lower(answer)
-                
-                case 'close'
-                    delete(gcp);
-                    
-                case 'single core'
-                    pred.model.params.n_cores = 1;
-                    n_cores = 1;
-                case 'cancel'
-                    return
-            end
+            %         else
+            %             answer = questdlg('An open matlab pool is found. Do you want to close it or run on a single core',...
+            %                 'Open Matlab pool found','Close','Single core','Cancel','Close');
+            %
+            %             switch lower(answer)
+            %
+            %                 case 'close'
+            %                     delete(gcp);
+            %
+            %                 case 'single core'
+            %                     pred.model.params.n_cores = 1;
+            %                     n_cores = 1;
+            %                 case 'cancel'
+            %                     return
+            %             end
         end
         
         
@@ -363,18 +371,19 @@ elseif strcmpi(model.type, 'scramble prf parameters')
         % Now use the mask for scrambling:
         roi_idx = find(roi.mask);
         
-        configCluster
-        c = parcluster;
-        mpool = c.parpool(n_cores);
-        pctRunOnAll warning('off','all');
-        %runParallelCode()
+        roi_idx_rand = nan(size(roi_idx,1),n_it);
+        for this_it = 1:n_it
+            roi_idx_rand(:,this_it) = roi_idx(randperm(size(roi_idx,1)));
+        end
         
         parfor this_it = 1:n_it
             this_prf = prf;
             this_data_in = data_in;
             this_pred = pred;
             
-            cur_idx = roi_idx(randperm(size(roi_idx,1)));
+            cur_idx = roi_idx_rand(:,this_it);
+            %cur_idx = roi_idx(randperm(size(roi_idx,1)));
+            
             print_str = 'Scrambling:';
             
             for this_var = 1:length(w_iter_var)
@@ -419,11 +428,7 @@ elseif strcmpi(model.type, 'scramble prf parameters')
             this_data_in = rmfield(this_data_in,'cur_corr');
             
         end
-        if isempty(gcp('nocreate'))
-            fprintf('?? no open pool found ??');
-        else
-            delete(gcp);
-        end
+
         
     elseif n_cores == 1
         
@@ -547,7 +552,12 @@ elseif strcmpi(model.type, 'scramble prf parameters')
 end
 
 
-
+% close all the open parallel pool
+if isempty(gcp('nocreate'))
+    fprintf('?? no open pool found ??');
+else
+    delete(mpool);
+end
 
 
 
