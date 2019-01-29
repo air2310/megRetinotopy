@@ -8,7 +8,7 @@ end
 bs_model = load(bs.model_file);
 
 fn = fieldnames(bs_model);  
-if fn{1} == 'bs_model'
+if strcmp(fn{1},'bs_model')
     bs_model = bs_model.bs_model;
 end
 

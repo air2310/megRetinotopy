@@ -14,13 +14,16 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject    = 'wl_subj004';
+
+%subject    = 'wl_subj004';
+
+subject       = 'wlsubj058';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/home/edadan/data/Project/MEG/Retinotopy/Data/MEG/';
 
 % Derive other file paths
 rawSqdPath = fullfile(dataPth, subject, 'raw');
-paramFilePth = fullfile(dataPth, subject, 'paramFiles');
+paramFilePth = fullfile(dataPth, subject,  'paramFiles');
 stimFilePth = fullfile(dataPth, subject, 'stimFiles');
 
 % Make 'processed' folder to save time series
@@ -47,7 +50,7 @@ cd(dataPth);
 %% 1. Load MEG data
 
 if verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
-ts = meg_load_sqd_data(rawSqdPath, fnameSingle);
+[ts, meg_files] = meg_load_sqd_data(rawSqdPath, fnameSingle);
        
 
 %% 2. Get Triggers
@@ -62,13 +65,19 @@ if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 
 if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
     triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
+elseif strcmp('wl_subj040', subject)  % subject got random extra triggers and needs its own function
+    triggers.ts = meg_fix_triggers_wlsubj040(ts(triggerChan,:)');
 else
     triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
 end
 
-% remove first trigger (not sure why this one is here)
-if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; end;
 triggers.timing = find(triggers.ts);
+
+% For subject wlsubj030: remove first trigger (not sure why this one is here)
+if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; triggers.timing = find(triggers.ts); end;
+% For subject wlsubj004: remove half run
+if strcmp(subject, 'wl_subj004'); triggers.ts(697111:729608) = 0; triggers.timing = find(triggers.ts); end
+
 
 medianTriggerLength = median(diff(triggers.timing));
 if verbose
@@ -88,6 +97,10 @@ end
 % Epoch information about all epochs
 triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
+
+% save stimulus conditions
+save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
+
 
 % Epoch information about stimulus (bar sweep) epochs
 triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
@@ -173,7 +186,7 @@ if doDenoise
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     designConditions = triggers.stimConditions;
     designConditions(designConditions > 9)=0;
-    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058')
+    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058') || strcmp(subject, 'wl_subj004') || strcmp(subject, 'wl_subj040')
         designConditions(designConditions==3) = 2;
         designConditions(designConditions==4) = 3;
         designConditions(designConditions==6) = 4;
@@ -207,7 +220,7 @@ end
 % we split the number of runs in half to match with previous datasets
 
 if doSaveData
-
+    numRuns = 19;
     % to do reshape back to time x epochs x channels x runs
     if verbose; sprintf('(%s) Save data...\n', mfilename); end
      
@@ -241,7 +254,6 @@ if doSaveData
     clear data;
     data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
     save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
-    save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
 end
 
 
