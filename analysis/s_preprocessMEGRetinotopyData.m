@@ -14,7 +14,7 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject       = 'wlsubj058';
+subject       = 'wlsubj004';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 
@@ -62,7 +62,7 @@ if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 
 if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
     triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
-elseif strcmp('wl_subj040', subject)  % subject got random extra triggers and needs its own function
+elseif strcmp('wlsubj040', subject)  % subject got random extra triggers and needs its own function
     triggers.ts = meg_fix_triggers_wlsubj040(ts(triggerChan,:)');
 else
     triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
@@ -73,14 +73,14 @@ triggers.timing = find(triggers.ts);
 % For subject wlsubj030: remove first trigger (not sure why this one is here)
 if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; triggers.timing = find(triggers.ts); end;
 % For subject wlsubj004: remove half run
-if strcmp(subject, 'wl_subj004'); triggers.ts(697111:729608) = 0; triggers.timing = find(triggers.ts); end
+if strcmp(subject, 'wlsubj004'); triggers.ts(697111:729608) = 0; triggers.timing = find(triggers.ts); end
 
 
 medianTriggerLength = median(diff(triggers.timing));
 if verbose
     fprintf('Median trigger length is %d samples\n', medianTriggerLength);
     triggerConditions = unique(triggers.ts);
-    for ii = 1:length(triggerConditions(triggerConditions>0))
+    for ii = 1:length(triggerConditions(triggerConditions>0))+1
         fprintf('Condition %02d has \t%d triggers\n', triggerConditions(ii), sum(triggers.ts==triggerConditions(ii)));
     end
         
@@ -124,7 +124,7 @@ data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
 % Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
 % do this? Maybe consider not doing this since we already remove the first
 % 150 ms of every epoch?)
-data(:, startOfRun, :) = NaN;
+% data(:, startOfRun, :) = NaN;
 
 % Plot a single channel to check data
 if verbose
@@ -183,7 +183,7 @@ if doDenoise
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     designConditions = triggers.stimConditions;
     designConditions(designConditions > 9)=0;
-    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058') || strcmp(subject, 'wl_subj004') || strcmp(subject, 'wl_subj040')
+    if strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj058') || strcmp(subject, 'wlsubj004') || strcmp(subject, 'wlsubj040')
         designConditions(designConditions==3) = 2;
         designConditions(designConditions==4) = 3;
         designConditions(designConditions==6) = 4;
