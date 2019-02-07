@@ -175,7 +175,7 @@ for nn = 1:length(surfaces_to_load)
         cnt = cnt+1;
         roi_tag = mprf__get_roi_tags(roi_names{n});
         
-        tag_to_idx.(roi_tag{1}) = cnt;
+        tag_to_idx.(roi_tag) = cnt;
         
         [~,roi_name] = fileparts(roi_names{n});
         tmp = nan(1,length(mrv_msh.vertices));

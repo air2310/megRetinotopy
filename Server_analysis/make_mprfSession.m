@@ -26,6 +26,7 @@ mprfSESSION.rois.surf.bs = strcat(sub_sess_dir,'/rois/surface/brainstorm');
 mprfSESSION.rois.surf.fs_tag = strcat(sub_sess_dir,'/rois/surface/freesurfer/fs_tag_to_idx');
 mprfSESSION.rois.surf.bs_tag = strcat(sub_sess_dir,'/rois/surface/brainstorm/bs_tag_to_idx');
 
+
 % prf data
 mprfSESSION.prf_data.surf.fs = strcat(sub_sess_dir,'/prf_data/surface/freesurfer');
 mprfSESSION.prf_data.surf.bs = strcat(sub_sess_dir,'/prf_data/surface/brainstorm');
@@ -44,6 +45,7 @@ mprfSESSION.mri = strcat(sub_sess_dir,'/stimuli/mri/stimulus_files');
 %
 mprfSESSION.model.predictions =  strcat(sub_sess_dir,'/modeling/predictions');
 mprfSESSION.model.results =  strcat(sub_sess_dir,'/modeling/results');
+
 
 save(fullfile(sub_sess_dir,'mprfSESSION.mat'),'mprfSESSION');
 
