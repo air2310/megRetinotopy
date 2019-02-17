@@ -1,4 +1,4 @@
-function [epochedData, startOfRun] = getEpochs(data, triggers, epochLength, flickerFreq, fs)
+function [epochedData, startOfRun] = getEpochs(data, triggers, epochLength, flickerFreq, fs, subject)
 
 
 % Get epoch samples
@@ -9,7 +9,14 @@ epochSamples   = [skipTimepoints, numTimepoints+skipTimepoints]; %epoch length i
 
 
 % Skip every 10 triggers, to the triggers that define the start of every run
-endOfRun = find(diff(triggers.timing) > 1302);
+tolerance = 2; % samples to allow to detect gaps between runs
+if subject == 'wlsubj030'
+    TR = 1500+tolerance;
+else
+    TR = 1300+tolerance;
+end
+
+endOfRun = find(diff(triggers.timing) > TR);
 startOfRun = [1; 1+endOfRun];
 
 
