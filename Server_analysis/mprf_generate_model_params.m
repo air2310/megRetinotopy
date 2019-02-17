@@ -419,9 +419,11 @@ for n=1:2:numel(vararg)
         
         case {'parpool_sys'}
             if ischar(data)
-                data = str2double(data);
+                mprf_model.params.system = data;
+            else
+                mprf_model.params.system = [];
+                error(fprintf('\n(%s): Cannot process parpool system name..', mfilename))
             end
-            mprf_model.params.system = data;    
             
         case {'roi_mask'}
             if ischar(data)
