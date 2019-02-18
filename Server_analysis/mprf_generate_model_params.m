@@ -396,7 +396,7 @@ for n=1:2:numel(vararg)
     fprintf(1,' %s,',vararg{n});
     
     switch lower(vararg{n})
-        case {'n_iteration_scrambled'}
+        case {'n_iterations_scrambled'}
             if ischar(data)
                 data = str2double(data);
             end
