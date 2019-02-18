@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time 20:00:00 # time (D-HH:MM)
 #SBATCH --mem=64GB # memory pool for all cores
-#SBATCH --job-name=megRet_wlsubj068
+#SBATCH --job-name=megRet_wlsubj058
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=ek99@nyu.edu
 #SBATCH -o slurm.%N.%j.out

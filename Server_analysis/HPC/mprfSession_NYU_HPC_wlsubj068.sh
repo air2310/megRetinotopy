@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=4
 #SBATCH --time 20:00:00 # time (D-HH:MM)
 #SBATCH --mem=64GB # memory pool for all cores
 #SBATCH --job-name=megRet_wlsubj068
