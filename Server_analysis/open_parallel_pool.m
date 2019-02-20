@@ -18,6 +18,8 @@ switch sys
         mpool = c.parpool(n_cores);
 
     case 'NYU_HPC'    
+        c = parcluster;
+        mpool = c.parpool(n_cores);
         
     otherwise
         mpool = parpool(n_cores);

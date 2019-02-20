@@ -56,8 +56,8 @@ function mprf_plot_figures(plot_type,interpmethod,compare_phfits)
 %                                              rel
 %                                              ind_scr
 %......................................................
-    global mprfSESSION
-    load mprfSESSION.mat;
+global mprfSESSION
+load mprfSESSION.mat;
 try
     % if ~exist('plot_type','var') || isempty(plot_type)
     %     fprintf('No plot type selected, quitting\n');
@@ -65,7 +65,7 @@ try
     % end
     
     %if nargin > 1
-
+    
     
     if ~exist('interpmethod','var') || isempty(interpmethod)
         interpmethod = [];
@@ -75,12 +75,12 @@ try
         compare_phfits = 0;
     end
     
-
+    
     cur_time = mprf__get_cur_time;
     res_dir = mprf__get_directory('model_plots');
-%     main_dir = mprf__get_directory('main_dir');
+    %     main_dir = mprf__get_directory('main_dir');
     main_dir  = mprfSESSION.init.main_dir;
-
+    
     %plot_type = 1;
     switch plot_type
         case 1
@@ -291,7 +291,7 @@ try
             figPoint_rlchve_map = mprfPlotHeadLayout(good_chan);
             
             
-
+            
         case 'range'
             
             %% pRF range
@@ -361,20 +361,31 @@ try
                 corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
                 corr_CI_sl = 1.96 .* corr_ste_sl;
                 
-                fh_sl_VEparams = figure; %('Position', get(0, 'Screensize'));
-                plot(par_it,(corr_avg_sl),'r','Linewidth',3);
-                hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                grid on;
-                set(gca,'XTick',1:n_par_it);
+                fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
+                
+                % Create shaded error bar with 'patch' function
+                lo = corr_avg_sl - corr_CI_sl;
+                hi = corr_avg_sl + corr_CI_sl;
+                color = [0.5 0.5 0.5];
+                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+                
+                hold on;
+                plot(par_it,corr_avg_sl,'r','Linewidth',3);
+                
+                %                 errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                set(gca,'TickDir', 'out');
                 if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('sigma ratio');
-                    set(gca,'XTickLabel',range_results.model.params.sigma_range);
+                    xlabel('Size scaling factor (ratio)');
+                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                    set(gca,'XScale', 'log');
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
                     xlabel('position (deg)');
-                    set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
+                xlim([par_it(1),par_it(end)]);
                 title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                ylabel('Variance explained');
+                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                ylabel('Variance explained (%)');
                 F = getframe(fh_sl_VEparams);
                 
             else
@@ -384,10 +395,8 @@ try
                 
                 if strcmpi(range_results.model.type,'pRF size range')
                     par_it = range_results.model.params.sigma_range;
-                    plot_ty = 'log';
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
                     par_it = range_results.model.params.x0_range;
-                    plot_ty = 'linear';
                 end
                 
                 corr_tmp=squeeze(range_results.results.corr_mat);
@@ -437,42 +446,60 @@ try
                 corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
                 corr_CI_sl = 1.96 .* corr_ste_sl;
                 
-                fh_sl_VEparams = figure; %('Position', get(0, 'Screensize'));
+                fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
                 
+                % Create shaded error bar with 'patch' function
+                lo = corr_avg_sl - corr_CI_sl;
+                hi = corr_avg_sl + corr_CI_sl;
+                color = [0.5 0.5 0.5];
+                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
                 
-                if strcmpi(plot_ty,'linear')
-                    plot((par_it),(corr_avg_sl),'r','Linewidth',3);
-                    %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                    hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
-                    grid on;
-                    set(gca,'XTick',par_it);
-                    if strcmpi(range_results.model.type,'prf size range')
-                        xlabel('sigma ratio');
-                        set(gca,'XTickLabel',range_results.model.params.sigma_range);
-                    elseif strcmpi(range_results.model.type,'position (x,y) range')
-                        xlabel('position (deg)');
-                        set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                    end
-                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                    ylabel('Variance explained');
-                    F = getframe(fh_sl_VEparams);
-                elseif strcmpi(plot_ty,'log')
-                    loglog((par_it),(corr_avg_sl),'r','Linewidth',3);
-                    %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                    hold on; loglog(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
-                    grid on;
-                    set(gca,'XTick',par_it);
-                    if strcmpi(range_results.model.type,'prf size range')
-                        xlabel('sigma ratio');
-                        set(gca,'XTickLabel',range_results.model.params.sigma_range);
-                    elseif strcmpi(range_results.model.type,'position (x,y) range')
-                        xlabel('position (deg)');
-                        set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                    end
-                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                    ylabel('Variance explained');
-                    F = getframe(fh_sl_VEparams);
+                hold on;
+                plot(par_it,corr_avg_sl,'r','Linewidth',3);
+                
+                %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                %                 hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
+                set(gca,'TickDir', 'out');
+                if strcmpi(range_results.model.type,'prf size range')
+                    xlabel('Size scaling factor (ratio)');
+                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                    set(gca, 'XScale', 'log');
+                elseif strcmpi(range_results.model.type,'position (x,y) range')
+                    xlabel('position (deg)');
+                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
+                xlim([par_it(1),par_it(end)]);
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                ylabel('Variance explained (%)');
+                F = getframe(fh_sl_VEparams);
+                
+                % Create shaded error bar with 'patch' function
+                lo = corr_avg_sl - corr_CI_sl;
+                hi = corr_avg_sl + corr_CI_sl;
+                color = [0.5 0.5 0.5];
+                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+                
+                hold on;
+                plot(par_it,corr_avg_sl,'r','Linewidth',3);
+                
+                %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                %                 hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
+                set(gca,'TickDir', 'out');
+                if strcmpi(range_results.model.type,'prf size range')
+                    xlabel('Size scaling factor (ratio)');
+                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                    set(gca, 'XScale', 'log');
+                elseif strcmpi(range_results.model.type,'position (x,y) range')
+                    xlabel('position (deg)');
+                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                end
+                xlim([par_it(1),par_it(end)]);
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                ylabel('Variance explained (%)');
+                F = getframe(fh_sl_VEparams);
+                
                 
             end
             

@@ -14,20 +14,16 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject       = 'wlsubj058';
+subject       = 'wlsubj068';
 fnameSingle   =  '*Ret*';          % case sensitive!
-dataPth       = '/home/edadan/data/Project/MEG/Retinotopy/Data/MEG/';
+dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 
 % Derive other file paths
 rawSqdPath = fullfile(dataPth, subject, 'raw');
 paramFilePth = fullfile(dataPth, subject,  'paramFiles');
 stimFilePth = fullfile(dataPth, subject, 'stimFiles');
 
-% Make 'processed' folder to save time series
-savePth = fullfile(dataPth, subject, 'processed');
-if ~exist(savePth, 'dir'); mkdir(savePth); end
-
- % MEG Channel information:
+% MEG Channel information:
 triggerChan    = 161:168;
 photoDiodeChan = 192;
 dataChan       = 1:157;
@@ -39,6 +35,15 @@ doFiltering   = true;
 doDenoise     = true;
 doSaveData    = true;
 verbose       = true;
+removeStartOfRunEpoch = true;
+
+% Make 'processed' folder to save time series
+if removeStartOfRunEpoch
+    savePth = fullfile(dataPth, subject, 'processed');
+else
+    savePth = fullfile(dataPth, subject, 'processed', 'allEpochs');
+end
+if ~exist(savePth, 'dir'); mkdir(savePth); end
 
 % Go to dataPth
 curDir = pwd;
@@ -112,7 +117,7 @@ epochStartEnd                 = [.150 (.150+1.100)]; % s (First 150 ms are blank
 flickerFreq                   = 10; % Hz
 
 if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
-[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs); % time x epochs x channels
+[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subject); % time x epochs x channels
 
 % get size of data before removing epochs
 sz = size(data);
@@ -124,7 +129,10 @@ data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
 % Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
 % do this? Maybe consider not doing this since we already remove the first
 % 150 ms of every epoch?)
-% data(:, startOfRun, :) = NaN;
+if removeStartOfRunEpoch
+    data(:, startOfRun, :) = NaN;
+end
+    
 
 % Plot a single channel to check data
 if verbose
@@ -217,7 +225,13 @@ end
 % we split the number of runs in half to match with previous datasets
 
 if doSaveData
-    numRuns = 19;
+    if subject=='wlsubj030'
+        numRuns = 10;
+        numEpochsPerRun = 211;
+    else
+        numRuns = 19;
+        numEpochsPerRun = 140;
+    end
     % to do reshape back to time x epochs x channels x runs
     if verbose; sprintf('(%s) Save data...\n', mfilename); end
      
@@ -226,7 +240,7 @@ if doSaveData
     
      % plot all triggers
     figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
-    startOfRun = 1:140:(19*140);
+    startOfRun = 1:numEpochsPerRun:(numRuns*numEpochsPerRun);
     for n = 1:numRuns
        
         % Get first epoch

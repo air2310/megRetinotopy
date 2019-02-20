@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=4
 #SBATCH --time 20:00:00 # time (D-HH:MM)
 #SBATCH --mem=64GB # memory pool for all cores
 #SBATCH --job-name=megRet_wlsubj030
@@ -12,7 +12,7 @@
 
 module load matlab/2016b
 
-cd /scratch/ek99/megRetinotopy/
+cd /scratch/ek99/megRetData/wlsubj030
 
 # If the files you are running are not in the same folder as this script,
 # you can insert "addpath(genpath('/PATH/TO/FILES/'));" before the command
