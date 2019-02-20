@@ -384,8 +384,10 @@ try
                 
                 if strcmpi(range_results.model.type,'pRF size range')
                     par_it = range_results.model.params.sigma_range;
+                    plot_ty = 'log';
                 elseif strcmpi(range_results.model.type,'position (x,y) range')
                     par_it = range_results.model.params.x0_range;
+                    plot_ty = 'linear';
                 end
                 
                 corr_tmp=squeeze(range_results.results.corr_mat);
@@ -437,21 +439,40 @@ try
                 
                 fh_sl_VEparams = figure; %('Position', get(0, 'Screensize'));
                 
-                plot((par_it),(corr_avg_sl),'r','Linewidth',3);
-                %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
-                grid on;
-                set(gca,'XTick',par_it);
-                if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('sigma ratio');
-                    set(gca,'XTickLabel',range_results.model.params.sigma_range);
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('position (deg)');
-                    set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                
+                if strcmpi(plot_ty,'linear')
+                    plot((par_it),(corr_avg_sl),'r','Linewidth',3);
+                    %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                    hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
+                    grid on;
+                    set(gca,'XTick',par_it);
+                    if strcmpi(range_results.model.type,'prf size range')
+                        xlabel('sigma ratio');
+                        set(gca,'XTickLabel',range_results.model.params.sigma_range);
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        xlabel('position (deg)');
+                        set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    end
+                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                    ylabel('Variance explained');
+                    F = getframe(fh_sl_VEparams);
+                elseif strcmpi(plot_ty,'log')
+                    loglog((par_it),(corr_avg_sl),'r','Linewidth',3);
+                    %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                    hold on; loglog(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
+                    grid on;
+                    set(gca,'XTick',par_it);
+                    if strcmpi(range_results.model.type,'prf size range')
+                        xlabel('sigma ratio');
+                        set(gca,'XTickLabel',range_results.model.params.sigma_range);
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        xlabel('position (deg)');
+                        set(gca,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    end
+                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                    ylabel('Variance explained');
+                    F = getframe(fh_sl_VEparams);
                 end
-                title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                ylabel('Variance explained');
-                F = getframe(fh_sl_VEparams);
                 
             end
             

@@ -371,7 +371,7 @@ switch model_type
         
         mprf_model.params.n_iterations = 1;
         mprf_model.params.n_cores = 1;
-        mprf_model.params.system = 'Spinoza_grid_matlab2018';
+    mprf_model.params.system = 'Spinoza_grid_matlab2018';
         
         mprf_model.params.samp_rate = 1000;
         
