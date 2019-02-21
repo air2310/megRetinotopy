@@ -172,14 +172,16 @@ try
             nanChan = ~isnan(val);
             allCh = idx(nanChan);
             ch = allCh(1:7);
+            timeAxis = linspace(0, length(orig_results.results.orig_model.fit_data(:,1))*1.100, length(orig_results.results.orig_model.fit_data(:,1)));
             for i =1:length(ch)
                 ch_cur = ch(i);
-                figPoint_1{i} = figure;
-                plot(orig_results.results.orig_model.fit_data(:,ch_cur),'k','LineWidth',1);
-                hold on; plot(orig_results.results.orig_model.preds(:,ch_cur),'r','LineWidth',2);
-                grid on;
-                xlabel('Time points')
-                ylabel('A.U.')
+                figPoint_1{i} = figure; set(gcf, 'Color', 'w')
+                plot(timeAxis,orig_results.results.orig_model.fit_data(:,ch_cur),'k','LineWidth',1);
+                hold on; plot(timeAxis,orig_results.results.orig_model.preds(:,ch_cur),'r','LineWidth',2);
+                grid on; box off;
+                xlabel('Time (s)')
+                ylabel('Magnetic flux (Tesla)')
+                set(gca, 'Fontsize', 15, 'TickDir', 'out');
                 title(strcat('CH ',':',num2str(ch_cur),{' '},'VE',':',num2str(orig_results.results.corr_mat(ch_cur))));
                 %saveas(figPoint_1,strcat(num2str(ch_cur),'phrefAmp'),'jpg');
             end
@@ -195,7 +197,7 @@ try
             
             % Original correlation
             fh_sl_map=figure;
-            megPlotMap(scr_results.results.orig_corr,[0 0.6],fh_sl_map,'jet',...
+            megPlotMap(scr_results.results.orig_corr(:,1),[0 0.6],fh_sl_map,'jet',...
                 'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
             %saveas(fh_sl_map,strcat('sl_map','.jpg'));
             
@@ -233,7 +235,7 @@ try
             
             n_iter = size(scr_results.results.scrambled_corr,2);
             
-            VE_orig = nanmean(scr_results.results.orig_corr(good_chan,:),1);
+            VE_orig = nanmean(scr_results.results.orig_corr(good_chan,1),1);
             figPoint_scr=figure;
             scr_dist = nanmean(scr_results.results.scrambled_corr(good_chan,:),1);
             [N,x] = hist(scr_dist,100);
