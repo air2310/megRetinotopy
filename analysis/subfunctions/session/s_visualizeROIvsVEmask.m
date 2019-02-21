@@ -2,7 +2,7 @@
 
 subjectSessionDir = '/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions';
 bsDir = '/Volumes/server/Projects/MEG/brainstorm_db';
-subject = 'wlsubj068';
+subject = 'wlsubj030';
 anatDir = fullfile(bsDir, 'MEG_Retinopy', 'anat', subject);
 
 cd(fullfile(subjectSessionDir, subject, 'mask'))
@@ -26,6 +26,10 @@ savefig(gcf,fullfile(subjectSessionDir, subject, 'mask', 'bs_mesh_roive.fig'));
 visualizeBrainstormMesh(anatDir, m.ve, [],[],[], 'VE mask');
 print(gcf,'-dpng', [] ,fullfile(subjectSessionDir, subject, 'mask', 'bs_mesh_ve'));
 savefig(gcf,fullfile(subjectSessionDir, subject, 'mask', 'bs_mesh_ve.fig'));
+
+visualizeBrainstormMesh(anatDir, m.roi, [],[],[], 'ROI mask');
+print(gcf,'-dpng', [] ,fullfile(subjectSessionDir, subject, 'mask', 'bs_mesh_roi'));
+savefig(gcf,fullfile(subjectSessionDir, subject, 'mask', 'bs_mesh_roi.fig'));
 
 
 fprintf('Number of total vertices ROI+VE mask: %d\n', sum(m.both));
