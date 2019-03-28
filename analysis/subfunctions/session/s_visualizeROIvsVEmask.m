@@ -75,7 +75,7 @@ c     = mshFS.colors(1,:)';
 
 nanIdx = isnan(curvWangAtlas);
 roiIdx = find(curvWangAtlas(~nanIdx));
-c(roiIdx) = 255;
+c(roiIdx) = curvWangAtlas(roiIdx);
     
 % Render the triangle mesh
 tH = trimesh(faces, x,y,z);
