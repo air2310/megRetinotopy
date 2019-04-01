@@ -85,7 +85,7 @@ for n = 1:length(surfaces_to_load)
         
         [tmp_verts, ~] = mne_read_surface(surf_file);
         
-         % Transformations applied by brainstorm:
+        % Transformations applied by brainstorm:
         tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);  
         tmp_verts = [tmp_verts'; ones(1,size(tmp_verts,1))]; %% Actually verts)
         tmp_verts = [bs_mri.SCS.R, bs_mri.SCS.T./1000; 0 0 0 1] * tmp_verts;
@@ -97,10 +97,8 @@ for n = 1:length(surfaces_to_load)
     end
      
     
-%         fs_verticesAligned = cs_convert(bs_mri, 'mri', 'scs', fs_vertices);
+%   fs_verticesAligned = cs_convert(bs_mri, 'mri', 'scs', fs_vertices);
 
-        
-    
     % Get brainstorm mesh
     surf_path = fullfile(main_dir, mprf__get_directory('bs_anat'));
   

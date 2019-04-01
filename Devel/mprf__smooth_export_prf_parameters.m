@@ -115,7 +115,7 @@ for nn = 1:length(params)
     
     cur_param = params{nn};
     
-    % Use tmptmttttttttmprfExportDataPath to generate a path and file name for the
+    % Use tmpmprfExportDataPath to generate a path and file name for the
     % current parameter's NIFTI file:
     fname = fullfile(main_dir, mprf__get_directory('prf_nifti'),[cur_param '.nii.gz']);
     

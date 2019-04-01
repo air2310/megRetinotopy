@@ -9,7 +9,7 @@ mresp = nan(size(sigma));
 sigma(~mask) = nan;
 
 fprintf('Computing maximum responses:\n')
-
+figure;
 % Loop over pRF in chunks of 1000 voxels:
 for n = 1:1000:length(sigma)
     
@@ -37,6 +37,7 @@ for n = 1:1000:length(sigma)
     % Maximum response for every pRF:
     mresp(n:end_idx) = max(tmp).*beta(n:end_idx);
     
+    plot(nanmean(tmp,2)); hold on;
     
     
 end

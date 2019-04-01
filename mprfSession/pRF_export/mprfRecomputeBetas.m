@@ -3,6 +3,7 @@ function beta_out = mprfRecomputeBetas(stim, sigma, X, Y, mresp)
 beta_out = nan(size(sigma));
 
 fprintf('Recomputing betas:\n')
+figure;
 
 for n = 1:1000:length(sigma)
     
@@ -29,6 +30,7 @@ for n = 1:1000:length(sigma)
     
     beta_out(n:end_idx) = mresp(n:end_idx) ./max(tmp);
     
+    plot(nanmean(tmp,2)); hold on;
     
     
 end
