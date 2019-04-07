@@ -1,170 +1,128 @@
-% (1) Build a freesurfer compatible mesh on mrMesh
-% (2) Load the saved prf parameter values to that
-
-% building mrMesh
-
-FS_surface = '/mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/wlsubj004/surf';
-fs_prf_data = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/prf_data/surface/freesurfer';
-
-surfaces_to_load = {'lh.pial','rh.pial'};
-
-n=1;
-cur_surf = fullfile(FS_surface,surfaces_to_load{n});
-
-tmp = strsplit(surfaces_to_load{n},'.');
-cur_hs = tmp{1};
-fprintf('Exporting parameters for %s hemisphere:\n',cur_hs);
-
-% Load mesh using fs_meshFromSurface, this creates a mrVista compatible
-% mesh. Using 'my own' function that skips the smoothing:
-mrv_msh = mprf_fs_meshFromSurface(cur_surf);
-fnum = numel(mrv_msh.triangles);
-
-% compute mapping using mrmMapVerticesToGray (mrmMapGrayToVertices):
-cur_v2gmap = mrmMapVerticesToGray(mrv_msh.vertices, viewGet(hvol,'nodes'),...
-    mmPerVox);
-
-% Add the vertexGrayMap field to mesh properties
-mrv_msh = meshSet(mrv_msh,'vertexGrayMap',cur_v2gmap);
+%% mprf_MeshVisualize.m
+%
+% Example script to visualize rois and saved prf parameters on subject
+% mesh, either with mrVista, on the Brainstorm mesh, or on the FS mesh
+%
+% (1) Visualize Wang atlas on FreeSurfer surface
+% (2) Visualize Wang atlas on BrainStorm surface
+% (3) Visualize exported prf data on FreeSurfer surface
+% (4) Visualize exported prf data on Brainstorm surface
 
 
-%% Making mesh from freesurfer surface ELine's code
-mshFS = fs_meshFromSurface(cur_surf);
-mshFS = meshSmooth(mshFS);
-mshFS = meshColor(mshFS);
-
-data_type = 'Averages';
-tmp_sm_par = curvWangAtlas;
-
-hvol = initHiddenGray;
-hvol = viewSet(hvol,'curdt',data_type);
-hvol = viewSet(hvol,'map',{tmp_sm_par'});
-
-
-mmPerVox = viewGet(hvol,'mmpervox');
-% compute mapping using mrmMapVerticesToGray (mrmMapGrayToVertices):
-cur_v2gmap = mrmMapVerticesToGray(mshFS.vertices, viewGet(hvol,'nodes'),...
-    mmPerVox);
-
-% Add the vertexGrayMap field to mesh properties
-mshFS = meshSet(mshFS,'vertexGrayMap',cur_v2gmap);
-% Add mesh to the volume view:
-hvol = viewSet(hvol,'add and select mesh',mshFS);
-
-% meshVisualize(mshFS);
-
-% Update mesh
-%? hvol = meshColorOverlay(hvol);
-
-subjectSessionDir = '/mnt/storage_2/MEG/Retinotopy/Subject_sessions';
+%% (0) General parameters
 subject = 'wlsubj004';
-hemi = 'lh';
-wangAtlasPth = fullfile(subjectSessionDir, subject, 'rois', 'surface', 'freesurfer', sprintf('%s.V1', hemi));
-[curvWangAtlas, fnum] = read_curv(wangAtlasPth);
- 
-figure(1)    
-% Faces (also called triangles) are defined by 3 points, each of
-% which is an index into the x, y, z vertices
-faces = mshFS.triangles' + 1; % we need to 1-index rather than 0-index for Matlab
+
+fsDir = sprintf('/Volumes/server/Freesurfer_subjects/%s/', subject);
+sessionDir = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions/%s/', subject);
+vistaSessionDir = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession/', subject);
+brainstormAnatDir = sprintf('/Volumes/server/Projects/MEG/brainstorm_db/MEG_Retinotopy/anat/%s', subject);
+
+
+roiDataDir = fullfile(sessionDir, 'rois', 'surface');
+prfDataDir = fullfile(sessionDir, 'prf_data', 'surface');
+
+surfaces_to_load = 'pial';
+hemi = {'lh','rh'};
+
+%% (1) Visualize Wang atlas on FS surface in mrVista
+
+fprintf('Loading Wang atlas ROIs on mrVista hemisphere:\n');
+
+cd(vistaSessionDir);
+
+% Load meshes from Vista
+vw = mrVista('3');
+mesh1 = fullfile('3DAnatomy', 'Left', '3DMeshes', 'Left_inflated.mat');
+mesh2 = fullfile('3DAnatomy', 'Right', '3DMeshes', 'Right_inflated.mat');
+
+[vw, OK] = meshLoad(vw, mesh1, 1); if ~OK, error('Mesh server failure'); end
+[vw, OK] = meshLoad(vw, mesh2, 1); if ~OK, error('Mesh server failure'); end
+
+% Define atlas path
+wangAtlasPthNifti = fullfile(fsDir, 'mri', sprintf('native.wang2015_atlas.nii.gz'));
     
-% The vertices are the locations in mm spacing
-x     = mshFS.vertices(1,:)';
-y     = mshFS.vertices(2,:)';
-z     = mshFS.vertices(3,:)';
+% Convert mgz to nifti   
+vw = nifti2ROI(vw, wangAtlasPthNifti);
+
+% Let's look at the ROIs on meshes
+vw = roiSetVertIndsAllMeshes(vw); 
+
+nROIs = length(viewGet(vw, 'ROIs'));
+colors = hsv(nROIs);
+for ii = 1:nROIs
+   vw = viewSet(vw, 'ROI color', colors(ii,:), ii); 
+end
+vw = viewSet(vw, 'roi draw method', 'boxes');
+
+vw = meshUpdateAll(vw); 
+
+
+%% (2) Visualize Wang atlas on BS surface
+
+wangAtlasPthBS = fullfile(roiDataDir, 'brainstorm', 'pial.all_rois');
+[curvWangAtlas, fnum] = read_curv(wangAtlasPthBS);
+
+ttl = 'Brainstorm Wang atlas ROIs';
+visualizeBrainstormMesh(brainstormAnatDir, curvWangAtlas, [], [], [], ttl)
+
+
+%% (3) Visualize prf data on FS surface
+
+for h = 1:length(hemi)
     
-% The colormap will, by default, paint sulci dark and gyri light
-c     = mshFS.colors(1,:)';
+    fsHemiPth    = fullfile(fsDir, 'surf', sprintf('%s.inflated',hemi{h}));
     
-% Render the triangle mesh
-tH = trimesh(faces, x,y,z);
- 
-% Make it look nice
-set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',c)
-axis equal off; colormap gray; set(gca, 'CLim', [0 255])
+    % Load mesh from FreeSurfer
+    mshFS = fs_meshFromSurface(fsHemiPth);
+
+    % Load data from Wang Atlas
+    prfDataPth = fullfile(prfDataDir, 'freesurfer', sprintf('%s.beta', hemi{h}));
+
+    [curvPrfData, fnum] = read_curv(prfDataPth);
+
+    % Visualize with Matlab
+    figure;    
     
-% Lighting to make it look glossy
-light('Position',100*[0 1 1],'Style','local')
-% lighting gouraud
- 
-% Which mesh are we plotting?
-title(sprintf('Freesurfer mesh: %s', hemi))
- 
-% Rotate it
-set(gca, 'View', [-16.7000  -90.0000]);
+    % Faces (also called triangles) are defined by 3 points, each of
+    % which is an index into the x, y, z vertices
+    faces = mshFS.triangles' + 1; % we need to 1-index rather than 0-index for Matlab
 
+    % The vertices are the locations in mm spacing
+    x     = mshFS.vertices(1,:)';
+    y     = mshFS.vertices(2,:)';
+    z     = mshFS.vertices(3,:)';
 
-% find the vertices that belong to the ROI 
-% Determine the faces associated with it
+    % The colormap will, by default, paint sulci dark and gyri light
+    cmap = [gray(128); jet(128)];
+    curvature = mshFS.colors(1,:)';
+    colors = zeros(size(curvature,1),1);
+    colors(mshFS.curvature<0) = -1.5;
+    colors(mshFS.curvature>=0) = -.5;
+    
+    nanIdx = isnan(curvPrfData);
 
+    dataIdx = find(curvPrfData(~nanIdx));
 
+    colors(dataIdx) = curvPrfData(dataIdx);
+    
+    % Render the triangle mesh
+    tH = trimesh(faces, x,y,z);
+    
+    % Make it look nice
+    set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors)
+    axis equal off; colormap(cmap); set(gca, 'CLim', [-1, 1])
 
+    % Lighting to make it look glossy
+    light('Position',100*[0 1 1],'Style','local')
 
+    lighting gouraud
 
+    % Which mesh are we plotting?
+    title(sprintf('Freesurfer mesh: %s', hemi{h}))
 
-hold on;
+    % Rotate it
+    set(gca, 'View', [-16.7000  -90.0000]);
 
-
-
-% Render the triangle mesh
-tH_cm = trimesh(faces, x(roiIdx),y(roiIdx),z(roiIdx));
-
-% The colormap will, by default, paint sulci dark and gyri light
-cm     = mshFS.colors(1,:)';
-nanIdx = isnan(curvWangAtlas);
-roiIdx = find(curvWangAtlas(~nanIdx));
-cm(roiIdx) = curvWangAtlas(~nanIdx);
-set(tH_cm, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',cm)
-axis equal off; colormap default; set(gca, 'CLim', [0 255])
-
-
-
-
-
-
-
-
-
-%%
-
-good_mapping = cur_v2gmap > 0;
-
-
-
-
-% Build mesh
-hvol = meshBuild(hvol,'left');
-
-% 
-MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-
-% Smooth the mesh
-hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
-
-% Load Roi local. for shared change the second 1 to 0
-hvol = loadROI(hvol, 'dialog', [],[],1,1); hvol = selectCurROISlice(hvol); hvol = refreshScreen(hvol,0);
-
-% Update mesh
-hvol = meshColorOverlay(hvol);
-
-
-
-%%
-data_type = 'Averages';
-hvol = initHiddenGray;
-hvol = viewSet(hvol,'curdt',data_type);
-
-% Build mesh
-hvol = meshBuild(hvol,'left');
-
-% Load the beta map which was projected on to freesurfer space
-tmp = read_curv('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/wlsubj004/prf_data/surface/freesurfer/lh.beta');
-idx_nan = isnan(tmp);
-tmp(idx_nan) = 0;
-
-map = tmp;
-
-hvol = viewSet(hvol,'map',{tmp'});
-
-hvol = meshColorOverlay(hvol);
+end
 
 
