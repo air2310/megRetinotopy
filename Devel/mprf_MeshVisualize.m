@@ -3,9 +3,9 @@
 % Example script to visualize rois and saved prf parameters on subject
 % mesh, either with mrVista, on the Brainstorm mesh, or on the FS mesh
 %
-% (1) Visualize Wang atlas on FreeSurfer surface
+% (1) Visualize Wang atlas on FreeSurfer surface with mrVista
 % (2) Visualize Wang atlas on BrainStorm surface
-% (3) Visualize exported prf data on FreeSurfer surface
+% (3) Visualize exported prf data on FreeSurfer surface without mrVista
 % (4) Visualize exported prf data on Brainstorm surface
 
 
@@ -66,7 +66,7 @@ wangAtlasPthBS = fullfile(roiDataDir, 'brainstorm', 'pial.all_rois');
 
 ttl = 'Brainstorm Wang atlas ROIs';
 visualizeBrainstormMesh(brainstormAnatDir, curvWangAtlas, [], [], [], ttl)
-
+colorbar;
 
 %% (3) Visualize prf data on FS surface
 
@@ -117,7 +117,8 @@ for h = 1:length(hemi)
     % Make it look nice
     set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors)
     axis equal off; colormap(cmap); set(gca, 'CLim', [-2, 2])
-
+    colorbar;
+    
     % Lighting to make it look glossy
     light('Position',100*[0 1 1],'Style','local')
 
@@ -154,6 +155,6 @@ thresh = 0;
 ttl = sprintf('Brainstorm prf data: %s', prfParam);
 visualizeBrainstormMesh(brainstormAnatDir, colors, thresh, clims, [], ttl)
 
-
+colorbar;
 
 
