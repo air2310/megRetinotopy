@@ -17,6 +17,9 @@ mprfSESSION.source.mrv_class = strcat(sub_sess_dir,'/source/mrvista/anatomy/t1_c
 mprfSESSION.source.bs_anat_file = strcat(sub_sess_dir,'/source/brainstorm/anatomy/subjectimage_T1.mat');
 
 d = dir(fullfile(sub_sess_dir,'/source/mrvista/rm_stimulus/*.mat'));
+if ~isfield(d,'folder')
+   d.folder = strcat(sub_sess_dir,'/source/mrvista/rm_stimulus/');
+end
 mprfSESSION.source.rm_stim_file = fullfile(d.folder, d.name);
 mprfSESSION.source.prf_data_file = strcat(sub_sess_dir,'/prf_data/data_dir/exported_prf_params.mat');
 

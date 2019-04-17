@@ -1,4 +1,4 @@
-function fh = mprfPlotHeadLayout(high_light_channels,add_text,hl_size, plot_all_dots)
+function fh = mprfPlotHeadLayout(high_light_channels,add_text,hl_size, plot_all_dots,hold_figure)
 
 if ~exist('high_light_channels','var')
     high_light_channels = [];
@@ -16,8 +16,17 @@ if ~exist('plot_all_dots','var') || isempty(plot_all_dots)
     plot_all_dots = true;
 end
 
-fh = figure; hold on;
+if ~exist('hold_figure','var') || isempty(hold_figure)
+    hold_figure.flag = 0;
+    hold_figure.c = 'r';
+end
 
+
+if hold_figure.flag == 1
+    fh = hold_figure.figh; hold on;
+else
+    fh = figure; hold on;
+end
 
 load(which('meg160_example_hdr.mat'))
 layout = ft_prepare_layout([],hdr);
@@ -39,8 +48,9 @@ if plot_all_dots
 end
 if ~isempty(cur_chan)
     plot(xpos(cur_chan),ypos(cur_chan),'rd',...
-        'MarkerFaceColor','r',...
+        'MarkerFaceColor',hold_figure.c,...
         'MarkerSize',hl_size)
+    text(xpos(cur_chan)',ypos(cur_chan)',num2str((cur_chan)'));
 end
 
 if add_text

@@ -17,17 +17,17 @@ if isempty(which('mprf_computemetric.m'))
 end
 
 %% for sub 004 - pRF parameters in mrVista space [Smooth the parameters (x,y,sigma, beta)]
-
+sub = 'wlsubj004';
 data_type = 'Averages';
-rm_model = '/mnt/storage_2/MEG/Retinotopy/Data/fMRI/wl_subj004/Gray/Averages/retModel-20170519-155117-fFit.mat';
-seg_file = '/mnt/storage_2/MEG/Retinotopy/Data/fMRI/wl_subj004/3DAnatomy/t1_class.nii.gz';
-mrVNif_prf_data = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/prf_data/nifti';
-rm_stim_file = '/mnt/storage_2/MEG/Retinotopy/Subject_sessions/wlsubj004/source/mrvista/rm_stimulus/rm_stim.mat';
-prf_mat = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/prf_data/data_dir';
+rm_model = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/wl_subj004/Gray/Averages/retModel-20170519-155117-fFit.mat',sub);
+seg_file = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/3DAnatomy/t1_class.nii.gz',sub);
+mrVNif_prf_data = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/nifti',sub);
+rm_stim_file = fprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/source/mrvista/rm_stimulus/rm_stim.mat',sub);
+prf_mat = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/data_dir',sub);
 
 % We need a volume view:
 hvol = initHiddenGray;
-vANATOMYPATH = '/mnt/storage_2/MEG/Retinotopy/Data/fMRI/wl_subj004/3DAnatomy/t1.nii.gz';
+vANATOMYPATH = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/3DAnatomy/t1.nii.gz',sub);
 
 % Set the volume view to the current data type and add the RM model
 hvol = viewSet(hvol,'curdt',data_type);
@@ -174,8 +174,8 @@ save(fname, 'prf_par_exp');
 % Exporting pRF parameters 
 %%%%%%%%%%%%%%%%%%%%%%%%%.
 
-FS_surface = '/mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/wlsubj004/surf';
-fs_prf_data = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/prf_data/surface/freesurfer';
+FS_surface = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/%s/surf',sub);
+fs_prf_data = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/surface/freesurfer',sub);
 
 mmPerVox = viewGet(hvol,'mmpervox');
 
@@ -318,9 +318,9 @@ end
 
 % Both hemisphere:
 hs = {'LEFT','RIGHT'};
-roi_dir = '/mnt/storage_2/MEG/Retinotopy/Data/fMRI/wl_subj004/Gray/ROIs';
-fs_roi_dir = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/rois/surface/freesurfer';
-bs_roi_dir = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/rois/surface/brainstorm';
+roi_dir = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/Gray/ROIs',sub);
+fs_roi_dir = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/rois/surface/freesurfer',sub);
+bs_roi_dir = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',sub);
 
 for nn = 1:length(surfaces_to_load)
     if strfind(surfaces_to_load{nn},'lh.')
@@ -488,14 +488,14 @@ save(fullfile(bs_tag_dir, 'bs_tag_to_idx'));
 
 %% Export parameters and ROI from freesurfer to brainstorm space
 
-bs_model_path = '/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/data/wlsubj004/R0774_RETMEG_Block1_5.12.17/'; 
-bs_anat_path = '/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/anat/wlsubj004/';
+bs_model_path = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/data/%s/R0774_RETMEG_Block1_5.12.17/',sub); 
+bs_anat_path = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/anat/%s/',sub);
 
 bs_model_file = strcat(bs_model_path,'headmodel_surf_os_meg.mat');
 bs_anat_file = strcat(bs_anat_path,'subjectimage_T1.mat');
 
-bs_prf_data = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/prf_data/surface/brainstorm';
-bs_roi_dir = '/mnt/storage_2/MEG/Retinotopy/Quality_check/wlsubj004/rois/surface/brainstorm';
+bs_prf_data = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/surface/brainstorm',sub);
+bs_roi_dir = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',sub);
 
 load(bs_model_file);
 bs_head_model_surf = SurfaceFile;

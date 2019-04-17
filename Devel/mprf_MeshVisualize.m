@@ -12,10 +12,11 @@
 %% (0) General parameters
 subject = 'wlsubj004';
 
-fsDir = sprintf('/Volumes/server/Freesurfer_subjects/%s/', subject);
-sessionDir = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions/%s/', subject);
-vistaSessionDir = sprintf('/Volumes/server/Projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession/', subject);
-brainstormAnatDir = sprintf('/Volumes/server/Projects/MEG/brainstorm_db/MEG_Retinotopy/anat/%s', subject);
+fsDir = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects/%s/', subject);
+sessionDir = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/', subject);
+%vistaSessionDir = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/vistaSession/', subject);
+vistaSessionDir = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/wl_subj004');
+brainstormAnatDir = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/anat/%s', subject);
 
 
 roiDataDir = fullfile(sessionDir, 'rois', 'surface');
@@ -70,7 +71,9 @@ colorbar;
 
 %% (3) Visualize prf data on FS surface
 
-prfParam = 'beta';
+prfParam = 'eccentricity';
+cm_low = -5;
+cm_high = 5;
 
 for h = 1:length(hemi)
     fprintf('Loading prf data: %s on FreeSurfer mesh: %s\n', hemi{h}, prfParam);
@@ -116,7 +119,7 @@ for h = 1:length(hemi)
     
     % Make it look nice
     set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors)
-    axis equal off; colormap(cmap); set(gca, 'CLim', [-2, 2])
+    axis equal off; colormap(cmap); set(gca, 'CLim', [cm_low, cm_high])
     colorbar;
     
     % Lighting to make it look glossy
@@ -134,7 +137,7 @@ end
 
 %% (4) Visualize prf data on BS surface
 
-prfParam = 'beta';
+prfParam = 'eccentricity';
 
 fprintf('Loading prf data: %s on Brainstorm mesh: %s\n', hemi{h}, prfParam);
 
@@ -148,13 +151,13 @@ nanIdx  = isnan(curvPrfBS);
 curvPrfBS(nanIdx) = -0.5;
 
 colors = curvPrfBS;
-clims = [-1 1];
+clims = [-10 10];
 
 thresh = 0;
 
 ttl = sprintf('Brainstorm prf data: %s', prfParam);
 visualizeBrainstormMesh(brainstormAnatDir, colors, thresh, clims, [], ttl)
-
+axis off;
 colorbar;
 
 
