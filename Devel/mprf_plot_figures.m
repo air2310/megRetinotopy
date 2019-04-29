@@ -472,27 +472,33 @@ try
                 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
                 ylabel('Variance explained (%)');
                 F = getframe(fh_sl_VEparams);
-                
+
                 % Plot individual sensors and their topography per
                 % iteration of parameter change
                 if strcmpi(range_results.model.type,'prf size range')
                     cols = 4; else, cols =2; end
                 rows = round(n_par_it/cols);
-                fh = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all; 
+                fhMeshPerParamIter = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all; 
                 for ii=1:n_par_it
                     mesh_data_to_plot = squeeze(all_corr(1,ii,:)); 
                     subplot(rows, cols, ii);
-                    megPlotMap(mesh_data_to_plot,[0 max(mesh_data_to_plot)],fh,'parula',...
+                    megPlotMap(mesh_data_to_plot,[0 0.6],fhMeshPerParamIter,'parula',...
                     par_it(ii),[],[],'interpmethod',interpmethod);                    
                 end
                 
-                cmap = copper(size(tmp_corr_sl,2));
+                % Sort peaks of individual sensors
                 [val_peaks, idx_peaks]  = max(tmp_corr_sl);
-                fh_Ind_SL_VEparams = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
-                for ll = 1:size(tmp_corr_sl,2)
-                    plot(par_it, tmp_corr_sl(:,ll), 'Color', cmap(ll,:)); 
-                scatter(par_it(idx_peaks(ll)), val_peaks(ll), [], cmap(ll,:), 'filled'); end
+                [~,sensorsVEabove50prctle] = find(val_peaks>prctile(val_peaks,50));
+                sensorsVEbelow50prctle = setdiff(1:length(idx_peaks), sensorsVEabove50prctle);
                 
+                % Plot below and above 15% variance explained in red and
+                % green colors 
+                fh_Ind_SL_VEparams = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
+                plot(par_it, tmp_corr_sl(:,sensorsVEabove50prctle), 'g');
+                scatter(par_it(idx_peaks(sensorsVEabove50prctle)), val_peaks(sensorsVEabove50prctle), 50, 'g', 'filled');
+                plot(par_it, tmp_corr_sl(:,sensorsVEbelow50prctle), 'r'); 
+                scatter(par_it(idx_peaks(sensorsVEbelow50prctle)), val_peaks(sensorsVEbelow50prctle), 50, 'r', 'filled');
+
                 set(gca,'TickDir', 'out');
                 if strcmpi(range_results.model.type,'prf size range')
                     xlabel('Size scaling factor (ratio)');
@@ -506,8 +512,9 @@ try
                 title(sprintf('Variance explained %s sl locked for individual sensors', range_results.model.type));
                 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
                 ylabel('Variance explained (%)');
-                F = getframe(fh_Ind_SL_VEparams);
-                
+                           
+                fh_above50 = mprfPlotHeadLayout(good_chan(sensorsVEabove50prctle)', true, [], false); title('Sensors with VE above 50th percentile');
+                fh_below50 = mprfPlotHeadLayout(good_chan(sensorsVEbelow50prctle)', true, [], false); title('Sensors with VE below 50th percentile');
                 
             end
             
@@ -642,8 +649,14 @@ try
         else
             
             imwrite(F.cdata, 'sl_VEparams_map.jpg' , 'jpg');% VE vs range param (either size or position)
-            
+            saveas(fhMeshPerParamIter,strcat('sl_VEparams_individualMeshes','.jpg'));
+            saveas(fh_Ind_SL_VEparams,strcat('sl_VEparams_individualSensors','.jpg'));
+            saveas(fh_above50, strcat('sl_VEparams_individualSensors_above15prct','.jpg'));
+            saveas(fh_below50, strcat('sl_VEparams_individualSensors_below15prct','.jpg'));
+
         end
+        
+        
         
     elseif strcmpi(model_type,'reliability')
         
