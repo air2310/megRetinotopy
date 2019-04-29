@@ -165,25 +165,24 @@ try
                     'VE diff',[],[],'interpmethod',interpmethod);
                 
             end
-            
-            ch = [15,20,10,14,26,62,60];
-            
+                        
             [val, idx] = sort(orig_results.results.corr_mat, 'descend');
             nanChan = ~isnan(val);
             allCh = idx(nanChan);
-            ch = allCh(1:7);
+            ch = allCh(1:15);
             timeAxis = linspace(0, length(orig_results.results.orig_model.fit_data(:,1))*1.100, length(orig_results.results.orig_model.fit_data(:,1)));
             for i =1:length(ch)
                 ch_cur = ch(i);
-                figPoint_1{i} = figure; set(gcf, 'Color', 'w')
-                plot(timeAxis,orig_results.results.orig_model.fit_data(:,ch_cur),'k','LineWidth',1);
+                figPoint_1{i} = figure; set(gcf, 'Color', 'w', 'Position', [102   999   680   324])
+                plot(timeAxis,orig_results.results.orig_model.fit_data(:,ch_cur),'ko-','LineWidth',1);
                 hold on; plot(timeAxis,orig_results.results.orig_model.preds(:,ch_cur),'r','LineWidth',2);
                 grid on; box off;
-                xlabel('Time (s)')
-                ylabel('Magnetic flux (Tesla)')
+                set(gca, 'XLim', [0 timeAxis(end)], 'YLim', [-50,50].*10^-15);
+                set(gca, 'YTick', linspace(-40*10^-15,40.*10^-15,5))
+                xlabel('Time (s)', 'FontSize', 15)
+                ylabel('Magnetic flux (Tesla)', 'FontSize', 15)
                 set(gca, 'Fontsize', 15, 'TickDir', 'out');
                 title(strcat('CH ',':',num2str(ch_cur),{' '},'VE',':',num2str(orig_results.results.corr_mat(ch_cur))));
-                %saveas(figPoint_1,strcat(num2str(ch_cur),'phrefAmp'),'jpg');
             end
             
         case 'scrambled'
@@ -450,17 +449,50 @@ try
                 
                 fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
                 
-                % Create shaded error bar with 'patch' function
+                % Plot mean with shaded error bar using 'patch' function
                 lo = corr_avg_sl - corr_CI_sl;
                 hi = corr_avg_sl + corr_CI_sl;
                 color = [0.5 0.5 0.5];
-                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
-                
+                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');               
                 hold on;
                 plot(par_it,corr_avg_sl,'r','Linewidth',3);
                 
-                %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                %                 hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
+                % Add labels and make pretty
+                set(gca,'TickDir', 'out');
+                if strcmpi(range_results.model.type,'prf size range')
+                    xlabel('Size scaling factor (ratio)');
+                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                    set(gca, 'XScale', 'log');
+                elseif strcmpi(range_results.model.type,'position (x,y) range')
+                    xlabel('Position (deg)');
+                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                end
+                xlim([par_it(1),par_it(end)]);
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                ylabel('Variance explained (%)');
+                F = getframe(fh_sl_VEparams);
+                
+                % Plot individual sensors and their topography per
+                % iteration of parameter change
+                if strcmpi(range_results.model.type,'prf size range')
+                    cols = 4; else, cols =2; end
+                rows = round(n_par_it/cols);
+                fh = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all; 
+                for ii=1:n_par_it
+                    mesh_data_to_plot = squeeze(all_corr(1,ii,:)); 
+                    subplot(rows, cols, ii);
+                    megPlotMap(mesh_data_to_plot,[0 max(mesh_data_to_plot)],fh,'parula',...
+                    par_it(ii),[],[],'interpmethod',interpmethod);                    
+                end
+                
+                cmap = copper(size(tmp_corr_sl,2));
+                [val_peaks, idx_peaks]  = max(tmp_corr_sl);
+                fh_Ind_SL_VEparams = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
+                for ll = 1:size(tmp_corr_sl,2)
+                    plot(par_it, tmp_corr_sl(:,ll), 'Color', cmap(ll,:)); 
+                scatter(par_it(idx_peaks(ll)), val_peaks(ll), [], cmap(ll,:), 'filled'); end
+                
                 set(gca,'TickDir', 'out');
                 if strcmpi(range_results.model.type,'prf size range')
                     xlabel('Size scaling factor (ratio)');
@@ -471,36 +503,10 @@ try
                     set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
                 end
                 xlim([par_it(1),par_it(end)]);
-                title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                title(sprintf('Variance explained %s sl locked for individual sensors', range_results.model.type));
                 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
                 ylabel('Variance explained (%)');
-                F = getframe(fh_sl_VEparams);
-                
-                % Create shaded error bar with 'patch' function
-                lo = corr_avg_sl - corr_CI_sl;
-                hi = corr_avg_sl + corr_CI_sl;
-                color = [0.5 0.5 0.5];
-                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
-                
-                hold on;
-                plot(par_it,corr_avg_sl,'r','Linewidth',3);
-                
-                %hold on; errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                %                 hold on; plot(par_it, [corr_avg_sl-corr_CI_sl corr_avg_sl+corr_CI_sl],'r--');
-                set(gca,'TickDir', 'out');
-                if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('Size scaling factor (ratio)');
-                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                    set(gca, 'XScale', 'log');
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('position (deg)');
-                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                end
-                xlim([par_it(1),par_it(end)]);
-                title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-                ylabel('Variance explained (%)');
-                F = getframe(fh_sl_VEparams);
+                F = getframe(fh_Ind_SL_VEparams);
                 
                 
             end
