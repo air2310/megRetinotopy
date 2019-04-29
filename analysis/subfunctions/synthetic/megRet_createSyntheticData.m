@@ -13,7 +13,11 @@ numEpochs = 140; % number of 1300-ms epochs
 
 A_SL    = 10; % amplitude of stimulus-locked signal
 A_BB    = 0; % amplitude of broadband response
-A_noise = 0.0001; % amplitude of noise response
+A_noise = 1; % amplitude of noise response
+
+% save data?
+saveData = false;
+plotFigs = true;
 
 %% Load Yokogawa MEG header for channel positions
 load('meg160_example_hdr');
@@ -88,7 +92,7 @@ for ii = 1:numRuns
         
         % Simulate noise
         backgroundNoise = real(ifft(fft(randn(numTimePoints,length(chanNoise)),[],1) .* repmat(amp',[1 length(chanNoise)]),[],1));
-        data(jj, ii, chanNoise, :)  = backgroundNoise';
+        data(jj, ii, chanNoise, :)  = A_noise.*backgroundNoise';
         
         % Simulate signal + noise
         if ~isempty(chanSignal)
@@ -111,5 +115,20 @@ for ii = 1:numRuns
 end
 data = permute(data, [4, 1, 3, 2]);
 
-save(fullfile(mprfRootPath, 'Synthetic', 'meg_data'), 'data', '-v7.3')
+if saveData
+    save(fullfile(mprfRootPath, 'Synthetic', 'meg_data'), 'data', '-v7.3')
+end
+
+if plotFigs
+    conditions = reshape(conditions, [140,19]);
+    % Plot mean epoch time series of a single condition
+    figure; plot(squeeze(data(:,conditions(:,1)==1,1,1)));
+    figure; plot(squeeze(data(:,5,1,1)));
+
+    amps = abs(fft(data(:,conditions(:,1)==1,:,1)));
+    figure; plot(0:1099, squeeze(mean(amps,2))); set(gca, 'XLim', [1 150], 'YScale', 'log')
+    ylabel('Amplitude (AU)'); xlabel('Frequency (Hz)')
+    figure; megPlotMap(squeeze(mean(amps(11,:,:),2)))
+    
+end
 end
