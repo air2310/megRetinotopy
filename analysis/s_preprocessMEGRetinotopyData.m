@@ -14,10 +14,10 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject       = 'wlsubj068';
+subject       = 'wlsubj058';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
-
+saveFigPth    = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Quality_check/',subject, 'meg');
 % Derive other file paths
 rawSqdPath = fullfile(dataPth, subject, 'raw');
 paramFilePth = fullfile(dataPth, subject,  'paramFiles');
@@ -33,9 +33,14 @@ fs             = 1000; % Sample rate (Hz)
 verbose       = true;
 doFiltering   = true;
 doDenoise     = true;
-doSaveData    = true;
-verbose       = true;
+doSaveData    = false;
+saveFig       = true; 
 removeStartOfRunEpoch = true;
+
+if (saveFig && ~exist(saveFigPth, 'dir'))
+    mkdir(saveFigPth);
+end
+    
 
 % Make 'processed' folder to save time series
 if removeStartOfRunEpoch
@@ -43,6 +48,7 @@ if removeStartOfRunEpoch
 else
     savePth = fullfile(dataPth, subject, 'processed', 'allEpochs');
 end
+
 if ~exist(savePth, 'dir'); mkdir(savePth); end
 
 % Go to dataPth
@@ -91,6 +97,10 @@ if verbose
         
     % Plot triggers   
     figure; plot(triggers.ts); title('Triggers'); xlabel('Time (ms)'); ylabel('trigger number');
+    set(gca, 'TickDir', 'out', 'FontSize', 14);
+    if saveFig
+        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers', subject)))
+    end
 end
 
 
@@ -101,7 +111,7 @@ triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
 
 % save stimulus conditions
-save(fullfile(savePth, 'megStimConditions.mat'), 'triggers')
+if doSaveData; save(fullfile(savePth, 'megStimConditions.mat'), 'triggers'); end
 
 
 % Epoch information about stimulus (bar sweep) epochs
@@ -138,13 +148,28 @@ end
 if verbose
     t = (1:size(data,1))./fs;
     ft = (0:length(t)-1)/max(t);
-    figure; subplot(211);
-    plot(t,nanmean(data(:,:,1),2));
-    xlabel('Time (s)'); ylabel('Magnetic Flux (Tesla)');
-    subplot(212);
-    amps = abs(fft(data(:,:,1)))/size(data,1)*2;
-    plot(ft,nanmean(amps,2));
-    xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
+    
+    figure; 
+    for chan = 1:size(data,3) 
+        cla
+        subplot(211);
+        plot(t,nanmean(data(:,:,chan),2));
+        xlabel('Time (s)'); ylabel('Magnetic Flux (Tesla)');
+        title(sprintf('Mean timeseries: Sensor %d', chan));
+        set(gca, 'TickDir', 'out', 'FontSize', 14);
+
+
+        subplot(212);
+        amps = abs(fft(data(:,:,chan)))/size(data,1)*2;
+        plot(ft,nanmean(amps,2)); hold on;
+        plot([10 10], [0 max(nanmean(amps,2))])
+        xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
+        title(sprintf('Mean FFT Amplitudes: Sensor %d', chan))
+        set(gca, 'TickDir', 'out', 'FontSize', 14);
+        if saveFig
+            print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_singleSensor%d_timeseries', subject, chan)))
+        end
+    end
 end
 
 %% 4. Filter MEG data
@@ -171,7 +196,9 @@ verbose             = true;
 
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
     varThreshold, badChannelThreshold, badEpochThreshold, verbose);
-
+ if saveFig
+    print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_badChannelsEpochs', subject)))
+end
 
 %% 6. Denoise time series
 
@@ -210,10 +237,23 @@ if doDenoise
         xlabel('Orig R2');
         axis square;
         
+        set(gca, 'TickDir', 'out', 'FontSize', 14);
+        if saveFig
+            print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_r2_denoising', subject)))
+        end
 
-        amps = abs(fft(denoised_data{1}(1,:,:),[],2))/size(data,2)*2;
-        figure; plot(ft,nanmean(squeeze(amps),2));
+        figure; 
+        for chan = 1:size(denoised_data{1},1)
+                    amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(data,2)*2;
+        cla
+        plot(ft,nanmean(squeeze(amps),2)); hold on;
+        plot([10 10], [0 max(nanmean(squeeze(amps),2))])
         xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
+        set(gca, 'TickDir', 'out', 'FontSize', 14);
+        if saveFig
+            print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_fft_spectrum_postDenoise_sensor%d', subject,chan)))
+        end
+        end
     end
 
     dataDenoised = NaN(sz(3),sz(1),sz(2));
@@ -240,6 +280,10 @@ if doSaveData
     
      % plot all triggers
     figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
+    if saveFig
+        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers_stimCondition', subject)))
+    end
+    
     startOfRun = 1:numEpochsPerRun:(numRuns*numEpochsPerRun);
     for n = 1:numRuns
        
@@ -261,10 +305,12 @@ if doSaveData
         % Mark those that are blocked
         plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
     end
+            
+
     
     clear data;
     data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
-    save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3')
+    if doSaveData; save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3'); end;
 end
 
 
