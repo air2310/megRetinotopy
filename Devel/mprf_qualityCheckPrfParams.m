@@ -13,7 +13,7 @@
 % By Eline Kupers, NYU 2019
 %% 0. Define params and paths
 
-subject       = 'wlsubj058';
+subject       = 'wlsubj004';
 projectFolder = '/Volumes/server/Projects/MEG/Retinotopy/';
 saveFigFolder = fullfile(projectFolder, 'Quality_check', sprintf('%s',subject));
 serverFolder  = fullfile(projectFolder, 'Data');
@@ -100,7 +100,7 @@ for p = 1:length(prfParams)
             set(gca, 'XLim', [0, mn+sd3]);
         end
         
-        print(gcf, '-dpng', sprintf('%s_FSmesh_%s_%s_histogram', subject, hemi{h}, prfParams{p}))
+        print(gcf, '-dpng', fullfile(saveFigFolder,sprintf('%s_FSmesh_%s_%s_histogram', subject, hemi{h}, prfParams{p})))
         
         % Faces (also called triangles) are defined by 3 points, each of
         % which is an index into the x, y, z vertices
