@@ -13,7 +13,7 @@
 % By Eline Kupers, NYU 2019
 %% 0. Define params and paths
 
-subject       = 'wlsubj004';
+subject       = 'wlsubj030';
 projectFolder = '/Volumes/server/Projects/MEG/Retinotopy/';
 saveFigFolder = fullfile(projectFolder, 'Quality_check', sprintf('%s',subject));
 serverFolder  = fullfile(projectFolder, 'Data');
@@ -73,7 +73,17 @@ brainstormAnatDir = fullfile('/Volumes/server/Projects/MEG/brainstorm_db/MEG_Ret
 prfParams = {'eccentricity', 'polar_angle', 'beta', 'eccentricity_smoothed','polar_angle_smoothed','recomp_beta', 'varexplained'};
 
 hemi = {'lh', 'rh'};
-clim = [-1 1]; % eccen, polar angle and beta color maps
+% clim = [0 1]; % eccen, polar angle and beta color maps
+
+
+%% Plot pRF params on FS surface
+
+% load var expl separate to mask data
+        
+% Load data from surface folder
+[varExpl.lh, ~] = read_curv(fullfile(prfDataDir, 'surface', 'freesurfer', 'lh.varexplained'));
+[varExpl.rh, ~] = read_curv(fullfile(prfDataDir, 'surface', 'freesurfer', 'rh.varexplained'));
+
 
 for p = 1:length(prfParams)
     
@@ -112,22 +122,42 @@ for p = 1:length(prfParams)
         z     = mshFS.vertices(3,:)';
         
         % The colormap will, by default, paint sulci dark and gyri light
-        cmap = [gray(128); hsv(128)];
-        curvature = mshFS.curvature+abs(min(mshFS.curvature));
-        curvature = curvature./max(curvature);
-        colors = curvature-1;
+        cmap = hsv(266);
         
-        curvPrfData = curvPrfData+abs(min(curvPrfData));
-        curvPrfData = curvPrfData./max(curvPrfData);
+        % Get curvature
+        curv = mshFS.curvature; 
+
+        % Preallocate space for colors to plot (nr vertices x 3 for RGB)
+        colors = NaN(size(curv,2),3);
+        sz     = length(cmap)-1;
+        clim   = [0 max(curvPrfData(:))];
         
-        colors(~nanIdx) = curvPrfData(~nanIdx);
-        %     colors(nanIdx) = -.5;
+        % Implement colors in curvature
+        colors(curv<=0,:) = .25;
+        colors(curv>0,:) = .75;
+
+        % Get index for data above the requested thresh (default = 0) and select
+        % those data
+        if (strcmp(prfParams{p}, 'eccentricity') || strcmp(prfParams{p}, 'eccentricity_smoothed'))
+            ii = find(curvPrfData(varExpl.(hemi{h})>0.1));
+        end
+       
+            
+        Z = curvPrfData(ii);
+
+        % Convert to 1-266
+        Z_ind = round(sz.*((Z-min(Z)) ./ (max(Z)-min(Z))))+1;
+
+        % overlay in colors variable
+        colors(ii,:) = cmap(Z_ind,:);
+
+%         colors(~nanIdx) = curvPrfData(~nanIdx);
         
         % Render the triangle mesh
         figure; tH = trimesh(faces, x,y,z);
         
         % Make it look nice
-        set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors')
+        set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors)
         axis equal off; colormap(cmap); set(gca, 'CLim', clim)
         colorbar;
         
@@ -167,24 +197,17 @@ clims  = [];
 
 for p = 1:length(prfParams)
     
-    fprintf('Loading prf data: %s on Brainstorm mesh: %s\n', hemi{h}, prfParams{p});
+    fprintf('Loading prf data: %s on Brainstorm mesh\n', prfParams{p});
     
     prfDataPthBS = fullfile(prfDataDir, 'surface', 'brainstorm', sprintf('pial.%s', prfParams{p}));
     [curvPrfBS, fnum] = read_curv(prfDataPthBS);
     nanIdx = isnan(curvPrfBS);
     
-    cmap = [gray(128); hsv(128)];
-
-    curvPrfBS = curvPrfBS+abs(min(curvPrfBS));
-    curvPrfBS = curvPrfBS./max(curvPrfBS);
-    curvPrfBS(nanIdx) = 0;
-    
-    colors = curvPrfBS;
+    cmap = hsv(266);
     
     ttl = sprintf('Brainstorm prf data: %s', prfParams{p});
-    visualizeBrainstormMesh(brainstormAnatDir, colors, thresh, clims, [], ttl)
+    visualizeBrainstormMesh(brainstormAnatDir, curvPrfBS, cmap, thresh, clims, [], ttl)
     axis off;
-    colorbar;
     print(gcf, '-dpng', fullfile(saveFigFolder,sprintf('%s_BSmesh_%s', subject, prfParams{p})))
 
     
@@ -197,8 +220,10 @@ fprintf('Loading Wang atlas ROIs on Brainstorm mesh:\n');
 wangAtlasPthBS = fullfile(roiDataDir, 'surface','brainstorm', 'pial.all_rois');
 [curvWangAtlas, fnum] = read_curv(wangAtlasPthBS);
 
+cmap = hsv(266);
+
 ttl = 'Brainstorm Wang atlas ROIs';
-visualizeBrainstormMesh(brainstormAnatDir, curvWangAtlas, [], [], [], ttl)
+visualizeBrainstormMesh(brainstormAnatDir, curvWangAtlas, cmap, [], [], [], ttl)
 colorbar;
 print(gcf, '-dpng', fullfile(saveFigFolder,sprintf('%s_BSmesh_wangAtlas', subject)))
 
