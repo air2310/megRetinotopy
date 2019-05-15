@@ -1,4 +1,4 @@
-function visualizeBrainstormMesh(anatDir, colors, thresh, clims, meshType, ttl)
+function visualizeBrainstormMesh(anatDir, data, cmap, thresh, clims, meshType, ttl)
 
 
 
@@ -14,20 +14,24 @@ else
     end
 end
 
+
+if ~exist('cmap','var') || isempty(cmap)
+    cmap = hsv(256);
+    
+end
+
+
 if ~exist('thresh','var') || isempty(thresh)
     thresh = 0;
 end
 
 if ~exist('clims','var') || isempty(clims)
-    clims = [-1 1].*max(colors(:));
+    clims = [min(data(:)), max(data(:))];
 end
 
 if ~exist('ttl','var') || isempty(ttl)
     ttl = 'Brainstorm Mesh';
 end
-
-% Define colorbar colors
-cmap = [gray(128); jet(128)];
 
 % Plot mean amplitude across epochs
 figure; set(gcf, 'Color', 'w', 'Position', [163 483 891 554])
@@ -36,30 +40,40 @@ figure; set(gcf, 'Color', 'w', 'Position', [163 483 891 554])
 tH = trimesh(bs_pial_low.Faces,bs_pial_low.Vertices(:,1),bs_pial_low.Vertices(:,2),bs_pial_low.Vertices(:,3));
 axis equal; hold on
 
-curv = bs_pial_low.Curvature - max(bs_pial_low.Curvature);
-colors(colors<=thresh) = curv(colors<=thresh);
+% Preallocate space for colors to plot (nr vertices x 3 for RGB)
+colors = NaN(size(bs_pial_low.Curvature,1),3);
+sz     = length(cmap)-1;
 
-for tt = 1:size(colors,2)
+% Get curvature
+curv = bs_pial_low.Curvature; 
 
-    % set source pediction as colors
-    set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',double(colors(:,tt)));
+% Implement colors in curvature
+colors(curv<=0,:) = .25;
+colors(curv>0,:) = .75;
 
-    colormap(cmap); colorbar; set(gca, 'CLim',clims);
+% Get index for data above the requested thresh (default = 0) and select
+% those data
+ii = find(data>thresh);
+Z = data(ii);
 
-    pos = [-.1 0 .1];
-    light('Position',pos,'Style','local')
-    lighting gouraud
-    material shiny; %dull
-    title(sprintf('%s', ttl)); 
+% Convert to 1-266
+Z_ind = round(sz.*((Z-min(Z)) ./ (max(Z)-min(Z))))+1;
 
-    drawnow;
-    pause(.1);
-end
+% overlay in colors variable
+colors(ii,:) = cmap(Z_ind,:);
 
+% set source pediction as colors
+set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData', colors);
+% 
+colormap(cmap); colorbar; set(gca, 'CLim',clims);
 
-% Other ways to set curvature colors
-% colors = zeros(size(bs_pial_low.Vertices,1),1);
-% colors(bs_pial_low.Curvature<0) = -1.5;
-% colors(bs_pial_low.Curvature>=0) = -.5;
+pos = [-.1 0 .1];
+light('Position',pos,'Style','local')
+% lighting gouraud
+material shiny; %dull
+title(sprintf('%s', ttl)); 
+
+drawnow;
+
 
 return
