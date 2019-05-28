@@ -1,4 +1,4 @@
-function mprf_plot_figures(plot_type,interpmethod,compare_phfits)
+function mprf_plot_figures(plot_type,interpmethod,compare_phfits,num_subs)
 % mprf_plot_figures - To make the figures from the results saved using
 % mprfSession_run_model command
 %
@@ -56,8 +56,8 @@ function mprf_plot_figures(plot_type,interpmethod,compare_phfits)
 %                                              rel
 %                                              ind_scr
 %......................................................
-global mprfSESSION
-load mprfSESSION.mat;
+
+
 try
     % if ~exist('plot_type','var') || isempty(plot_type)
     %     fprintf('No plot type selected, quitting\n');
@@ -67,6 +67,21 @@ try
     %if nargin > 1
     
     
+    cur_time = mprf__get_cur_time;
+    if exist('mprfSESSION.mat','file')
+        global mprfSESSION
+        load mprfSESSION.mat;
+        res_dir = mprf__get_directory('model_plots');
+        %main_dir = mprf__get_directory('main_dir');
+        main_dir  = mprfSESSION.init.main_dir;
+    else
+        main_dir = pwd;
+        if ~exist('average','dir')
+            mkdir average
+        end
+        res_dir = 'average/';
+    end
+    
     if ~exist('interpmethod','var') || isempty(interpmethod)
         interpmethod = [];
     end
@@ -75,11 +90,11 @@ try
         compare_phfits = 0;
     end
     
+    if ~exist('num_subs','var') || isempty(num_subs)
+        num_subs = 1;
+    end
     
-    cur_time = mprf__get_cur_time;
-    res_dir = mprf__get_directory('model_plots');
-    %     main_dir = mprf__get_directory('main_dir');
-    main_dir  = mprfSESSION.init.main_dir;
+    
     
     %plot_type = 1;
     switch plot_type
@@ -109,7 +124,9 @@ try
             
         case 9
             model_type = 'phase_diff'; chan_sel = '';
-            
+        
+        case 10
+            model_type = 'average'; chan_sel = 'back';
     end
     
     
@@ -296,227 +313,261 @@ try
         case 'range'
             
             %% pRF range
-            
-            if strcmpi(chan_sel,'ind_scr')
-                % Select scrambloing results
-                [scr_fname, scr_fpath] = uigetfile('*.mat','Select scrambling results');
-                scr_results = load(fullfile(scr_fpath, scr_fname));
-                
-                % Individual channels
-                n_chan = size(scr_results.results.orig_corr,1);
-                p_val_allchan = nan(1,n_chan);
-                for cur_chan = 1:n_chan
-                    %                if ~isnan(nansum(scr_results.results.scrambled_corr(:,cur_chan)))
-                    VE_orig = scr_results.results.orig_corr(cur_chan,:);
-                    if ~isnan(VE_orig)
-                        %figPoint_scr=figure;
-                        scr_dist = scr_results.results.scrambled_corr(cur_chan,:);
-                        [N,x] = hist(scr_dist,100);
-                        %hist(scr_dist,100);
-                        tmp_num = sum(N(find(x>VE_orig)));
-                        tmp_denom = size(scr_results.results.scrambled_corr,2);
-                        p_val = tmp_num / tmp_denom;
-                        %xlabel('Variance explained');
-                        %ylabel('number of outcomes');
-                        %if p_val==0
-                        %    title(strcat('Variance explained of 1000 scrambling iteration (p < 0.001)'));
-                        %else
-                        %    title(strcat('Variance explained 1000 scrambling iteration (p= ',num2str(p_val),')'));
-                        %end
-                        %hold on; plot(VE_orig*ones(1,max(N)+1),0:max(N),'r','LineWidth',2);
-                        if p_val==0
-                            p_val = 0.0001;
+            for sub_idx = 1:num_subs
+                if strcmpi(chan_sel,'ind_scr')
+                    % Select scrambloing results
+                    [scr_fname, scr_fpath] = uigetfile('*.mat','Select scrambling results');
+                    scr_results = load(fullfile(scr_fpath, scr_fname));
+                    
+                    % Individual channels
+                    n_chan = size(scr_results.results.orig_corr,1);
+                    p_val_allchan = nan(1,n_chan);
+                    for cur_chan = 1:n_chan
+                        %                if ~isnan(nansum(scr_results.results.scrambled_corr(:,cur_chan)))
+                        VE_orig = scr_results.results.orig_corr(cur_chan,:);
+                        if ~isnan(VE_orig)
+                            %figPoint_scr=figure;
+                            scr_dist = scr_results.results.scrambled_corr(cur_chan,:);
+                            [N,x] = hist(scr_dist,100);
+                            %hist(scr_dist,100);
+                            tmp_num = sum(N(find(x>VE_orig)));
+                            tmp_denom = size(scr_results.results.scrambled_corr,2);
+                            p_val = tmp_num / tmp_denom;
+                            %xlabel('Variance explained');
+                            %ylabel('number of outcomes');
+                            %if p_val==0
+                            %    title(strcat('Variance explained of 1000 scrambling iteration (p < 0.001)'));
+                            %else
+                            %    title(strcat('Variance explained 1000 scrambling iteration (p= ',num2str(p_val),')'));
+                            %end
+                            %hold on; plot(VE_orig*ones(1,max(N)+1),0:max(N),'r','LineWidth',2);
+                            if p_val==0
+                                p_val = 0.0001;
+                            end
+                            p_val_allchan(cur_chan) = -log10(p_val);
                         end
-                        p_val_allchan(cur_chan) = -log10(p_val);
                     end
-                end
-                
-                good_chan = find(p_val_allchan > 2);
-                
-                
-                % Select pRF range result (Size or position)
-                [range_fname, range_fpath] = uigetfile('*.mat','Select pRF range results');
-                range_results = load(fullfile(range_fpath, range_fname));
-                par_it = range_results.model.params.sigma_range;
-                
-                corr_tmp=squeeze(range_results.results.corr_mat);
-                n_par_it = size(corr_tmp,1);
-                
-                fh_sl_scr_indchan_map=figure;
-                megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'jet',...
-                    'Phase ref fit stimulus locked scrambled -log10(p)',[],[],'interpmethod',interpmethod);
-                %saveas(fh_sl_scr_indchan_map,strcat('sl_scr_map','.jpg'));
-                
-                % channles with p<0.01
-                figPoint_gdch_map = mprfPlotHeadLayout(good_chan);
-                %saveas(figPoint_gdch_map,strcat('sl_gdch_map','.jpg'));
-                
-                % graph for variance explained vs pRF size
-                tmp_corr_sl = nan(n_par_it,length(good_chan));
-                all_corr = range_results.results.corr_mat;
-                for i=1:n_par_it
-                    tmp_corr_sl(i,:) = squeeze(all_corr(:,i,good_chan,:,1));
-                end
-                corr_avg_sl = nanmean(tmp_corr_sl,2);
-                corr_std_sl = nanstd(tmp_corr_sl,0,2);
-                corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
-                corr_CI_sl = 1.96 .* corr_ste_sl;
-                
-                fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
-                
-                % Create shaded error bar with 'patch' function
-                lo = corr_avg_sl - corr_CI_sl;
-                hi = corr_avg_sl + corr_CI_sl;
-                color = [0.5 0.5 0.5];
-                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
-                
-                hold on;
-                plot(par_it,corr_avg_sl,'r','Linewidth',3);
-                
-                %                 errorbar(par_it,corr_avg_sl,corr_CI_sl);
-                set(gca,'TickDir', 'out');
-                if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('Size scaling factor (ratio)');
-                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                    set(gca,'XScale', 'log');
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('position (deg)');
-                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                end
-                xlim([par_it(1),par_it(end)]);
-                title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-                ylabel('Variance explained (%)');
-                F = getframe(fh_sl_VEparams);
-                
-            else
-                % Select pRF range result (Size or position)
-                [range_fname, range_fpath] = uigetfile('*.mat','Select pRF range results');
-                range_results = load(fullfile(range_fpath, range_fname));
-                
-                if strcmpi(range_results.model.type,'pRF size range')
+                    
+                    good_chan = find(p_val_allchan > 2);
+                    
+                    
+                    % Select pRF range result (Size or position)
+                    [range_fname, range_fpath] = uigetfile('*.mat','Select pRF range results');
+                    range_results = load(fullfile(range_fpath, range_fname));
                     par_it = range_results.model.params.sigma_range;
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    par_it = range_results.model.params.x0_range;
-                end
-                
-                corr_tmp=squeeze(range_results.results.corr_mat);
-                n_par_it = size(corr_tmp,1);
-                % for tmp_cnt=1:n_par_it
-                %     fh_sl_map=figure;
-                %     megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
-                %         'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
-                %
-                %     saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
-                % end
-                
-                % figPoint = openfig('Stimulus_locked_VEvsPos_occ');
-                % set(gca,'XtickLabel',rad2deg(0:pi/4:2*pi))
-                % saveas(figPoint,strcat('VE_Pos','.jpg'));
-                
-                % figPoint = openfig('Stimulus_locked_VEvsSig_occ');
-                % ylim([0 0.12]);
-                % saveas(figPoint,strcat('VE_Sig','.jpg'));
-                
-                if strcmpi(chan_sel,'back')
-                    load(which('meg160_example_hdr.mat'))
-                    layout = ft_prepare_layout([],hdr);
-                    xpos = layout.pos(1:157,1);
-                    ypos = layout.pos(1:157,2);
-                    %good_chan = find(ypos<1 & xpos<1);
-                    good_chan = find(ypos<0 & xpos<1);
-                    %n_iter = size(results.scrambled_corr,2);
                     
-                elseif strcmpi(chan_sel,'rel')
-                    [rel_fname, rel_fpath] = uigetfile('*.mat','Select reliability run results');
-                    rel_results = load(fullfile(rel_fpath, rel_fname));
-                    med_corr = (nanmedian(rel_results.results.split_half.corr_mat,2));
-                    good_chan = find(med_corr>0.2);
-                    figPoint_occ_map = mprfPlotHeadLayout(good_chan);
+                    corr_tmp=squeeze(range_results.results.corr_mat);
+                    n_par_it = size(corr_tmp,1);
+                    
+                    fh_sl_scr_indchan_map=figure;
+                    megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'jet',...
+                        'Phase ref fit stimulus locked scrambled -log10(p)',[],[],'interpmethod',interpmethod);
+                    %saveas(fh_sl_scr_indchan_map,strcat('sl_scr_map','.jpg'));
+                    
+                    % channles with p<0.01
+                    figPoint_gdch_map = mprfPlotHeadLayout(good_chan);
+                    %saveas(figPoint_gdch_map,strcat('sl_gdch_map','.jpg'));
+                    
+                    % graph for variance explained vs pRF size
+                    tmp_corr_sl = nan(n_par_it,length(good_chan));
+                    all_corr = range_results.results.corr_mat;
+                    for i=1:n_par_it
+                        tmp_corr_sl(i,:) = squeeze(all_corr(:,i,good_chan,:,1));
+                    end
+                    corr_avg_sl = nanmean(tmp_corr_sl,2);
+                    corr_std_sl = nanstd(tmp_corr_sl,0,2);
+                    corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
+                    corr_CI_sl = 1.96 .* corr_ste_sl;
+                    
+                    fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
+                    
+                    % Create shaded error bar with 'patch' function
+                    lo = corr_avg_sl - corr_CI_sl;
+                    hi = corr_avg_sl + corr_CI_sl;
+                    color = [0.5 0.5 0.5];
+                    err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+                    
+                    hold on;
+                    plot(par_it,corr_avg_sl,'r','Linewidth',3);
+                    
+                    %                 errorbar(par_it,corr_avg_sl,corr_CI_sl);
+                    set(gca,'TickDir', 'out');
+                    if strcmpi(range_results.model.type,'prf size range')
+                        xlabel('Size scaling factor (ratio)');
+                        set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                        set(gca,'XScale', 'log');
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        xlabel('position (deg)');
+                        set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    end
+                    xlim([par_it(1),par_it(end)]);
+                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                    set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                    ylabel('Variance explained (%)');
+                    F = getframe(fh_sl_VEparams);
+                    
+                else
+                    % Select pRF range result (Size or position)
+                    [range_fname, range_fpath] = uigetfile('*.mat','Select pRF range results');
+                    range_results = load(fullfile(range_fpath, range_fname));
+                    
+                    if strcmpi(range_results.model.type,'pRF size range')
+                        par_it = range_results.model.params.sigma_range;
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        par_it = range_results.model.params.x0_range;
+                    end
+                    
+                    corr_tmp=squeeze(range_results.results.corr_mat);
+                    n_par_it = size(corr_tmp,1);
+                    % for tmp_cnt=1:n_par_it
+                    %     fh_sl_map=figure;
+                    %     megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
+                    %         'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
+                    %
+                    %     saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
+                    % end
+                    
+                    % figPoint = openfig('Stimulus_locked_VEvsPos_occ');
+                    % set(gca,'XtickLabel',rad2deg(0:pi/4:2*pi))
+                    % saveas(figPoint,strcat('VE_Pos','.jpg'));
+                    
+                    % figPoint = openfig('Stimulus_locked_VEvsSig_occ');
+                    % ylim([0 0.12]);
+                    % saveas(figPoint,strcat('VE_Sig','.jpg'));
+                    
+                    if strcmpi(chan_sel,'back')
+                        load(which('meg160_example_hdr.mat'))
+                        layout = ft_prepare_layout([],hdr);
+                        xpos = layout.pos(1:157,1);
+                        ypos = layout.pos(1:157,2);
+                        %good_chan = find(ypos<1 & xpos<1);
+                        good_chan = find(ypos<0 & xpos<1);
+                        %n_iter = size(results.scrambled_corr,2);
+                        
+                    elseif strcmpi(chan_sel,'rel')
+                        [rel_fname, rel_fpath] = uigetfile('*.mat','Select reliability run results');
+                        rel_results = load(fullfile(rel_fpath, rel_fname));
+                        med_corr = (nanmedian(rel_results.results.split_half.corr_mat,2));
+                        good_chan = find(med_corr>0.2);
+                        figPoint_occ_map = mprfPlotHeadLayout(good_chan);
+                        
+                    end
+                    
+                    % graph for variance explained vs pRF size
+                    tmp_corr_sl = nan(n_par_it,length(good_chan));
+                    all_corr = range_results.results.corr_mat;
+                    for i=1:n_par_it
+                        tmp_corr_sl(i,:) = squeeze(all_corr(:,i,good_chan,:,1));
+                    end
+                    corr_avg_sl = nanmean(tmp_corr_sl,2);
+                    corr_std_sl = nanstd(tmp_corr_sl,0,2);
+                    corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
+                    corr_CI_sl = 1.96 .* corr_ste_sl;
+                    
+                    fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
+                    
+                    % Plot mean with shaded error bar using 'patch' function
+                    lo = corr_avg_sl - corr_CI_sl;
+                    hi = corr_avg_sl + corr_CI_sl;
+                    color = [0.5 0.5 0.5];
+                    err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+                    hold on;
+                    plot(par_it,corr_avg_sl,'r','Linewidth',3);
+                    
+                    % Add labels and make pretty
+                    set(gca,'TickDir', 'out');
+                    if strcmpi(range_results.model.type,'prf size range')
+                        xlabel('Size scaling factor (ratio)');
+                        set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                        set(gca, 'XScale', 'log');
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        xlabel('Position (deg)');
+                        set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    end
+                    xlim([par_it(1),par_it(end)]);
+                    title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                    set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                    ylabel('Variance explained (%)');
+                    F = getframe(fh_sl_VEparams);
+                    
+                    % Plot individual sensors and their topography per
+                    % iteration of parameter change
+                    if strcmpi(range_results.model.type,'prf size range')
+                        cols = 4; else, cols =2; end
+                    rows = round(n_par_it/cols);
+                    fhMeshPerParamIter = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
+                    for ii=1:n_par_it
+                        mesh_data_to_plot = squeeze(all_corr(1,ii,:));
+                        subplot(rows, cols, ii);
+                        megPlotMap(mesh_data_to_plot,[0 0.6],fhMeshPerParamIter,'parula',...
+                            par_it(ii),[],[],'interpmethod',interpmethod);
+                    end
+                    
+                    % Sort peaks of individual sensors
+                    [val_peaks, idx_peaks]  = max(tmp_corr_sl);
+                    [~,sensorsVEabove50prctle] = find(val_peaks>prctile(val_peaks,50));
+                    sensorsVEbelow50prctle = setdiff(1:length(idx_peaks), sensorsVEabove50prctle);
+                    
+                    % Plot below and above 15% variance explained in red and
+                    % green colors
+                    fh_Ind_SL_VEparams = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
+                    plot(par_it, tmp_corr_sl(:,sensorsVEabove50prctle), 'g');
+                    scatter(par_it(idx_peaks(sensorsVEabove50prctle)), val_peaks(sensorsVEabove50prctle), 50, 'g', 'filled');
+                    plot(par_it, tmp_corr_sl(:,sensorsVEbelow50prctle), 'r');
+                    scatter(par_it(idx_peaks(sensorsVEbelow50prctle)), val_peaks(sensorsVEbelow50prctle), 50, 'r', 'filled');
+                    
+                    set(gca,'TickDir', 'out');
+                    if strcmpi(range_results.model.type,'prf size range')
+                        xlabel('Size scaling factor (ratio)');
+                        set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                        set(gca, 'XScale', 'log');
+                    elseif strcmpi(range_results.model.type,'position (x,y) range')
+                        xlabel('position (deg)');
+                        set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                    end
+                    xlim([par_it(1),par_it(end)]);
+                    title(sprintf('Variance explained %s sl locked for individual sensors', range_results.model.type));
+                    set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                    ylabel('Variance explained (%)');
+                    
+                    fh_above50 = mprfPlotHeadLayout(good_chan(sensorsVEabove50prctle)', true, [], false); title('Sensors with VE above 50th percentile');
+                    fh_below50 = mprfPlotHeadLayout(good_chan(sensorsVEbelow50prctle)', true, [], false); title('Sensors with VE below 50th percentile');
                     
                 end
-                
-                % graph for variance explained vs pRF size
-                tmp_corr_sl = nan(n_par_it,length(good_chan));
-                all_corr = range_results.results.corr_mat;
-                for i=1:n_par_it
-                    tmp_corr_sl(i,:) = squeeze(all_corr(:,i,good_chan,:,1));
-                end
-                corr_avg_sl = nanmean(tmp_corr_sl,2);
-                corr_std_sl = nanstd(tmp_corr_sl,0,2);
-                corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
-                corr_CI_sl = 1.96 .* corr_ste_sl;
-                
-                fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
-                
-                % Plot mean with shaded error bar using 'patch' function
-                lo = corr_avg_sl - corr_CI_sl;
-                hi = corr_avg_sl + corr_CI_sl;
-                color = [0.5 0.5 0.5];
-                err= patch([par_it, fliplr(par_it)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');               
-                hold on;
-                plot(par_it,corr_avg_sl,'r','Linewidth',3);
-                
-                % Add labels and make pretty
-                set(gca,'TickDir', 'out');
-                if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('Size scaling factor (ratio)');
-                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                    set(gca, 'XScale', 'log');
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('Position (deg)');
-                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                end
-                xlim([par_it(1),par_it(end)]);
-                title(sprintf('Variance explained %s sl locked', range_results.model.type));
-                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-                ylabel('Variance explained (%)');
-                F = getframe(fh_sl_VEparams);
-
-                % Plot individual sensors and their topography per
-                % iteration of parameter change
-                if strcmpi(range_results.model.type,'prf size range')
-                    cols = 4; else, cols =2; end
-                rows = round(n_par_it/cols);
-                fhMeshPerParamIter = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all; 
-                for ii=1:n_par_it
-                    mesh_data_to_plot = squeeze(all_corr(1,ii,:)); 
-                    subplot(rows, cols, ii);
-                    megPlotMap(mesh_data_to_plot,[0 0.6],fhMeshPerParamIter,'parula',...
-                    par_it(ii),[],[],'interpmethod',interpmethod);                    
-                end
-                
-                % Sort peaks of individual sensors
-                [val_peaks, idx_peaks]  = max(tmp_corr_sl);
-                [~,sensorsVEabove50prctle] = find(val_peaks>prctile(val_peaks,50));
-                sensorsVEbelow50prctle = setdiff(1:length(idx_peaks), sensorsVEabove50prctle);
-                
-                % Plot below and above 15% variance explained in red and
-                % green colors 
-                fh_Ind_SL_VEparams = figure; set(gcf, 'Position', [326,584,1234,754], 'Color', 'w'); hold all;
-                plot(par_it, tmp_corr_sl(:,sensorsVEabove50prctle), 'g');
-                scatter(par_it(idx_peaks(sensorsVEabove50prctle)), val_peaks(sensorsVEabove50prctle), 50, 'g', 'filled');
-                plot(par_it, tmp_corr_sl(:,sensorsVEbelow50prctle), 'r'); 
-                scatter(par_it(idx_peaks(sensorsVEbelow50prctle)), val_peaks(sensorsVEbelow50prctle), 50, 'r', 'filled');
-
-                set(gca,'TickDir', 'out');
-                if strcmpi(range_results.model.type,'prf size range')
-                    xlabel('Size scaling factor (ratio)');
-                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                    set(gca, 'XScale', 'log');
-                elseif strcmpi(range_results.model.type,'position (x,y) range')
-                    xlabel('position (deg)');
-                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
-                end
-                xlim([par_it(1),par_it(end)]);
-                title(sprintf('Variance explained %s sl locked for individual sensors', range_results.model.type));
-                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-                ylabel('Variance explained (%)');
-                           
-                fh_above50 = mprfPlotHeadLayout(good_chan(sensorsVEabove50prctle)', true, [], false); title('Sensors with VE above 50th percentile');
-                fh_below50 = mprfPlotHeadLayout(good_chan(sensorsVEbelow50prctle)', true, [], false); title('Sensors with VE below 50th percentile');
-                
+                corr_avg_sl_indsub(:,sub_idx) = corr_avg_sl;
             end
+            
+            
+            
+            corr_avg_sl_all = nanmean(corr_avg_sl_indsub,2);
+            corr_std_sl_all = nanstd(corr_avg_sl_indsub,0,2);
+            corr_ste_sl_all = corr_std_sl_all ./ sqrt(num_subs);
+            corr_CI_sl_all = 1.96 .* corr_ste_sl_all;
+            
+            fh_sl_VEparams_all = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
+            
+            % Plot mean with shaded error bar using 'patch' function
+            lo_all = corr_avg_sl_all - corr_CI_sl_all;
+            hi_all = corr_avg_sl_all + corr_CI_sl_all;
+            color = [0.5 0.5 0.5];
+            err= patch([par_it, fliplr(par_it)], [lo_all', fliplr(hi_all')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+            hold on;
+            plot(par_it,corr_avg_sl_all,'r','Linewidth',3);
+            
+            % Add labels and make pretty
+            set(gca,'TickDir', 'out');
+            if strcmpi(range_results.model.type,'prf size range')
+                xlabel('Size scaling factor (ratio)');
+                set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                set(gca, 'XScale', 'log');
+            elseif strcmpi(range_results.model.type,'position (x,y) range')
+                xlabel('Position (deg)');
+                set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+            end
+            xlim([par_it(1),par_it(end)]);
+            title(sprintf('Variance explained %s sl locked', range_results.model.type));
+            set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+            ylabel('Variance explained (%)');
             
         case 'reliability'
             

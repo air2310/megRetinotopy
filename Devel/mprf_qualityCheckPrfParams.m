@@ -13,8 +13,9 @@
 % By Eline Kupers, NYU 2019
 %% 0. Define params and paths
 
-subject       = 'wlsubj030';
-projectFolder = '/Volumes/server/Projects/MEG/Retinotopy/';
+subject       = 'wlsubj058';
+%projectFolder = '/Volumes/server/Projects/MEG/Retinotopy/';
+projectFolder = '/mnt/storage_2/MEG/Retinotopy/';
 saveFigFolder = fullfile(projectFolder, 'Quality_check', sprintf('%s',subject));
 serverFolder  = fullfile(projectFolder, 'Data');
 vistaDataFolder = fullfile(serverFolder, 'fMRI', subject, 'vistaSession');
@@ -25,11 +26,21 @@ vistaClassFile  = fullfile(vistaDataFolder, '3DAnatomy', 't1_class.nii.gz');
 d = dir(fullfile(vistaRetModelFolder, 'rm_*fFit.mat'));
 vistaRetModel = d.name;
 
-fsDir = fullfile('/Volumes/server/Freesurfer_subjects/',subject);
-prfDataDir = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions', subject, 'prf_data');
-roiDataDir = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions', subject, 'rois');
+% fsDir = fullfile('/Volumes/server/Freesurfer_subjects/',subject);
+% prfDataDir = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions', subject, 'prf_data');
+% roiDataDir = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Subject_sessions', subject, 'rois');
+% 
+% brainstormAnatDir = fullfile('/Volumes/server/Projects/MEG/brainstorm_db/MEG_Retinotopy/anat/',subject);
 
-brainstormAnatDir = fullfile('/Volumes/server/Projects/MEG/brainstorm_db/MEG_Retinotopy/anat/',subject);
+
+fsDir = fullfile('/mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects',subject);
+prfDataDir = fullfile('/mnt/storage_2/MEG/Retinotopy/Subject_sessions', subject, 'prf_data');
+roiDataDir = fullfile('/mnt/storage_2/MEG/Retinotopy/Subject_sessions', subject, 'rois');
+
+brainstormAnatDir = fullfile('/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/anat/',subject);
+
+
+
 
 %% 1. Initial pRF parameters in mrVista space
 

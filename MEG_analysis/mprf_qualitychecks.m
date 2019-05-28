@@ -62,7 +62,7 @@ for nn = 1:length(params)
     % Load the current parameter in the VOLUME view. This is mainly used to
     % export the pRF parameters to nifti files. The nifti files are really
     % just for inspection and are not used in any further analyses
-    hvol = rmLoad(hvol,1,cur_param,'map');
+    hvol = viewSet(hvol,'curdt',data_type);
     hvol = refreshScreen(hvol);
     
     % Store the data as nifti and check against the segmentation to see if
@@ -104,7 +104,7 @@ for nn = 1:length(params)
             prf_par_exp.('mresp_smoothed') = mresp_sm;
             
             
-            % Recompute the beta using by dividing the smoothed maxumimum
+            % Recompute the beta by dividing the smoothed maxumimum
             % responses by the maximum response given the stimulus and
             % smoothed pRF parameters:
             recomp_beta = mprfRecomputeBetas(rm_stim,sigma_smooth,x0_smooth,y0_smooth,mresp_sm);

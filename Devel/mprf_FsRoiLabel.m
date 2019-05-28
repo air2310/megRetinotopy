@@ -106,7 +106,13 @@ end
 % Once this is run, visualize the prf parameters on freesurfer surface
 % using freeview
 % We need to have lh.inflated and rh.inflated freesurfer surface
-% freeview -f lh.inflated (in the terminal)
+% freeview -f freeview /mnt/storage_2/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects/<subj_name>/surf/lh.inflated (in the terminal)
+% Set following on the GUI:
+% 
+% Curvature : Binary
+% Overlay :  
+%
+%
 % Load the prf data (eccentricity smoothed, polar angle smoothed and betas smoothed for now) as overlay on the surface
 
 
@@ -267,27 +273,46 @@ saveas(figPoint_rlchve_map,strcat('ref_ph_19lo','.tif')); % original map
 %% Plot the MEG scalp maps and range curves for every scaling values for pRF size and pRF position scaling
 clear all;
 close all;
-sub_name = 'wlsubj004';
+sub_name = 'wlsubj068';
+range_type = 'prf_position_range'; % options: prf_size_range and prf_position_range
 
-main_dir = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/modeling/results/prf_size_range/',sub_name);
-save_dir = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_size_range',sub_name);
+
+main_dir = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/modeling/results/%s/',sub_name,range_type);
+save_dir = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/%s',sub_name,range_type);
 if ~exist(save_dir,'dir')
     mkdir(save_dir);
 end    
 
-switch sub_name
-    case 'wlsubj004'
-        Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_15_Feb_2019_17_24_09');
-    case 'wlsubj030'
-        Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_12_07_29');
-    case 'wlsubj040'
-        Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_10_08_01');
-    case 'wlsubj058'
-        Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_53_30');
-    case 'wlsubj068'
-        Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_59_20');
-end
+switch range_type
+    case 'prf_size_range'
+        switch sub_name
+            case 'wlsubj004'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_15_Feb_2019_17_24_09');
+            case 'wlsubj030'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_12_07_29');
+            case 'wlsubj040'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_10_08_01');
+            case 'wlsubj058'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_53_30');
+            case 'wlsubj068'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_59_20');
+        end
         
+    case 'prf_position_range'
+        switch sub_name
+            case 'wlsubj004'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_15_Feb_2019_17_24_20');
+            case 'wlsubj030'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_12_07_44');
+            case 'wlsubj040'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_13_Feb_2019_10_07_51');
+            case 'wlsubj058'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_53_41');
+            case 'wlsubj068'
+                Results_path = strcat(main_dir,'Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_59_02');
+        end     
+end
+
 % load results from mprfSession_run_model_server.m
 %Results_path = '/mnt/storage_2/MEG/Retinotopy/Subject_sessions/wlsubj058/modeling/results/original_model/Run_Stimulus_locked_model_fit_lo_12_Feb_2019_16_33_44';
 results_f = fullfile(Results_path,'Results.mat');
@@ -296,8 +321,12 @@ load(results_f);
 % Size or position scaling iteration values
 if strcmpi(model.type,'pRF size range')
     par_it = model.params.sigma_range;
+    n_par_thr_low = 7;
+    n_par_thr_high = 11;
 elseif strcmpi(model.type,'position (x,y) range')
     par_it = model.params.x0_range;
+    n_par_thr_low = 4;
+    n_par_thr_high = 6;
 end
 
 % variance explained for each range iteration and channel as a 3-D matrix-
@@ -374,7 +403,7 @@ switch chan_ave
             set(gca, 'XScale', 'log');
         elseif strcmpi(model.type,'position (x,y) range')
             xlabel('position (deg)');
-            set(gca,'XTick', par_it,'XTickLabel',rad2deg(model.params.x0_range));
+            set(gca,'XTick', par_it,'XTickLabel',[-180 wrapTo180(rad2deg(model.params.x0_range(2:end)))]);
         end
         xlim([par_it(1),par_it(end)]);
         title(sprintf('Variance explained %s sl locked',model.type));
@@ -403,15 +432,32 @@ switch chan_ave
         
         idx_peak_par_it_l = nan(1,size(corr_sl,2));
         idx_peak_par_it_h = nan(1,size(corr_sl,2));
-        for idx_chan = 1:size(corr_sl,2)
-            % There are some Nan values in the variance explained matrix,
-            % which causes the peak values to be an exmpty matrix
-            if sum(idx_peak_par_it_tmp(:,idx_chan))==1
-                idx_peak_par_it_l(idx_chan) = ( par_it(7) <= par_it(find(idx_peak_par_it_tmp(:,idx_chan))) & par_it(find(idx_peak_par_it_tmp(:,idx_chan))) <= par_it(11));
-                idx_peak_par_it_h(idx_chan) = ( par_it(7) > par_it(find(idx_peak_par_it_tmp(:,idx_chan))) | par_it(find(idx_peak_par_it_tmp(:,idx_chan))) > par_it(11));
+        
+        if strcmpi(model.type,'pRF size range')
+            for idx_chan = 1:size(corr_sl,2)
+                % There are some Nan values in the variance explained matrix,
+                % which causes the peak values to be an exmpty matrix
+                if sum(idx_peak_par_it_tmp(:,idx_chan))==1
+                    idx_peak_par_it_l(idx_chan) = ( par_it(n_par_thr_low) <= par_it(find(idx_peak_par_it_tmp(:,idx_chan))) & ...
+                        par_it(find(idx_peak_par_it_tmp(:,idx_chan))) <= par_it(end));
+                    idx_peak_par_it_h(idx_chan) = ( par_it(n_par_thr_low) > par_it(find(idx_peak_par_it_tmp(:,idx_chan))) | ...
+                        par_it(find(idx_peak_par_it_tmp(:,idx_chan))) > par_it(end));
+                end
+            end
+            
+        elseif strcmpi(model.type,'position (x,y) range')
+            for idx_chan = 1:size(corr_sl,2)
+                % There are some Nan values in the variance explained matrix,
+                % which causes the peak values to be an exmpty matrix
+                if sum(idx_peak_par_it_tmp(:,idx_chan))==1
+                    idx_peak_par_it_l(idx_chan) = ( par_it(n_par_thr_low) <= par_it(find(idx_peak_par_it_tmp(:,idx_chan))) & ...
+                        par_it(find(idx_peak_par_it_tmp(:,idx_chan))) <= par_it(n_par_thr_high));
+                    idx_peak_par_it_h(idx_chan) = ( par_it(n_par_thr_low) > par_it(find(idx_peak_par_it_tmp(:,idx_chan))) | ...
+                        par_it(find(idx_peak_par_it_tmp(:,idx_chan))) > par_it(n_par_thr_high));
+                end
             end
         end
-
+        
         
         chan_peak_par_it_l = good_chan(find(idx_peak_par_it_l))';
         chan_peak_par_it_h = good_chan(find(idx_peak_par_it_h))';
@@ -440,11 +486,12 @@ switch chan_ave
             set(gca, 'XScale', 'log');
         elseif strcmpi(model.type,'position (x,y) range')
             xlabel('position (deg)');
-            set(gca,'XTick', par_it,'XTickLabel',rad2deg(model.params.x0_range));
+            pos_label = [-180 wrapTo180(rad2deg(model.params.x0_range(2:end)))];
+            set(gca,'XTick', par_it,'XTickLabel',pos_label);           
         end
         xlim([par_it(1),par_it(end)]);
         title(sprintf('Variance explained %s sl locked', model.type));
-        set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+        set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 10); axis square;
         ylabel('Variance explained (%)');
         
         
@@ -457,12 +504,26 @@ switch chan_ave
         hold_figure.c = 'r';
         mprfPlotHeadLayout(chan_peak_par_it_l,0,10,0,hold_figure);
         
+        if strcmpi(model.type,'prf size range')
+            title(sprintf('Sensors with Variance explained peak for scaling factor between [%0.2f %0.2f]',par_it(n_par_thr_low),par_it(n_par_thr_high)))
+        elseif strcmpi(model.type,'position (x,y) range')
+            title(sprintf('Sensors with Variance explained peak for rotation angles between: [%d %d] degrees',wrapTo180(rad2deg(par_it(n_par_thr_low))),wrapTo180(rad2deg(par_it(n_par_thr_high)))))
+        end
+        
 %       figPoint_rlchve_map = figure;
         subplot(2,2,3);
         hold_figure.flag =1;
         hold_figure.figh = fh_sl_VEparams;
         hold_figure.c = 'g';
         mprfPlotHeadLayout(chan_peak_par_it_h,0,10,0,hold_figure);
+
+        if strcmpi(model.type,'prf size range')
+            title(sprintf('Sensors with Variance explained peak for range: < %0.2f & > %0.2f',par_it(n_par_thr_low),par_it(n_par_thr_high)))
+        elseif strcmpi(model.type,'position (x,y) range')
+            title(sprintf('Sensors with Variance explained peak for rotation angles outside range: [%d %d] degrees',wrapTo180(rad2deg(par_it(n_par_thr_low))),wrapTo180(rad2deg(par_it(n_par_thr_high)))))
+        end
+        
+        
         
         %       figPoint_rlchve_map = figure;
         subplot(2,2,4);
@@ -470,11 +531,35 @@ switch chan_ave
             'Phase ref fit stimulus locked',[],[],'interpmethod',[]);
 end
 
+
+
+if strcmpi(model.type,'prf size range')
+    fh_sl_ve_par_it = figure;
+    for idx_par_it = 1:n_par_it
+        subplot(5,4,idx_par_it);
+        title = sprintf('scaling factor: %0.2f',par_it(idx_par_it));
+        megPlotMap(squeeze(results.corr_mat(:,idx_par_it,:)),[0 0.6],fh_sl_ve_par_it,'jet',...
+            title,[],[],'interpmethod',[]);
+        
+    end
+elseif strcmpi(model.type,'position (x,y) range')
+        fh_sl_ve_par_it = figure;
+    for idx_par_it = 1:n_par_it
+        subplot(3,3,idx_par_it);
+        title = sprintf('Rotation angle: %d',pos_label(idx_par_it));
+        megPlotMap(squeeze(results.corr_mat(:,idx_par_it,:)),[0 0.6],fh_sl_ve_par_it,'jet',...
+            title,[],[],'interpmethod',[]);
+        
+    end
+end
+
+
+
 cd(save_dir)
 range_type = model.type;
 range_type(range_type == ' ') = '_';
 saveas(fh_sl_VEparams,strcat(range_type,'all_Channels','.tif')); % original map
 
 
-
+saveas(fh_sl_ve_par_it,strcat(range_type,'all_par_it','.tif')); % original map
 
