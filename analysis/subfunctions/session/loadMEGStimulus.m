@@ -58,7 +58,7 @@ end
 meg_stim.window = sum(meg_stim.resizedIm,3) > 0;
 
 % Concatenate first two dimensions of image (101 x 101 --> 10201),
-% by number of stimulus frames (211)
+% by number of stimulus frames (140)
 meg_stim.im = reshape(meg_stim.resizedIm,[],size(meg_stim.resizedIm,3));
 
 % Mask images with binary mask --> [EK]: why? Wasn't it already
