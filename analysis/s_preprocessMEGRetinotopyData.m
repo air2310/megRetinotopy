@@ -14,7 +14,7 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject       = 'wlsubj058';
+subject       = 'wlsubj068';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 saveFigPth    = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Quality_check/',subject, 'meg');
@@ -33,9 +33,9 @@ fs             = 1000; % Sample rate (Hz)
 verbose       = true;
 doFiltering   = true;
 doDenoise     = true;
-doSaveData    = false;
+doSaveData    = true;
 saveFig       = true; 
-removeStartOfRunEpoch = true;
+removeStartOfRunEpoch = false;
 
 if (saveFig && ~exist(saveFigPth, 'dir'))
     mkdir(saveFigPth);
@@ -44,7 +44,7 @@ end
 
 % Make 'processed' folder to save time series
 if removeStartOfRunEpoch
-    savePth = fullfile(dataPth, subject, 'processed');
+    savePth = fullfile(dataPth, subject, 'processed', 'firstEpochRemoved');
 else
     savePth = fullfile(dataPth, subject, 'processed', 'allEpochs');
 end
@@ -67,8 +67,8 @@ if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 
 % Trigger number legend:
 % 1-8 = barsweep orientations
-% 20  = blank
-% 10  = blink
+% 10  = blank
+% 20  = blink
 % 
 
 if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
@@ -133,8 +133,8 @@ if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
 sz = size(data);
 
 % Set blink epochs to NaNs, leave blanks as is
-data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blink blocks
-% data(:, triggers.stimConditions==20,:) = NaN; % 20: Blank blocks
+% data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blank blocks
+data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 
 % Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
 % do this? Maybe consider not doing this since we already remove the first
@@ -161,6 +161,7 @@ if verbose
 
         subplot(212);
         amps = abs(fft(data(:,:,chan)))/size(data,1)*2;
+        amps(1,:,:)=0; % Remove DC
         plot(ft,nanmean(amps,2)); hold on;
         plot([10 10], [0 max(nanmean(amps,2))])
         xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
@@ -241,19 +242,32 @@ if doDenoise
         if saveFig
             print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_r2_denoising', subject)))
         end
-
+        
+        freqIdx = mprfFreq2Index(size(denoised_data{1},2), flickerFreq, fs);
+        
         figure; 
         for chan = 1:size(denoised_data{1},1)
-                    amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(data,2)*2;
+                    amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(denoised_data{1},2)*2;
         cla
         plot(ft,nanmean(squeeze(amps),2)); hold on;
-        plot([10 10], [0 max(nanmean(squeeze(amps),2))])
+        plot([flickerFreq flickerFreq], [0 max(nanmean(squeeze(amps),2))]); title(chan);
         xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
         set(gca, 'TickDir', 'out', 'FontSize', 14);
         if saveFig
             print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_fft_spectrum_postDenoise_sensor%d', subject,chan)))
         end
+        drawnow; pause(0.1)
         end
+        
+        allAmps = abs(fft(denoised_data{1}(:,:,:),[],2))/size(denoised_data{1},2)*2;
+        ssvef = allAmps(:,freqIdx,triggers.stimConditions(~badEpochs)<10);
+        ssvefAllChan = to157chan(squeeze(nanmean(ssvef,3))', ~badChannels, 'nans');
+        figure; megPlotMap(ssvefAllChan); title('Steady state visually evoked field (10 Hz)');
+        if saveFig
+            print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_SSVEFMESH_postDenoise', subject)))
+        end
+
+        
     end
 
     dataDenoised = NaN(sz(3),sz(1),sz(2));
