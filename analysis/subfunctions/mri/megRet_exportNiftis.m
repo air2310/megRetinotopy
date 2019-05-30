@@ -71,6 +71,8 @@ for ii = 1:numel(datasets)
     functionals2nifti(vw, [], sprintf('%s/%s-sigma.nii.gz', outputPath, outnames{ii}));
     vw = rmLoad(vw, 1, 'variance explained', 'map');
     functionals2nifti(vw, [], sprintf('%s/%s-vexpl.nii.gz', outputPath, outnames{ii}));
+     vw = rmLoad(vw, 1, 'beta', 'map');
+    functionals2nifti(vw, [], sprintf('%s/%s-beta.nii.gz', outputPath, outnames{ii}));
 end
 
 % That's all!
