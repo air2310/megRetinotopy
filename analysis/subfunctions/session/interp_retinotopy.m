@@ -1,4 +1,4 @@
-function interp_retinotopy(bsdir, fsdir, sub_fs, sub_bs, proj_bs)
+function interp_retinotopy(bsdir, fsdir, sub_fs, sub_bs, proj_bs, varargin)
 
 % Function to interpret retinotopy from this subject's freesurfer directory
 % as outputted by the hub.docker.com/r/nben/occipital_atlas Docker (in
@@ -66,6 +66,7 @@ if regexp(d(1).name, 'mgz', 'ONCE')
     sub_fs_angle = surfdat(MRIread(retino_fname('lh', 'angle')), MRIread(retino_fname('rh', 'angle')), -1);
     sub_fs_eccen = surfdat(MRIread(retino_fname('lh', 'eccen')), MRIread(retino_fname('rh', 'eccen')),  1);
     sub_fs_areas = surfdat(MRIread(retino_fname('lh', 'varea')), MRIread(retino_fname('rh', 'varea')),  1);
+    sub_fs_sigma = surfdat(MRIread(retino_fname('lh', 'sigma')), MRIread(retino_fname('rh', 'sigma')),  1);
 
     
 else
@@ -75,6 +76,9 @@ else
     sub_fs_angle = surfdat(read_curv(retino_fname('lh', 'angle')), read_curv(retino_fname('rh', 'angle')), -1);
     sub_fs_eccen = surfdat(read_curv(retino_fname('lh', 'eccen')), read_curv(retino_fname('rh', 'eccen')),  1);
     sub_fs_areas = surfdat(read_curv(retino_fname('lh', 'varea')), read_curv(retino_fname('rh', 'varea')),  1);
+    sub_fs_sigma = surfdat(read_curv(retino_fname('lh', 'sigma')), read_curv(retino_fname('rh', 'sigma')),  1);
+
+    
 end
 
 % 
@@ -83,27 +87,45 @@ end
 
 %% Apply the interpolation
 
-sub_fs_interp = @(dat)(tess_fs2bst(sub_bs, sub_fs, dat.lh, dat.rh));
+if varargin{1}
+    highResPialSurface = 'tess_cortex_pial_high';
+    sub_bsdir = fullfile(sub_bsdir, 'highres');
+else
+    highResPialSurface = [];
+    sub_bsdir = fullfile(sub_bsdir, 'lowres');
+end
+
+if ~exist(sub_bsdir, 'dir'); mkdir(sub_bsdir); end
+
+
+sub_fs_interp = @(dat)(tess_fs2bst(sub_bs, sub_fsdir, dat.lh, dat.rh, highResPialSurface));
 
 sub_bs_angle = sub_fs_interp(sub_fs_angle);
 sub_bs_eccen = sub_fs_interp(sub_fs_eccen);
 sub_bs_areas = sub_fs_interp(sub_fs_areas);
+sub_bs_sigma = sub_fs_interp(sub_fs_sigma);
 
 sub_bs_angle_mgzfile = sprintf('%s/benson14angle_overlay.mgz', sub_bsdir);
 sub_bs_eccen_mgzfile = sprintf('%s/benson14eccen_overlay.mgz', sub_bsdir);
 sub_bs_areas_mgzfile = sprintf('%s/benson14areas_overlay.mgz', sub_bsdir);
+sub_bs_sigma_mgzfile = sprintf('%s/benson14sigma_overlay.mgz', sub_bsdir);
+
 
 sub_bs_angle_matfile = sprintf('%s/benson14angle_overlay.mat', sub_bsdir);
 sub_bs_eccen_matfile = sprintf('%s/benson14eccen_overlay.mat', sub_bsdir);
 sub_bs_areas_matfile = sprintf('%s/benson14areas_overlay.mat', sub_bsdir);
+sub_bs_sigma_matfile = sprintf('%s/benson14sigma_overlay.mat', sub_bsdir);
+
 
 MRIwrite(struct('vol', sub_bs_angle), sub_bs_angle_mgzfile);
 MRIwrite(struct('vol', sub_bs_eccen), sub_bs_eccen_mgzfile);
 MRIwrite(struct('vol', sub_bs_areas), sub_bs_areas_mgzfile);
+MRIwrite(struct('vol', sub_bs_sigma), sub_bs_sigma_mgzfile);
 
 save(sub_bs_angle_matfile, 'sub_bs_angle');
 save(sub_bs_eccen_matfile, 'sub_bs_eccen');
 save(sub_bs_areas_matfile, 'sub_bs_areas');
+save(sub_bs_sigma_matfile, 'sub_bs_sigma');
 
 
 
