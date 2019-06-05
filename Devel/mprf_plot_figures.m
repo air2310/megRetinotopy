@@ -192,8 +192,10 @@ try
                 plot(timeAxis,orig_results.results.orig_model.fit_data(:,ch_cur),'ko-','LineWidth',1);
                 hold on; plot(timeAxis,orig_results.results.orig_model.preds(:,ch_cur),'r','LineWidth',2);
                 grid on; box off;
-                set(gca, 'XLim', [0 timeAxis(end)], 'YLim', [-50,50].*10^-15);
-                set(gca, 'YTick', linspace(-40*10^-15,40.*10^-15,5))
+                yl = max(abs([min(orig_results.results.orig_model.fit_data(:,ch_cur)),max(orig_results.results.orig_model.fit_data(:,ch_cur))]));
+                yl = round(yl./(10^-15)); yt = round(yl/10);
+                set(gca, 'XLim', [0 timeAxis(end)], 'YLim', [-1*yl,yl].*10^-15);
+                set(gca, 'YTick', linspace(-1*yt.*10^-14,yt.*10^-14,yt+1))
                 xlabel('Time (s)', 'FontSize', 15)
                 ylabel('Magnetic flux (Tesla)', 'FontSize', 15)
                 set(gca, 'Fontsize', 15, 'TickDir', 'out');
@@ -657,8 +659,8 @@ try
     
     if strcmpi(model_type,'original model')
         
-        print(fh_sl_map, '-depsc', fullfile(save_dir,'sl_map')) % original map
-        print(fh_sl_ph_map, '-depsc', fullfile(save_dir,'ph_map')) % Optimum phase map
+        print(fh_sl_map,'-painters', '-depsc', fullfile(save_dir,'sl_map')) % original map
+        print(fh_sl_ph_map,'-painters', '-depsc', fullfile(save_dir,'ph_map')) % Optimum phase map
         print(figPoint_ve_opt, '-depsc', fullfile(save_dir,'VEopt-Amp_vs_phRefAmp')) % % VE plot
 
 %         saveas(fh_sl_map,strcat('sl_map','.jpg')); % original map        
@@ -667,7 +669,7 @@ try
         
         for i=1:length(ch)
             ch_cur = ch(i);
-            print(figPoint_1{i}, '-depsc', fullfile(save_dir,sprintf('%d_phrefAmp', ch_cur))) % example time series
+            print(figPoint_1{i}, '-painters', '-depsc', fullfile(save_dir,sprintf('%d_phrefAmp', ch_cur))) % example time series
 %             saveas(figPoint_1{i},strcat(num2str(ch_cur),'phrefAmp'),'jpg'); % example time series
         end
         
@@ -703,7 +705,7 @@ try
             
         else
             
-            print(fh_sl_VEparams, '-depsc', fullfile(save_dir,'sl_VEparams_map'))  %
+            print(fh_sl_VEparams, '-painters', '-depsc', fullfile(save_dir,'sl_VEparams_map'))  %
             print(fhMeshPerParamIter, '-depsc', fullfile(save_dir,'sl_VEparams_individualMeshes'))  %
             print(fh_Ind_SL_VEparams, '-depsc', fullfile(save_dir,'sl_VEparams_individualSensors'))  %
             print(fh_above50, '-depsc', fullfile(save_dir,'sl_VEparams_individualSensors_above50prctle'))  %
