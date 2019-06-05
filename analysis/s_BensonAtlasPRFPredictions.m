@@ -21,7 +21,7 @@
 % 4. Get RF from x, y, sigma and MEG stim aperture window
 % 5. Compute predicted BOLD response for every vertex in V1-V3, where pRF has unit volume
 % 6. Load Gain matrix and set dipole perpendicular to surface
-% 7. Compute predicted MEG sensor responses
+% 7. Compute predicted MEG sensor responses and plot against data
 
 %% 0. Set up
 
@@ -34,11 +34,15 @@ end
 % Define params
 subject     = 'wlsubj004';
 bsProtocol  = 'MEG_Retinotopy';
+highres     = false; % use 'normal' FS surface instead of downsampled surface
 
 % Define directories
 fsdir    = '/Volumes/server/Freesurfer_subjects'; % Freesurfer subjects 
 bsDB     = '/Volumes/server/Projects/MEG/brainstorm_db'; % Brainstorm Data base
 megRetDir   = '/Volumes/server/Projects/MEG/Retinotopy/'; % MEG retinotopy project on server
+
+saveDir  = fullfile(megRetDir, 'Quality_check', subject, 'BensonAtlasPred');
+if ~exist(saveDir, 'dir'); mkdir(saveDir); end
 
 d = dir(fullfile(bsDB, bsProtocol, 'data', subject));
 bsDataDir = fullfile(bsDB, bsProtocol, 'data', subject, d(end).name);
@@ -47,19 +51,31 @@ bsAnatDir = fullfile(bsDB, bsProtocol, 'anat', subject);
 %% 1.Create combined hemi template that matches vertices in BS Gain matrix 
 
 % Note: time consuming and computationally heavy if you want a high resolution template!
-if ~exist(fullfile(bsAnatDir, 'highres', 'benson14areas_overlay.mat'))
-    highres = true;
+if (highres) && (~exist(fullfile(bsAnatDir, 'highres', 'benson14areas_overlay.mat')))
     interp_retinotopy(bsDB, fsdir, subject, subject, bsProtocol, highres)
+end
+
+
+if (~highres) && (~exist(fullfile(bsAnatDir, 'lowres', 'benson14areas_overlay.mat')))
+    interp_retinotopy(bsDB, fsdir, subject, subject, bsProtocol)
 end
 
 
 %% 2. Load retinotopy templates
 
+if highres
+    subFolder = 'highres';
+    headmodelFileName = 'headmodel_surf_os_meg_02.mat';
+else
+    subFolder = 'lowres';
+    headmodelFileName = 'headmodel_surf_os_meg.mat';
+end
+
 % Load V1-3 template with unitized phases in downsampled brainstorm format (computed by interp_retinotopy.m)
-areas    = load(fullfile(bsAnatDir, 'highres','benson14areas_overlay.mat')); % [1xNsources] Every value between [-3,3] is inside V1-3, zeros refer to outside of visual cortex. CHECK: Positive values represent LH (?) Negative values RH (?)
-eccen    = load(fullfile(bsAnatDir, 'highres','benson14eccen_overlay.mat')); % [1xNsources] Nonzero value represents vertex preferred eccentricity in degrees, zeros refer to outside of visual cortex
-polarang = load(fullfile(bsAnatDir, 'highres','benson14angle_overlay.mat')); % [1xNsources] Values represents vertex preferred polar angle in degrees (0 is the upper vertical meridian), zeros refer to outside of visual cortex
-sigma    = load(fullfile(bsAnatDir, 'highres','benson14sigma_overlay.mat')); % [1xNsources] Values represents vertex preferred polar angle in degrees (0 is the upper vertical meridian), zeros refer to outside of visual cortex
+areas    = load(fullfile(bsAnatDir, subFolder,'benson14areas_overlay.mat')); % [1xNsources] Every value between [-3,3] is inside V1-3, zeros refer to outside of visual cortex. CHECK: Positive values represent LH (?) Negative values RH (?)
+eccen    = load(fullfile(bsAnatDir, subFolder,'benson14eccen_overlay.mat')); % [1xNsources] Nonzero value represents vertex preferred eccentricity in degrees, zeros refer to outside of visual cortex
+polarang = load(fullfile(bsAnatDir, subFolder,'benson14angle_overlay.mat')); % [1xNsources] Values represents vertex preferred polar angle in degrees (0 is the upper vertical meridian), zeros refer to outside of visual cortex
+sigma    = load(fullfile(bsAnatDir, subFolder,'benson14sigma_overlay.mat')); % [1xNsources] Values represents vertex preferred polar angle in degrees (0 is the upper vertical meridian), zeros refer to outside of visual cortex
 
 % get areas
 area.v1 = (areas.sub_bs_areas==1);
@@ -99,8 +115,8 @@ theta = pi/180 * (90 - polarang.sub_bs_angle);
 x = eccen.sub_bs_eccen .* cos(polarang.sub_bs_angle);
 y = eccen.sub_bs_eccen .* sin(polarang.sub_bs_angle);
 
-y0 = y0(areas.all);
-x0 = x0(areas.all);
+y0 = y(areas.all);
+x0 = x(areas.all);
 
 %% 4. Get RF with x,y,sigma and MEG stim
 sigma = sigma.sub_bs_sigma(areas.all);
@@ -127,7 +143,7 @@ clear RF x y
 keep_sensors    = logical([ones(157,1); zeros(192-157,1)]); % Note: Figure out a more generic way to define keep_sensors
 
 % Load headmodel from Brainstorm
-headmodel = load(fullfile(bsDataDir, 'headmodel_surf_os_meg_02.mat'));
+headmodel = load(fullfile(bsDataDir, headmodelFileName));
 
 % Get Gain matrix and truncate to not-nan sensors
 G = headmodel.Gain(keep_sensors,:); % [Nsensors x 3*Nvertices]
@@ -137,22 +153,54 @@ G_constrained = bst_gain_orient(G, headmodel.GridOrient); % [Nsensors x Nsources
 clear G
 
 
-%% 7. Load Gain matrix and set dipole perpendicular to surface
+%% 7. Load MEG data, get prediction, compare
 
-predMEG = G_constrained * predBOLD;
+% Get prediction
+MEG.pred = G_constrained * predBOLD;
 
+% Get data and conditions
+tmp = load(fullfile(megRetDir, 'Subject_sessions', subject, 'data', 'meg', 'preproc', 'pp', 'epoched_data_hp_preproc_denoised.mat'));
+MEG.data = tmp.data.data;
 conditions = load(fullfile(megRetDir, 'Subject_sessions', subject, 'data', 'meg', 'preproc', 'pp', 'megStimConditions.mat'));
 blinkIdx = conditions.triggers.stimConditions<20;
 
-predMEGNoBlinks = predMEG;
-predMEGNoBlinks(:, ~blinkIdx(1:140)) = NaN;
+% Remove blink periods
+MEG.predNoBlinks = MEG.pred;
+MEG.predNoBlinks(:, ~blinkIdx(1:140)) = NaN;
 
-chan = 14;
+% Get amplitudes at 10 Hz
+MEG.F = fft(MEG.data);
+flickerFreq = 10; % Hz
+fs = 1000; % Hz
+freqIdx = mprfFreq2Index(size(MEG.F,1), flickerFreq, fs);
 
-t = linspace(0, size(predMEGNoBlinks,2).*1.1, size(predMEGNoBlinks,2));
-figure; set(gcf, 'Color', 'w', 'Position', [788, 798, 1146, 540]);
-plot(t, predMEGNoBlinks(chan,:), 'k', 'LineWidth', 2);
-ylim([-5, 5].*10^-3); xlim([0,max(t)]);
-title('Predicted MEG response from Benson V1-V3 template')
-xlabel('time (s)'); ylabel('MEG response (AU)');
-set(gca, 'FontSize', 15, 'TickDir', 'out'); box off; 
+
+chan = 20;
+MEG.amps10 = nanmean(abs(MEG.F(freqIdx, :, :, chan)),3);
+
+% Get modelfit data
+d = dir(fullfile(megRetDir, 'Subject_sessions', subject, 'modeling', 'results', 'original_model', 'Run*', 'Results.mat'));
+MEG.modelData = load(fullfile(d.folder, d.name));
+MEG.datafit = MEG.modelData.results.orig_model.fit_data;
+
+% Plot data and prediction
+t = linspace(0, size(MEG.predNoBlinks,2).*1.1, size(MEG.predNoBlinks,2));
+
+%%
+
+fH = figure; set(gcf, 'Color', 'w', 'Position', [788, 798, 1146, 540]);
+
+for sensor = 1:size(MEG.datafit,2)
+    cla;
+    
+    plot(t, MEG.predNoBlinks(sensor,:), 'r', 'LineWidth', 2); hold on;
+    % plot(t, MEG.amps10.*10^7, 'ko-')
+    ylim([-1, 1].*10^-3); xlim([0,max(t)]);
+    title(sprintf('Sensor %d - Predicted MEG response from Benson V1-V3 template', sensor))
+    xlabel('time (s)'); ylabel('MEG response (AU)');
+    set(gca, 'FontSize', 15, 'TickDir', 'out'); box off; 
+    plot(t, MEG.datafit(:,sensor).*10^10, 'ko-')
+    
+    print(gcf, '-painters', '-depsc', fullfile(saveDir,sprintf('%d_bensonV123Pred', sensor)))
+end
+%% 
