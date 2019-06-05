@@ -14,7 +14,7 @@
 %% 0. Define parameters and paths
 
 % Define subject and data path
-subject       = 'wlsubj068';
+subject       = 'wlsubj004';
 fnameSingle   =  '*Ret*';          % case sensitive!
 dataPth       = '/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/';
 saveFigPth    = fullfile('/Volumes/server/Projects/MEG/Retinotopy/Quality_check/',subject, 'meg');
@@ -30,11 +30,11 @@ dataChan       = 1:157;
 fs             = 1000; % Sample rate (Hz)
 
 % Preprocessing options:
-verbose       = true;
+verbose       = false;
 doFiltering   = true;
 doDenoise     = true;
 doSaveData    = true;
-saveFig       = true; 
+saveFig       = false; 
 removeStartOfRunEpoch = false;
 
 if (saveFig && ~exist(saveFigPth, 'dir'))
@@ -119,7 +119,7 @@ triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
 totalStimEpochs               = length(triggers.onlyBarStim);
 
 % Derived stimulus information
-numOfOrientations             = length(triggerConditions((triggerConditions>0)&(triggerConditions<10))); % note, only 5 orientations for subj040 and 004, thus 140 epochs per run
+numOfOrientations             = length(triggers.stimConditions((triggers.stimConditions>0)&(triggers.stimConditions<10))); % note, only 5 orientations for subj040 and 004, thus 140 epochs per run
 numRuns                       = length(dir(fullfile(stimFilePth,'*stimulus*')));
 numOfEpochsPerOrientation     = totalStimEpochs / numOfOrientations / numRuns;
 
@@ -164,7 +164,7 @@ if verbose
         amps(1,:,:)=0; % Remove DC
         plot(ft,nanmean(amps,2)); hold on;
         plot([10 10], [0 max(nanmean(amps,2))])
-        xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
+        xlim([1 150]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
         title(sprintf('Mean FFT Amplitudes: Sensor %d', chan))
         set(gca, 'TickDir', 'out', 'FontSize', 14);
         if saveFig
@@ -251,7 +251,7 @@ if doDenoise
         cla
         plot(ft,nanmean(squeeze(amps),2)); hold on;
         plot([flickerFreq flickerFreq], [0 max(nanmean(squeeze(amps),2))]); title(chan);
-        xlim([0 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes');
+        xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
         set(gca, 'TickDir', 'out', 'FontSize', 14);
         if saveFig
             print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_fft_spectrum_postDenoise_sensor%d', subject,chan)))
