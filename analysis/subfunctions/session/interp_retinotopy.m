@@ -87,18 +87,18 @@ end
 
 %% Apply the interpolation
 
-if varargin{1}
-    highResPialSurface = 'tess_cortex_pial_high';
+if ~isempty(varargin)
+    pialSurface = 'tess_cortex_pial_high';
     sub_bsdir = fullfile(sub_bsdir, 'highres');
 else
-    highResPialSurface = [];
+    pialSurface = 'tess_cortex_pial_low';
     sub_bsdir = fullfile(sub_bsdir, 'lowres');
 end
 
 if ~exist(sub_bsdir, 'dir'); mkdir(sub_bsdir); end
 
 
-sub_fs_interp = @(dat)(tess_fs2bst(sub_bs, sub_fsdir, dat.lh, dat.rh, highResPialSurface));
+sub_fs_interp = @(dat)(tess_fs2bst(sub_bs, sub_fsdir, dat.lh, dat.rh, pialSurface));
 
 sub_bs_angle = sub_fs_interp(sub_fs_angle);
 sub_bs_eccen = sub_fs_interp(sub_fs_eccen);
