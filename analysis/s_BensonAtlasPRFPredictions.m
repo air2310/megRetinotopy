@@ -34,19 +34,32 @@ end
 % Define params
 subject     = 'wlsubj004';
 bsProtocol  = 'MEG_Retinotopy';
-highres     = false; % use 'normal' FS surface instead of downsampled surface
+highres     = true; % use 'normal' FS surface instead of downsampled surface
 
 % Define directories
 fsdir    = '/Volumes/server/Freesurfer_subjects'; % Freesurfer subjects 
 bsDB     = '/Volumes/server/Projects/MEG/brainstorm_db'; % Brainstorm Data base
 megRetDir   = '/Volumes/server/Projects/MEG/Retinotopy/'; % MEG retinotopy project on server
 
-saveDir  = fullfile(megRetDir, 'Quality_check', subject, 'BensonAtlasPred');
-if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+
 
 d = dir(fullfile(bsDB, bsProtocol, 'data', subject));
 bsDataDir = fullfile(bsDB, bsProtocol, 'data', subject, d(end).name);
 bsAnatDir = fullfile(bsDB, bsProtocol, 'anat', subject);
+
+% 
+if highres
+    subFolder = 'highres';
+    headmodelFileName = 'headmodel_surf_os_meg_02.mat';
+else
+    subFolder = 'lowres';
+    headmodelFileName = 'headmodel_surf_os_meg.mat';
+end
+
+% create folder to save figures
+saveDir  = fullfile(megRetDir, 'Quality_check', subject, 'BensonAtlasPred', subFolder);
+if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+
 
 %% 1.Create combined hemi template that matches vertices in BS Gain matrix 
 
@@ -62,14 +75,6 @@ end
 
 
 %% 2. Load retinotopy templates
-
-if highres
-    subFolder = 'highres';
-    headmodelFileName = 'headmodel_surf_os_meg_02.mat';
-else
-    subFolder = 'lowres';
-    headmodelFileName = 'headmodel_surf_os_meg.mat';
-end
 
 % Load V1-3 template with unitized phases in downsampled brainstorm format (computed by interp_retinotopy.m)
 areas    = load(fullfile(bsAnatDir, subFolder,'benson14areas_overlay.mat')); % [1xNsources] Every value between [-3,3] is inside V1-3, zeros refer to outside of visual cortex. CHECK: Positive values represent LH (?) Negative values RH (?)
