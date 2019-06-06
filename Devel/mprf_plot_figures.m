@@ -140,14 +140,12 @@ try
             
             % Original correlation
             fh_sl_map=figure;
-            megPlotMap(orig_results.results.corr_mat,[0 0.6],fh_sl_map,'jet',...
+            megPlotMap(orig_results.results.corr_mat,[0 0.6],fh_sl_map,'parula',...
                 'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
-            %saveas(fh_sl_map,strcat('sl_map','.jpg'));
             
             fh_sl_ph_map=figure;
-            megPlotMap(rad2deg(orig_results.results.PH_opt(1,:)),[0 360],fh_sl_ph_map,'jet',...
+            megPlotMap(rad2deg(orig_results.results.PH_opt(1,:)),[0 360],fh_sl_ph_map,'parula',...
                 'Phase values (data driven)',[],[],'interpmethod',interpmethod);
-            %saveas(fh_sl_ph_map,strcat('ph_map','.jpg'));
             
             chan = 15;
             figure,
@@ -178,7 +176,7 @@ try
                 hold off;
                 
                 fh_sl_diff_map=figure;
-                megPlotMap(orig_results.results.corr_mat - orig_results_2.results.corr_mat,[-0.5 0.5],fh_sl_map,'jet',...
+                megPlotMap(orig_results.results.corr_mat - orig_results_2.results.corr_mat,[-0.5 0.5],fh_sl_map,'parula',...
                     'VE diff',[],[],'interpmethod',interpmethod);
                 
             end
@@ -194,8 +192,10 @@ try
                 plot(timeAxis,orig_results.results.orig_model.fit_data(:,ch_cur),'ko-','LineWidth',1);
                 hold on; plot(timeAxis,orig_results.results.orig_model.preds(:,ch_cur),'r','LineWidth',2);
                 grid on; box off;
-                set(gca, 'XLim', [0 timeAxis(end)], 'YLim', [-50,50].*10^-15);
-                set(gca, 'YTick', linspace(-40*10^-15,40.*10^-15,5))
+                yl = max(abs([min(orig_results.results.orig_model.fit_data(:,ch_cur)),max(orig_results.results.orig_model.fit_data(:,ch_cur))]));
+                yl = round(yl./(10^-15)); yt = round(yl/10);
+                set(gca, 'XLim', [0 timeAxis(end)], 'YLim', [-1*yl,yl].*10^-15);
+                set(gca, 'YTick', linspace(-1*yt.*10^-14,yt.*10^-14,yt+1))
                 xlabel('Time (s)', 'FontSize', 15)
                 ylabel('Magnetic flux (Tesla)', 'FontSize', 15)
                 set(gca, 'Fontsize', 15, 'TickDir', 'out');
@@ -213,13 +213,13 @@ try
             
             % Original correlation
             fh_sl_map=figure;
-            megPlotMap(scr_results.results.orig_corr(:,1),[0 0.6],fh_sl_map,'jet',...
+            megPlotMap(scr_results.results.orig_corr(:,1),[0 0.6],fh_sl_map,'parula',...
                 'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
             %saveas(fh_sl_map,strcat('sl_map','.jpg'));
             
             % Scrambled correlation
             fh_sl_scr_map=figure;
-            megPlotMap(nanmedian(scr_results.results.scrambled_corr,2),[0 0.6],fh_sl_scr_map,'jet',...
+            megPlotMap(nanmedian(scr_results.results.scrambled_corr,2),[0 0.6],fh_sl_scr_map,'parula',...
                 'Phase ref fit stimulus locked scrambled',[],[],'interpmethod',interpmethod);
             %saveas(fh_sl_scr_map,strcat('sl_scr_map','.jpg'));
             
@@ -302,7 +302,7 @@ try
                 end
             end
             fh_sl_scr_indchan_map=figure;
-            megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'jet',...
+            megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'parula',...
                 'Phase ref fit stimulus locked scrambled -log10(p)',[],[],'interpmethod',interpmethod);
             
             good_chan = find(p_val_allchan > 2);
@@ -360,7 +360,7 @@ try
                     n_par_it = size(corr_tmp,1);
                     
                     fh_sl_scr_indchan_map=figure;
-                    megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'jet',...
+                    megPlotMap(p_val_allchan,[0 5],fh_sl_scr_indchan_map,'parula',...
                         'Phase ref fit stimulus locked scrambled -log10(p)',[],[],'interpmethod',interpmethod);
                     %saveas(fh_sl_scr_indchan_map,strcat('sl_scr_map','.jpg'));
                     
@@ -421,7 +421,7 @@ try
                     n_par_it = size(corr_tmp,1);
                     % for tmp_cnt=1:n_par_it
                     %     fh_sl_map=figure;
-                    %     megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'jet',...
+                    %     megPlotMap(corr_tmp(tmp_cnt,:),[0 0.6],fh_sl_map,'parula',...
                     %         'Phase ref fit stimulus locked',[],[],'interpmethod',interpmethod);
                     %
                     %     saveas(fh_sl_map,strcat('sl_map_',num2str(tmp_cnt),'.jpg'));
@@ -464,7 +464,7 @@ try
                     corr_ste_sl = corr_std_sl ./ sqrt(size(tmp_corr_sl,2));
                     corr_CI_sl = 1.96 .* corr_ste_sl;
                     
-                    fh_sl_VEparams = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
+                    fh_sl_VEparams = figure; set(gcf, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
                     
                     % Plot mean with shaded error bar using 'patch' function
                     lo = corr_avg_sl - corr_CI_sl;
@@ -488,7 +488,7 @@ try
                     title(sprintf('Variance explained %s sl locked', range_results.model.type));
                     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
                     ylabel('Variance explained (%)');
-                    F = getframe(fh_sl_VEparams);
+%                     F = getframe(fh_sl_VEparams);
                     
                     % Plot individual sensors and their topography per
                     % iteration of parameter change
@@ -539,36 +539,37 @@ try
             
             
             
-            corr_avg_sl_all = nanmean(corr_avg_sl_indsub,2);
-            corr_std_sl_all = nanstd(corr_avg_sl_indsub,0,2);
-            corr_ste_sl_all = corr_std_sl_all ./ sqrt(num_subs);
-            corr_CI_sl_all = 1.96 .* corr_ste_sl_all;
+            if size(corr_avg_sl_indsub,2)>1
+                corr_avg_sl_all = nanmean(corr_avg_sl_indsub,2);
+                corr_std_sl_all = nanstd(corr_avg_sl_indsub,0,2);
+                corr_ste_sl_all = corr_std_sl_all ./ sqrt(num_subs);
+                corr_CI_sl_all = 1.96 .* corr_ste_sl_all;
+
+                fh_sl_VEparams_all = figure; set(fh_sl_VEparams_all, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
             
-            fh_sl_VEparams_all = figure; set(gcf, 'Position', [1000, 592, 838, 746]);
-            
-            % Plot mean with shaded error bar using 'patch' function
-            lo_all = corr_avg_sl_all - corr_CI_sl_all;
-            hi_all = corr_avg_sl_all + corr_CI_sl_all;
-            color = [0.5 0.5 0.5];
-            err= patch([par_it, fliplr(par_it)], [lo_all', fliplr(hi_all')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
-            hold on;
-            plot(par_it,corr_avg_sl_all,'r','Linewidth',3);
-            
-            % Add labels and make pretty
-            set(gca,'TickDir', 'out');
-            if strcmpi(range_results.model.type,'prf size range')
-                xlabel('Size scaling factor (ratio)');
-                set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                set(gca, 'XScale', 'log');
-            elseif strcmpi(range_results.model.type,'position (x,y) range')
-                xlabel('Position (deg)');
-                set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                % Plot mean with shaded error bar using 'patch' function
+                lo_all = corr_avg_sl_all - corr_CI_sl_all;
+                hi_all = corr_avg_sl_all + corr_CI_sl_all;
+                color = [0.5 0.5 0.5];
+                err = patch([par_it, fliplr(par_it)], [lo_all', fliplr(hi_all')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+                hold all;
+                plot(par_it,corr_avg_sl_all,'r','Linewidth',3);
+
+                % Add labels and make pretty
+                set(gca,'TickDir', 'out');
+                if strcmpi(range_results.model.type,'prf size range')
+                    xlabel('Size scaling factor (ratio)');
+                    set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
+                    set(gca, 'XScale', 'log');
+                elseif strcmpi(range_results.model.type,'position (x,y) range')
+                    xlabel('Position (deg)');
+                    set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                end
+                xlim([par_it(1),par_it(end)]);
+                title(sprintf('Variance explained %s sl locked', range_results.model.type));
+                set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+                ylabel('Variance explained (%)');
             end
-            xlim([par_it(1),par_it(end)]);
-            title(sprintf('Variance explained %s sl locked', range_results.model.type));
-            set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-            ylabel('Variance explained (%)');
-            
         case 'reliability'
             
             %% Reliability plot
@@ -581,7 +582,7 @@ try
             %saveas(figPoint_rlve_map,strcat('rl_phrefAmp_rel_chan','.jpg'));
             
             fh_sl_rl_map=figure;
-            megPlotMap(med_corr,[0 0.6],fh_sl_rl_map,'jet',...
+            megPlotMap(med_corr,[0 0.6],fh_sl_rl_map,'parula',...
                 'reliability ph ref amplitude',[],[],'interpmethod',interpmethod);
             %saveas(fh_sl_rl_map,strcat('rl_phrefAmp_rel_map','.jpg'));
             
@@ -599,7 +600,7 @@ try
             
             diff_PH_opt = abs(wrapToPi(datafit_PH_opt - modelfit_PH_opt));
             fh_phd_map=figure;
-            megPlotMap(diff_PH_opt,[0 pi],fh_phd_map,'jet',...
+            megPlotMap(diff_PH_opt,[0 pi],fh_phd_map,'parula',...
                 'Phase diff: model and data fit',[],[],'interpmethod',interpmethod);
             
     end
@@ -658,15 +659,18 @@ try
     
     if strcmpi(model_type,'original model')
         
-        saveas(fh_sl_map,strcat('sl_map','.jpg')); % original map
-        
-        saveas(fh_sl_ph_map,strcat('ph_map','.jpg')); % Optimum phase map
-        
-        saveas(figPoint_ve_opt,'VE opt - Amp vs ph ref Amp','jpg'); % VE plot
+        print(fh_sl_map,'-painters', '-depsc', fullfile(save_dir,'sl_map')) % original map
+        print(fh_sl_ph_map,'-painters', '-depsc', fullfile(save_dir,'ph_map')) % Optimum phase map
+        print(figPoint_ve_opt, '-depsc', fullfile(save_dir,'VEopt-Amp_vs_phRefAmp')) % % VE plot
+
+%         saveas(fh_sl_map,strcat('sl_map','.jpg')); % original map        
+%         saveas(fh_sl_ph_map,strcat('ph_map','.jpg')); % Optimum phase map        
+%         saveas(figPoint_ve_opt,'VE opt - Amp vs ph ref Amp','jpg'); % VE plot
         
         for i=1:length(ch)
             ch_cur = ch(i);
-            saveas(figPoint_1{i},strcat(num2str(ch_cur),'phrefAmp'),'jpg'); % example time series
+            print(figPoint_1{i}, '-painters', '-depsc', fullfile(save_dir,sprintf('%d_phrefAmp', ch_cur))) % example time series
+%             saveas(figPoint_1{i},strcat(num2str(ch_cur),'phrefAmp'),'jpg'); % example time series
         end
         
         
@@ -691,19 +695,28 @@ try
     elseif strcmpi(model_type,'range')
         if strcmpi(chan_sel,'ind_scr')
             
-            saveas(figPoint_gdch_map,strcat('sl_gdch_map','.jpg')); % Good channels, channels with p<0.01
+            print(figPoint_gdch_map, '-depsc', fullfile(save_dir,'sl_gdch_map')) % Good channels, channels with p<0.01
+            print(fh_sl_scr_indchan_map, '-depsc', fullfile(save_dir,'sl_scr_indchan'))  % p value
+            print(fh_sl_VEparams, '-depsc', fullfile(save_dir,'sl_VEparams_map'))  %
             
-            saveas(fh_sl_scr_indchan_map,strcat('sl_scr_indchan','.jpg')); % p value
-            
-            imwrite(F.cdata, 'sl_VEparams_map.jpg' , 'jpg')
+%             saveas(figPoint_gdch_map,strcat('sl_gdch_map','.jpg')); % Good channels, channels with p<0.01            
+%             saveas(fh_sl_scr_indchan_map,strcat('sl_scr_indchan','.jpg')); % p value           
+%             imwrite(F.cdata, 'sl_VEparams_map.jpg' , 'jpg')
             
         else
             
-            imwrite(F.cdata, 'sl_VEparams_map.jpg' , 'jpg');% VE vs range param (either size or position)
-            saveas(fhMeshPerParamIter,strcat('sl_VEparams_individualMeshes','.jpg'));
-            saveas(fh_Ind_SL_VEparams,strcat('sl_VEparams_individualSensors','.jpg'));
-            saveas(fh_above50, strcat('sl_VEparams_individualSensors_above15prct','.jpg'));
-            saveas(fh_below50, strcat('sl_VEparams_individualSensors_below15prct','.jpg'));
+            print(fh_sl_VEparams, '-painters', '-depsc', fullfile(save_dir,'sl_VEparams_map'))  %
+            print(fhMeshPerParamIter, '-depsc', fullfile(save_dir,'sl_VEparams_individualMeshes'))  %
+            print(fh_Ind_SL_VEparams, '-depsc', fullfile(save_dir,'sl_VEparams_individualSensors'))  %
+            print(fh_above50, '-depsc', fullfile(save_dir,'sl_VEparams_individualSensors_above50prctle'))  %
+            print(fh_below50, '-depsc', fullfile(save_dir,'sl_VEparams_individualSensors_below50prctle'))  %
+            if exist('fh_sl_VEparams_all', 'var')
+                print(fh_sl_VEparams_all, '-depsc', fullfile(save_dir,'sl_VEparams_map'))  %
+            end
+            
+%             imwrite(F.cdata, 'sl_VEparams_map.jpg' , 'jpg');% VE vs range param (either size or position)
+%             saveas(fhMeshPerParamIter,strcat('sl_VEparams_individualMeshes','.jpg'));
+%             saveas(fh_Ind_SL_VEparams,strcat('sl_VEparams_individualSensors','.jpg'));
 
         end
         
