@@ -17,17 +17,21 @@ if isempty(which('mprf_computemetric.m'))
 end
 
 %% for sub 004 - pRF parameters in mrVista space [Smooth the parameters (x,y,sigma, beta)]
-sub = 'wlsubj004';
+sub = 'wlsubj068';
 data_type = 'Averages';
-rm_model = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/wl_subj004/Gray/Averages/retModel-20170519-155117-fFit.mat',sub);
-seg_file = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/3DAnatomy/t1_class.nii.gz',sub);
-mrVNif_prf_data = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/nifti',sub);
-rm_stim_file = fprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/source/mrvista/rm_stimulus/rm_stim.mat',sub);
-prf_mat = fprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/data_dir',sub);
+rm_model = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/vistaSession/Gray/Averages/rm_Averages-fFit.mat',sub);
+seg_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/Anatomy/%s/t1_class.nii.gz',sub);
+mrVNif_prf_data = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/nifti',sub);
+rm_stim_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/source/mrvista/rm_stimulus/rm_stim_rm_Averages-fFit.mat',sub);
+prf_mat = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/prf_data/data_dir',sub);
 
 % We need a volume view:
+
 hvol = initHiddenGray;
-vANATOMYPATH = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/fMRI/%s/3DAnatomy/t1.nii.gz',sub);
+anat_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Data/Anatomy/%s/t1.nii.gz',sub);
+setVAnatomyPath(anat_file);
+anat_value = niftiRead(anat_file);
+hvol = viewSet(hvol,'anatomy',anat_value.data);
 
 % Set the volume view to the current data type and add the RM model
 hvol = viewSet(hvol,'curdt',data_type);
@@ -45,7 +49,7 @@ cls = niftiRead(seg_file);
 
 % stimulus file 
 load(rm_stim_file);
-rm_stim = meg_stim;
+%rm_stim =  rm_stim;
 
 %%
 
@@ -137,7 +141,7 @@ for nn = 1:length(params)
             if strcmpi(cur_param,'x')
                 x0 = prf_par_exp.(cur_param);
                 x0_smooth = tmp_sm_par;
-            elseif strcmpi(cur_param,'y')
+            elseif strcmpi(cur_param,'y')                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
                 y0  = prf_par_exp.(cur_param);
                 y0_smooth = tmp_sm_par;
             elseif strcmpi(cur_param,'sigma')
@@ -484,8 +488,6 @@ bs_tag_dir = strcat(bs_roi_dir);
 save(fullfile(bs_tag_dir, 'bs_tag_to_idx'));
 
 
-
-
 %% Export parameters and ROI from freesurfer to brainstorm space
 
 bs_model_path = fprintf('/mnt/storage_2/MEG/Retinotopy/Data/Brainstorm_db/data/%s/R0774_RETMEG_Block1_5.12.17/',sub); 
@@ -669,5 +671,196 @@ for n=1:length(surfaces_to_load)
 end
         
         
+%% Make predictions for every vertex in brainstorm surface
+% Make predictions for every brainstorm vertex
+% pred_resp = mprf__predicted_prf_response(model, stimulus, prf, roi, iter);
+%
+% input - model (information about the different options that describes the model)
+%       - MEG stimulus
+%       - prf parameters on the brainstorm space
+%       - roi vertices on the brainstorm surfaces if available
+%
+% output - predicted response time series for every vertex on brainstorm
+%          surface
+
+% Folder to save output (predicted response at brainstorm vertices to MEG
+% stimulus
+bs_pred_resp = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/pred_resp_bs',sub);
+
+% MEG stimulus
+% CAN ALSO BE OBTAINED FROM MEG DATA FOLDER
+stim_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/stimuli/meg/imported_stimulus/meg_stimulus.mat',sub);
+tmp_stimulus = load(stim_file);
+stimulus  = tmp_stimulus.meg_stim;
+
+% brainstorm surface files folder 
+bs_surf_data = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/prf_data/surface/brainstorm',sub);
+
+% describe the model
+model_type = 'original (phase ref amplitude) (model fit) (leave one out)';
+model = mprf_generate_model_params(model_type);
+
+% path for the prf parameters on the brainstorm surface
+fpath_x0 = fullfile(bs_surf_data,'pial.x_smoothed');
+fpath_y0 =  fullfile(bs_surf_data,'pial.y_smoothed');
+fpath_sigma = fullfile(bs_surf_data,'pial.sigma_smoothed');
+fpath_beta = fullfile(bs_surf_data,'pial.recomp_beta');
+fpath_ve = fullfile(bs_surf_data,'pial.varexplained');
+
+% pRF parameters on brainstorm surface
+prf.x0.val = read_curv(fpath_x0);
+prf.y0.val = read_curv(fpath_y0);
+prf.sigma.val = read_curv(fpath_sigma);
+prf.beta.val = read_curv(fpath_beta);
+prf.ve.val = read_curv(fpath_ve);
+
+% predicted pRF response time series on brainstorm surface
+
+% Not using any roi mask. Should be changes to include ROIs (Wang atlas)
+roi.mask = ones(size(prf.x0.val));
+roi.idx_out = ones(size(prf.x0.val));
+
+rois = 1;
+pred_resp = {zeros(size(stimulus.im,2), size(roi.mask,1),numel(rois))};
+
+nn = 1;% number of rois 
+nnn = 1;% number of bootstrapping iterations
+cur_in = logical(roi.mask);
+
+
+if model.params.beta_thr
+    if model.params.beta_thr_vals(1) == 0
+        range = [prctile(prf.beta.val,0) - 1 prctile(prf.beta.val,model.params.beta_thr_vals(2))];
+        
+    else
+        range = [prctile(prf.beta.val,model.params.beta_thr_vals(1)) prctile(prf.beta.val,model.params.beta_thr_vals(2))];
+        
+    end
+    cur_in = cur_in & prf.beta.val > range(1) & prf.beta.val < range(2);
+    
+end
+
+if model.params.ve_thr
+    range = [model.params.ve_thr_vals(1) model.params.ve_thr_vals(2)];
+    cur_in = cur_in & prf.ve.val > range(1) & prf.ve.val < range(2);
+end
+
+orig_idx = zeros(size(cur_in));
+orig_idx(cur_in) = find(cur_in);
+for n = 1:1000:size(prf.sigma.val,1)
+    
+    end_idx = n+999;
+    if end_idx > size(prf.sigma.val,1)
+        end_idx = size(prf.sigma.val,1);
+    end
+    
+    
+    cur_good_data = cur_in(n:end_idx);
+    cur_orig_idx = orig_idx(n:end_idx);
+    
+    cur_sigma = prf.sigma.val(n:end_idx);
+    cur_sigma = cur_sigma(cur_good_data);
+    
+    
+    cur_X0 = prf.x0.val(n:end_idx);
+    cur_X0 = cur_X0(cur_good_data);
+    
+    
+    cur_Y0 = prf.y0.val(n:end_idx);
+    cur_Y0 = cur_Y0(cur_good_data);
+    
+    cur_beta = prf.beta.val(n:end_idx);
+    cur_beta = cur_beta(cur_good_data);
+    
+    cur_orig_idx = cur_orig_idx(cur_good_data);
+    
+    RF = rfGaussian2d(stimulus.X,stimulus.Y,cur_sigma,cur_sigma,false, cur_X0,cur_Y0);
+    cur_pred = bsxfun(@times, stimulus.im' * RF,cur_beta');
+    
+    pred_resp{nnn}(:,cur_orig_idx,nn) = cur_pred;
+    
+end
+
+disp(sum(sum(isnan(pred_resp{1}))));
+
+% Plot predicted response BS surface
+figure, plot(nanmean(pred_resp{1},2))
+
+% save predicted response to MEG stimuli for every brainstorm vertex
+save(fullfile(bs_pred_resp,'/pred_resp_bs'),'pred_resp');
+
+% pred_resp will now be converted to every meg sensor by multiplying it
+% with the gain matrix
+
+%% Predicted response at MEG sensors to MEG stimuli
+% Multiply with gain matrix to get the predictions per vertex
+% meg_resp = mprf__compute_predicted_meg_response(bs, pred_resp, channels);
+% input - gain matrix
+%       - predicted response time series for every vertex on brainstorm
+%         surface 
+%       - channel information 
+%
+% output - predicted response time series for every channel on MEG surface
+
+% head model
+% CAN ALSO BE OBTAINED FROM BRAINSTORM FOLDER DIRECTLY
+bs.model_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/source/brainstorm/head_model/head_model_tess_cortex_pial_low.mat',sub);
+load(bs.model_file);
+bs.lead_field = bst_gain_orient(bs_model.Gain,bs_model.GridOrient);
+bs.lead_field2 = bs.lead_field(~isnan(bs.lead_field(:,1)),:); % Remove NaNs....
+bs.keep_sensors = ~isnan(bs.lead_field(:,1));
+
+% predicted response at brainstorm vertices to MEG stimulus
+bs_pred_resp = sprintf('/mnt/storage_2/MEG/Retinotopy/Quality_check/%s/pred_resp_bs',sub);
+load(fullfile(bs_pred_resp,'pred_resp_bs.mat'));
+
+% MEG  Channels
+channels.data = 0:156; % MEG channels in which MEG data is acquired
+channels.trigger = 160:167; % MEG channels used as triggers
+channels.diode = 191; % Channel for collecting diode values
+
+
+
+if iscell(pred_resp)
+    sz_cell = size(pred_resp,2);
+    meg_resp = cell(size(pred_resp));
+    
+    for n = 1:sz_cell
+        fprintf('Iteration: %d\n',n)
+        cur_pred = pred_resp{n};
         
         
+        if size(cur_pred,3) == 1
+            meg_resp{n} = cur_pred * bs.lead_field(bs.keep_sensors,:)';
+            meg_resp{n} = meg_resp{n}(:,channels.data+1);
+            
+        else
+            % loop over ROIs here
+            error('Not implemented')
+        end
+        
+    end
+end   
+
+
+
+%%
+
+meg_data_file_path = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/data/meg/preproc/pp/epoched_data_hp_preproc_denoised.mat',sub);
+plot_figure = 1;
+
+pred.pred_resp = pred_resp;
+pred.prf = prf;
+pred.bs = bs;
+pred.roi = roi;
+pred.model = model;
+pred.stimulus = stimulus;
+pred.syn = 0;
+pred.meg_resp = meg_resp;
+pred.channels = channels;
+cur_time = datestr(now);
+cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
+pred.cur_time = cur_time;
+
+mprfSession_run_original_model_server(pred,meg_data_file_path,plot_figure);
+

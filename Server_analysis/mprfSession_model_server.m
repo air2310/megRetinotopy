@@ -39,7 +39,6 @@ if ~exist('model_type','var') || isempty(model_type)
     model_type = 'original (phase ref amplitude) (model fit) (leave one out)';
 end
 
-
 % Adding the variable arguments to model
 if nargin > 3
     addArg = varargin;
@@ -47,11 +46,8 @@ else
     addArg = [];
 end
 
-
-
 % Creates a file containing all the information about the model to run
 [params,~] = mprf_make_params(save_path,model_type,addArg); 
-
 
 % Script to run the model based on the parameters from the params_file
 mprfSession_run_model_server(params,meg_data_file,0);
