@@ -805,7 +805,7 @@ save(fullfile(bs_pred_resp,'/pred_resp_bs'),'pred_resp');
 % head model
 % CAN ALSO BE OBTAINED FROM BRAINSTORM FOLDER DIRECTLY
 bs.model_file = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/source/brainstorm/head_model/head_model_tess_cortex_pial_low.mat',sub);
-load(bs.model_file);
+bs_model = load(bs.model_file);
 bs.lead_field = bst_gain_orient(bs_model.Gain,bs_model.GridOrient);
 bs.lead_field2 = bs.lead_field(~isnan(bs.lead_field(:,1)),:); % Remove NaNs....
 bs.keep_sensors = ~isnan(bs.lead_field(:,1));
@@ -846,7 +846,7 @@ end
 
 %%
 
-meg_data_file_path = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/data/meg/preproc/pp/epoched_data_hp_preproc_denoised.mat',sub);
+meg_data_file_path = sprintf('/mnt/storage_2/MEG/Retinotopy/Subject_sessions/%s/data/meg/preproc/pp/epoched_data_hp_preproc_denoised.mat',subjid);
 plot_figure = 1;
 
 pred.pred_resp = pred_resp;
