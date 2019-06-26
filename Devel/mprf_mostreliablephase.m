@@ -10,7 +10,7 @@ function [PH_opt,VE_opt] = mprf_mostreliablephase(ft_data,opts,meg_resp)
 %              stimulus frequency, metric
 %
 
-ph_range = -3.14:0.314:3.14; % range of values to search for the reference phase
+ph_range = linspace(0,pi,20); %-3.14:0.314:3.14; % range of values to search for the reference phase
 %VE_fit_alang = nan(size(ph_range,2),opts.n_chan);
 ang_opt = nan(1,opts.n_chan);
 PH_opt = nan(1,opts.n_chan);
