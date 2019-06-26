@@ -41,9 +41,17 @@ dirPth = loadPaths(subjID);
 
 %% MEG 
 
+% Preprocessing options:
+opt.verbose       = false;
+opt.doFiltering   = true;
+opt.doDenoise     = true;
+opt.doSaveData    = true;
+opt.saveFig       = false; 
+opt.removeStartOfRunEpoch = false;
+
 % Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
 % (matfile, MEG sensors x epochs x time points x run nr) 
-data  = preprocessMEGRetinotopyData(subjID, dirPth);
+data  = preprocessMEGRetinotopyData(subjID, dirPth, opt);
 
 % Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
 % stim  = xxx(subjID, dirPth);
