@@ -1,7 +1,17 @@
-function out = preprocessMEGRetinotopyData(subjID, dirPth)
+function out = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 %
 % This function contains main analysis to preprocess subject's MEG data,
 % from the MEG Retinotopy project.
+%
+% Workflow:
+%   0. Define parameters and paths
+%   1. Load MEG data
+%   2. Get Triggers
+%   3. Epoching
+%   4. Filter MEG data
+%   5. Label bad channels / epochs
+%   6. Denoise time series
+%   7. Reblock and save prepreocessed timeseries
 %
 % This script relies on the following toolboxes:
 % * meg_utils
@@ -19,66 +29,76 @@ photoDiodeChan = 192;
 dataChan       = 1:157;
 fs             = 1000; % Sample rate (Hz)
 
-% Preprocessing options:
-verbose       = false;
-doFiltering   = true;
-doDenoise     = true;
-doSaveData    = true;
-saveFig       = false; 
-removeStartOfRunEpoch = false;
+% Experiment info
+flickerFreq    = 10;   % Hz
+epochStartEnd  = [0.15 (0.15+1.1)]; % s (First 150 ms are blank, one epoch length = 1.100 s)
 
-if (saveFig && ~exist(saveFigPth, 'dir'))
-    mkdir(saveFigPth);
+
+
+% Make folder to save figure
+if (opt.saveFig && ~exist(dirPth.meg.saveFigPth, 'dir'))
+    mkdir(dirPth.meg.saveFigPth);
 end
-    
 
-% Make 'processed' folder to save time series
-if removeStartOfRunEpoch
-    savePth = fullfile(dataPth, subject, 'processed', 'firstEpochRemoved');
+% Define and create 'processed' folder to save time series
+if opt.removeStartOfRunEpoch
+    savePth = fullfile(dirPth.meg.dataPth, subjID, 'processed', 'firstEpochRemoved');
 else
-    savePth = fullfile(dataPth, subject, 'processed', 'allEpochs');
+    savePth = fullfile(dirPth.meg.dataPth, subjID, 'processed', 'allEpochs');
 end
 
 if ~exist(savePth, 'dir'); mkdir(savePth); end
 
 % Go to dataPth
 curDir = pwd;
-cd(dataPth);
+cd(dirPth.meg.dataPth);
 
 %% 1. Load MEG data
 
-if verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
-[ts, meg_files] = meg_load_sqd_data(rawSqdPath, '*Ret*');
+if opt.verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
+[ts, meg_files] = meg_load_sqd_data(dirPth.meg.rawSqdPath, '*Ret*');
        
 
 %% 2. Get Triggers
     
-if verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
+if opt.verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 
 % Trigger number legend:
 % 1-8 = barsweep orientations
 % 10  = blank
 % 20  = blink
-% 
 
-if strcmp('wlsubj058',subject) % subject got some trigger missings during experiment, thus needs its own function
+% Some subjects have triggers missing (wlsubj058), or extra random triggers
+% (wlsubj040) which cannot be filtered out by our general meg_fix_triggers 
+% function. Therefore, these subjects have their own (modified) version of 
+% that function.
+% Output of triggers.ts is time x chan (function from meg_utils)
+if strcmp('wlsubj058',subjID) 
     triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
-elseif strcmp('wlsubj040', subject)  % subject got random extra triggers and needs its own function
+elseif strcmp('wlsubj040', subjID) 
     triggers.ts = meg_fix_triggers_wlsubj040(ts(triggerChan,:)');
 else
-    triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); % (ts should be time x chan, function from meg_utils)
+    triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); 
 end
 
 triggers.timing = find(triggers.ts);
 
 % For subject wlsubj030: remove first trigger (not sure why this one is here)
-if strcmp(subject, 'wlsubj030'); triggers.ts(triggers.timing(1)) = 0; triggers.timing = find(triggers.ts); end;
-% For subject wlsubj004: remove half run
-if strcmp(subject, 'wlsubj004'); triggers.ts(697111:729608) = 0; triggers.timing = find(triggers.ts); end
+if strcmp(subjID, 'wlsubj030') 
+    triggers.ts(triggers.timing(1)) = 0;
+    triggers.timing = find(triggers.ts); 
+end
 
+% For subject wlsubj004: remove half run -- (ek): not sure why there is one..
+if strcmp(subjsubjIDect, 'wlsubj004') 
+    triggers.ts(697111:729608) = 0; 
+    triggers.timing = find(triggers.ts); 
+end
 
+% Check the median trigger length (should be 1300 ms)
 medianTriggerLength = median(diff(triggers.timing));
-if verbose
+
+if opt.verbose
     fprintf('Median trigger length is %d samples\n', medianTriggerLength);
     triggerConditions = unique(triggers.ts);
     for ii = 1:length(triggerConditions(triggerConditions>0))+1
@@ -88,8 +108,8 @@ if verbose
     % Plot triggers   
     figure; plot(triggers.ts); title('Triggers'); xlabel('Time (ms)'); ylabel('trigger number');
     set(gca, 'TickDir', 'out', 'FontSize', 14);
-    if saveFig
-        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers', subject)))
+    if opt.saveFig
+        print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_triggers', subjID)))
     end
 end
 
@@ -100,9 +120,8 @@ end
 triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
 
-% save stimulus conditions
-if doSaveData; save(fullfile(savePth, 'megStimConditions.mat'), 'triggers'); end
-
+% Save stimulus conditions
+if opt.doSaveData; save(fullfile(savePth, 'megStimConditions.mat'), 'triggers'); end
 
 % Epoch information about stimulus (bar sweep) epochs
 triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
@@ -113,11 +132,10 @@ numOfOrientations             = length(triggers.stimConditions((triggers.stimCon
 numRuns                       = length(dir(fullfile(stimFilePth,'*stimulus*')));
 numOfEpochsPerOrientation     = totalStimEpochs / numOfOrientations / numRuns;
 
-epochStartEnd                 = [.150 (.150+1.100)]; % s (First 150 ms are blank, one epoch length = 1.100 s)
-flickerFreq                   = 10; % Hz
 
-if verbose; sprintf('(%s) Epoch data...\n', mfilename); end
-[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subject); % time x epochs x channels
+if opt.verbose; sprintf('(%s) Epoch data...\n', mfilename); end
+% Epoch matrix dimensions: time x epochs x channels
+[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subjID); 
 
 % get size of data before removing epochs
 sz = size(data);
@@ -129,13 +147,13 @@ data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 % Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
 % do this? Maybe consider not doing this since we already remove the first
 % 150 ms of every epoch?)
-if removeStartOfRunEpoch
+if opt.removeStartOfRunEpoch
     data(:, startOfRun, :) = NaN;
 end
     
 
 % Plot a single channel to check data
-if verbose
+if opt.verbose
     t = (1:size(data,1))./fs;
     ft = (0:length(t)-1)/max(t);
     
