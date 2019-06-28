@@ -89,27 +89,27 @@ area.v3 = (areas.sub_bs_areas==3);
 
 
 % plot prf size by eccentricity
-fn = fieldnames(area);
-figure; hold all;
+% fn = fieldnames(area);
+% figure; hold all;
 
-colorLines = hsv(length(fn));
-for ii = 1:length(fn)
-    theseVertices = area.(fn{ii});
-    tmp = [eccen.sub_bs_eccen(theseVertices), sigma.sub_bs_sigma(theseVertices)];
-    [val, ia, idx]  = unique(tmp(:,1), 'stable');
-    binsize = sum(tmp(:,1)==unique(tmp(:,1))');
-    
-    mnEccenVsSize.(fn{ii}) = sort([val(:), accumarray( idx, tmp(:,2), [], @mean ) ], 1);
-    seEccenVsSize.(fn{ii}) = sort([val(:), accumarray( idx, tmp(:,2), [], @std ) ./binsize ], 1);
-    
-    lo = mnEccenVsSize.(fn{ii})(:,2) - seEccenVsSize.(fn{ii})(:,2);
-    hi = mnEccenVsSize.(fn{ii})(:,2) + seEccenVsSize.(fn{ii})(:,2);
-    
-    color = [0.5 0.5 0.5];
-    err = patch([mnEccenVsSize.(fn{ii})(:,1); fliplr(mnEccenVsSize.(fn{ii})(:,1))], [lo; fliplr(hi)], color, 'FaceAlpha', 0.5);
-%     plot(mnEccenVsSize.(fn{ii})(:,1), mnEccenVsSize.(fn{ii})(:,2), 'Color', colorLines(ii,:), 'LineWidth', 2);
-
-end
+% colorLines = hsv(length(fn));
+% for ii = 1:length(fn)
+%     theseVertices = area.(fn{ii});
+%     tmp = [eccen.sub_bs_eccen(theseVertices), sigma.sub_bs_sigma(theseVertices)];
+%     [val, ia, idx]  = unique(tmp(:,1), 'stable');
+%     binsize = sum(tmp(:,1)==unique(tmp(:,1))');
+%     
+%     mnEccenVsSize.(fn{ii}) = sort([val(:), accumarray( idx, tmp(:,2), [], @mean ) ], 1);
+%     seEccenVsSize.(fn{ii}) = sort([val(:), accumarray( idx, tmp(:,2), [], @std ) ./binsize ], 1);
+%     
+%     lo = mnEccenVsSize.(fn{ii})(:,2) - seEccenVsSize.(fn{ii})(:,2);
+%     hi = mnEccenVsSize.(fn{ii})(:,2) + seEccenVsSize.(fn{ii})(:,2);
+%     
+%     color = [0.5 0.5 0.5];
+%     err = patch([mnEccenVsSize.(fn{ii})(:,1); fliplr(mnEccenVsSize.(fn{ii})(:,1))], [lo; fliplr(hi)], color, 'FaceAlpha', 0.5);
+% %     plot(mnEccenVsSize.(fn{ii})(:,1), mnEccenVsSize.(fn{ii})(:,2), 'Color', colorLines(ii,:), 'LineWidth', 2);
+% 
+% end
 
 %% 3. Get x,y coords from polar angle and eccen
 
@@ -164,24 +164,12 @@ clear G
 MEG.pred = G_constrained * predBOLD;
 
 % Get data and conditions
-tmp = load(fullfile(megRetDir, 'Subject_sessions', subject, 'data', 'meg', 'preproc', 'pp', 'epoched_data_hp_preproc_denoised.mat'));
-MEG.data = tmp.data.data;
 conditions = load(fullfile(megRetDir, 'Subject_sessions', subject, 'data', 'meg', 'preproc', 'pp', 'megStimConditions.mat'));
 blinkIdx = conditions.triggers.stimConditions<20;
 
 % Remove blink periods
 MEG.predNoBlinks = MEG.pred;
 MEG.predNoBlinks(:, ~blinkIdx(1:140)) = NaN;
-
-% Get amplitudes at 10 Hz
-MEG.F = fft(MEG.data);
-flickerFreq = 10; % Hz
-fs = 1000; % Hz
-freqIdx = mprfFreq2Index(size(MEG.F,1), flickerFreq, fs);
-
-
-chan = 20;
-MEG.amps10 = nanmean(abs(MEG.F(freqIdx, :, :, chan)),3);
 
 % Get modelfit data
 d = dir(fullfile(megRetDir, 'Subject_sessions', subject, 'modeling', 'results', 'original_model', 'Run*', 'Results.mat'));
@@ -195,17 +183,30 @@ t = linspace(0, size(MEG.predNoBlinks,2).*1.1, size(MEG.predNoBlinks,2));
 
 fH = figure; set(gcf, 'Color', 'w', 'Position', [788, 798, 1146, 540]);
 
+yl = max([max(MEG.datafit(:,sensor)), abs(min(MEG.datafit(:,sensor)))]);
+yl_ft = yl.*10^15;
+
+yt = round(round(yl_ft))+1;
+
+
+
 for sensor = 1:size(MEG.datafit,2)
     cla;
     
-    plot(t, MEG.predNoBlinks(sensor,:), 'r', 'LineWidth', 2); hold on;
-    % plot(t, MEG.amps10.*10^7, 'ko-')
-    ylim([-1, 1].*10^-3); xlim([0,max(t)]);
-    title(sprintf('Sensor %d - Predicted MEG response from Benson V1-V3 template', sensor))
-    xlabel('time (s)'); ylabel('MEG response (AU)');
-    set(gca, 'FontSize', 15, 'TickDir', 'out'); box off; 
-    plot(t, MEG.datafit(:,sensor).*10^10, 'ko-')
+    predToPlot = MEG.predNoBlinks(sensor,:) .*10.^-11;
     
+    plot(t, MEG.datafit(:,sensor), 'ko-'); hold on;
+    plot(t, predToPlot, 'r', 'LineWidth', 2);
+    plot(t, MEG.modelData.results.orig_model.preds(:, sensor), 'g','LineWidth', 2);
+    plot(t, zeros(size(t)), 'k');
+    
+    ylim([-1*yt,yt].*10^-14); xlim([0,max(t)]);
+    title(sprintf('Sensor %d - Predicted MEG response with predictions from Benson template vs orig prf', sensor))
+    xlabel('time (s)'); ylabel('Stimulus-locked MEG response (fT)');
+    set(gca, 'FontSize', 15, 'TickDir', 'out'); box off; 
+    
+    legend({'Data', 'pred from Benson V123 prfs', 'pred from fMRI prfs'}); legend boxoff
+
     print(gcf, '-painters', '-depsc', fullfile(saveDir,sprintf('%d_bensonV123Pred', sensor)))
 end
 %% 
