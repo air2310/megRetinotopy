@@ -479,10 +479,10 @@ try
                     if strcmpi(range_results.model.type,'prf size range')
                         xlabel('Size scaling factor (ratio)');
                         set(gca,'XTick', [0.2, 0.5, 1.0, 1.5, 3.0, 5.0, 10],'XTickLabel',{'0.2', '0.5', '1.0', '1.5', '3.0', '5.0', '10'});
-                        set(gca, 'XScale', 'log');
+                        set(gca, 'XScale', 'log', 'YLim', [0 0.25]);
                     elseif strcmpi(range_results.model.type,'position (x,y) range')
                         xlabel('Position (deg)');
-                        set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range));
+                        set(gca,'XTick', par_it,'XTickLabel',rad2deg(range_results.model.params.x0_range), 'YLim', [0 0.25]);
                     end
                     xlim([par_it(1),par_it(end)]);
                     title(sprintf('Variance explained %s sl locked', range_results.model.type));
