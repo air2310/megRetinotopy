@@ -33,44 +33,6 @@ hvol = rmSelect(hvol,1,rm_model);
 % zeros:
 sm_mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
 
-if plot_results == 1
-   ve = rmGet(hvol.rm.retinotopyModels{1},'varexplained');
-   sigma = rmGet(hvol.rm.retinotopyModels{1},'sigma');
-   ecc = rmGet(hvol.rm.retinotopyModels{1},'ecc');
-   pol = rmGet(hvol.rm.retinotopyModels{1},'pol');
-   
-   % prf parameters on mrVista surface
-    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-   % Smooth the mesh
-    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
-   
-   % update map values
-   prf_param = prf_par_exp.y_smoothed;
-   thr = sm_mask & ecc<20;
-   
-   map_val = nan(size(prf_param));
-   map_val(thr) = prf_param(thr);
-      
-   hvol = viewSet(hvol,'displaymode','map');
-   hvol = viewSet(hvol,'map',{map_val});
-   hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
-   
-   % different colormaps for phase values
-   
-   % Update mesh
-    hvol = meshColorOverlay(hvol,1);
-    
-   figure; hist(ve,100);
-   h = findobj(gca,'Type','patch');
-   h.FaceColor = [0 0.5 0.5];
-   h.EdgeColor = 'w';
-   
-   figure, 
-   c = sm_mask;
-   scatter(ecc,sigma,[],c);
-  
-end 
-
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
 % We need the mrVista segmentation to check if the selection of pRF
@@ -222,25 +184,5 @@ end
 fname = fullfile(prf_mat_dir,'exported_prf_params.mat');
 save(fname, 'prf_par_exp');
 
-
-%% building mrMesh and displaying parameters on the mesh
-
-visualize =0;
-if visualize == 1
-    % Build mesh
-    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-    
-    % Smooth the mesh
-    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
-    
-    % Load Roi local. for shared change the second 1 to 0
-    %hvol = loadROI(hvol, 'dialog', [],[],1,1); hvol = selectCurROISlice(hvol); hvol = refreshScreen(hvol,0);
-    
-    % Load prf parameter on the mesh
-    hvol.map = prf_par_exp.sigma_smoothed;
-    hvol = refreshScreen(hvol,0);
-    
-    % Update mesh
-    hvol = meshColorOverlay(hvol);
 end
 

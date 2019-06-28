@@ -84,7 +84,7 @@ prf.ve.val = read_curv(fpath_ve);
 
 % predicted pRF response time series on brainstorm surface
 
-% Not using any roi mask. Should be changes to include ROIs (Wang atlas)
+% Not using any roi mask. Should be changed to include ROIs (Wang atlas)
 roi.mask = ones(size(prf.x0.val));
 roi.idx_out = ones(size(prf.x0.val));
 

@@ -168,7 +168,7 @@ end
 
 % Both hemisphere:
 hs = {'LEFT','RIGHT'};
-roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/fMRI/%s/Gray/ROIs',subjid);
+roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s/ROIs',subjid);
 fs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/freesurfer',subjid);
 bs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',subjid);
 

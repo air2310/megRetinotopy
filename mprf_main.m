@@ -51,11 +51,15 @@
      dir_pth.mrSession_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession',subjid);
      dir_pth.prf_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data',subjid); % folder to save prf params (contains folders- nifti(.nii files), data_dir(.mat files))
      
-     mprf_pRF_sm(subjid,dir_pth,1) % pRF params from mrV >> smoothed pRF params on mrV
-
+     mprf_pRF_sm(subjid,dir_pth,0) % pRF params from mrV >> smoothed pRF params on mrV
+     mprf_pRF_sm_fig; % Generates summary figures for the pRF parameters after smoothing
+     
      mprf_pRF_sm_FS(subjid) % smoothed pRF params on mrV >> smoothed pRF params on FS
+     mprf_pRF_sm_FS_fig;
      
      mprf_pRF_sm_FS_BS(subjid) % smoothed pRF params on FS >>  smoothed pRF params on BS
+     mprf_pRF_sm_FS_BS_fig;
+     
      
      % smoothed prf parameters + ROIs on BS (pial) surface saved 
      
