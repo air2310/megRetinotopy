@@ -1,4 +1,3 @@
-
 %% mprf_main
 %
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions 
@@ -43,7 +42,7 @@ dirPth = loadPaths(subjID);
 %% MEG 
 
 % Preprocessing options:
-opt.verbose       = false;
+opt.verbose       = true;
 opt.doFiltering   = true;
 opt.doDenoise     = true;
 opt.doSaveData    = true;
