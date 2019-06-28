@@ -1,26 +1,38 @@
-function mprf_pRF_sm_FS(subjid)
+function mprf_pRF_sm_FS(dirPth)
 
-% smoothed pRF parameters
-prf_mat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data',subjid); 
-prf_mat = strcat(prf_mat_dir,'/data_dir');
-% freesurfer directory
-FS_surface = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects/%s/surf',subjid);
-% save prf parameters in freesurfer space in this folder 
-fs_prf_data = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data/surface/freesurfer',subjid);
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
 
-Anat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s',subjid);
-mrSession_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession',subjid);
+anat_dir = dirPth.mri.anatPth; 
+anat_file = strcat(rootDir,anat_dir(2:end),'/t1.nii.gz');
+roi_dir = strcat(rootDir,anat_dir(2:end),'/ROIs/');
 
+freesurfer_surface = strcat(rootDir,dirPth.freesurfer.surfPth(2:end));
+
+mrSession_dir = dirPth.fmri.mrvPth; 
+
+prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
+prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat');
+
+% directories to save results
+% original and smoothed pRF parameters in mrVista space in .nii 
+prf_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_prfFS(2:end));
+roi_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_roiFS(2:end));
+roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
+% ----------
+
+
+% step inside the vistasession directory contain mrSESSION.mat
 cd(mrSession_dir);
 % We need a volume view:
 data_type = 'Averages';
-anat_file = strcat(Anat_dir,'/t1.nii.gz');
 setVAnatomyPath(anat_file);
 hvol = initHiddenGray;
 % Set the volume view to the current data type and add the RM model
 hvol = viewSet(hvol,'curdt',data_type);
 % from mrVista session directory
-if strcmpi(subjid,'wlsubj004')
+if strcmpi(dirPth.subjID,'wlsubj004')
     rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_retModel-20170519-155117-fFit.mat');
 else
     rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_Averages-fFit.mat');
@@ -37,8 +49,8 @@ mmPerVox = viewGet(hvol,'mmpervox');
 % rois.
 surfaces_to_load = {'lh.pial','rh.pial'};
 
-data_file = dir(fullfile(prf_mat,'*.mat'));
-load(fullfile(prf_mat,data_file.name));
+data_file = dir(fullfile(prf_data_mrVmat,'*.mat'));
+load(fullfile(prf_data_mrVmat,data_file.name));
 
 % Loop over all the parameters stored in the exported data file:
 if ~exist('prf_par_exp', 'var')
@@ -57,7 +69,7 @@ has_y_sm = false;
 
 for n = 1:length(surfaces_to_load)
     
-    cur_surf = fullfile(FS_surface,surfaces_to_load{n});
+    cur_surf = fullfile(freesurfer_surface,surfaces_to_load{n});
     
     tmp = strsplit(surfaces_to_load{n},'.');
     cur_hs = tmp{1};
@@ -117,11 +129,11 @@ for n = 1:length(surfaces_to_load)
         if has_x && has_y
             [tmp_ang, tmp_ecc] = cart2pol(x_pos, y_pos);
             
-            fname = fullfile(fs_prf_data,[cur_hs '.polar_angle']);
+            fname = fullfile(prf_dir_FS,[cur_hs '.polar_angle']);
             write_curv( fname,tmp_ang, fnum);
             fprintf('Polar angle\n')
             
-            fname = fullfile(fs_prf_data,[cur_hs '.eccentricity']);
+            fname = fullfile(prf_dir_FS,[cur_hs '.eccentricity']);
             write_curv( fname,tmp_ecc, fnum);
             fprintf('Eccentricity\n')
             has_x = false;
@@ -134,12 +146,12 @@ for n = 1:length(surfaces_to_load)
             [tmp_ang, tmp_ecc] = cart2pol(x_pos_sm, y_pos_sm);
             
             
-            fname = fullfile(fs_prf_data,[cur_hs '.polar_angle_smoothed']);
+            fname = fullfile(prf_dir_FS,[cur_hs '.polar_angle_smoothed']);
             write_curv( fname,tmp_ang, fnum);
             fprintf('Polar angle smoothed\n')
             
             
-            fname = fullfile(fs_prf_data,[cur_hs '.eccentricity_smoothed']);
+            fname = fullfile(prf_dir_FS,[cur_hs '.eccentricity_smoothed']);
             write_curv( fname,tmp_ecc, fnum);
             fprintf('Eccentricity smoothed\n')
             
@@ -150,7 +162,7 @@ for n = 1:length(surfaces_to_load)
         
         
         % output the results:
-        fname = fullfile(fs_prf_data,[cur_hs '.' cur_par_name]);
+        fname = fullfile(prf_dir_FS,[cur_hs '.' cur_par_name]);
         write_curv(fname,tmp, fnum);
         fprintf('%s\n', cur_par_name)
     end
@@ -168,9 +180,6 @@ end
 
 % Both hemisphere:
 hs = {'LEFT','RIGHT'};
-roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s/ROIs',subjid);
-fs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/freesurfer',subjid);
-bs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',subjid);
 
 for nn = 1:length(surfaces_to_load)
     if strfind(surfaces_to_load{nn},'lh.')
@@ -202,7 +211,7 @@ for nn = 1:length(surfaces_to_load)
     
     % Create a mesh from freesurfer:
     [~,cur_hs] = fileparts(surfaces_to_load{nn});
-    cur_surf = fullfile(FS_surface,surfaces_to_load{nn});
+    cur_surf = fullfile(freesurfer_surface,surfaces_to_load{nn});
     mrv_msh = mprf_fs_meshFromSurface(cur_surf);
     
     % Add the vertexGrayMap field to mesh properties
@@ -295,7 +304,7 @@ for nn = 1:length(surfaces_to_load)
             tmp(pruned_roi_inds{n}) = cnt;
             
             out_file_name = [cur_hs '.' roi_name(2:end)];
-            fname = fullfile(fs_roi_dir,out_file_name);
+            fname = fullfile(roi_dir_FS,out_file_name);
             
             write_curv(fname, tmp,1);
             
@@ -315,20 +324,20 @@ for nn = 1:length(surfaces_to_load)
         warning('The combined ROI could not be created for %s',cur_hs)
         
     else
-        fname = fullfile(fs_roi_dir,out_file_name);
+        fname = fullfile(roi_dir_FS,out_file_name);
         write_curv(fname, all_rois,1);
     end
     
     mask = isnan(all_rois);
     out_file_name2 = [cur_hs '.all_rois_mask'];
     
-    fname = fullfile(fs_roi_dir,out_file_name2);
+    fname = fullfile(roi_dir_FS,out_file_name2);
     write_curv(fname, mask,1);
     
 end
 
-fs_tag_dir = strcat(fs_roi_dir);
+fs_tag_dir = strcat(roi_dir_FS);
 save(fullfile(fs_tag_dir, 'fs_tag_to_idx'));
 
-bs_tag_dir = strcat(bs_roi_dir);
+bs_tag_dir = strcat(roi_dir_BS);
 save(fullfile(bs_tag_dir, 'bs_tag_to_idx'));

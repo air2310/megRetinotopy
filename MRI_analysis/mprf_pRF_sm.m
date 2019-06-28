@@ -1,30 +1,41 @@
-function mprf_pRF_sm(subjid,dir_pth,plot_results)
+function mprf_pRF_sm(dirPth,plot_stim)
 % mprf_pRF_sm - Smooth (without interpolation,VE_thr=0) prf parameters on the mrVista volume view  
 %                  
 %
 %
 
-Anat_dir = dir_pth.Anat_dir; 
-mrSession_dir = dir_pth.mrSession_dir; 
-cd(mrSession_dir);
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
+
+anat_dir = dirPth.mri.anatPth; 
+anat_file = strcat(rootDir,anat_dir(2:end),'/t1.nii.gz');
+seg_file = strcat(rootDir,anat_dir(2:end),'/t1_class.nii.gz');
+cls = niftiRead(seg_file);
 
 % directories to save results
 % original and smoothed pRF parameters in mrVista space in .nii 
-prf_dir = dir_pth.prf_dir;
-prf_data_mrVNif = strcat(prf_dir,'/nifti'); % original and smoothed pRF parameters in mrVista space in .nii
-prf_mat_dir = strcat(prf_dir,'/data_dir'); % original and smoothed pRF parameters in mrVista space in .mat
- 
+prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
+prf_data_mrVNif = strcat(rootDir,prf_dir_mrv(2:end),'/nifti'); % original and smoothed pRF parameters in mrVista space in .nii
+prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat'); % original and smoothed pRF parameters in mrVista space in .mat
+
+mrSession_dir = dirPth.fmri.mrvPth; 
+% ----------
+
+
+% step inside the vistasession directory contain mrSESSION.mat
+cd(mrSession_dir);
+
 % We need a volume view:
 data_type = 'Averages';
-anat_file = strcat(Anat_dir,'/t1.nii.gz');
 setVAnatomyPath(anat_file);
 hvol = initHiddenGray;
 hvol = viewSet(hvol,'curdt',data_type);% Set the volume view to the current data type and add the RM model
 % from mrVista session directory
-if strcmpi(subjid,'wlsubj004')
-    rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_retModel-20170519-155117-fFit.mat');
+if strcmpi(dirPth.subjID,'wlsubj004')
+    rm_model = strcat('./Gray/Averages/rm_retModel-20170519-155117-fFit.mat');
 else
-    rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_Averages-fFit.mat');
+    rm_model = strcat('./Gray/Averages/rm_Averages-fFit.mat');
 end
 hvol = rmSelect(hvol,1,rm_model);
 
@@ -39,10 +50,6 @@ params = {'sigma','x','y','varexplained','beta'};
 % parameters is correct, i.e. all selected pRF parameters must fall in the
 % gray matter.
 
-% from Anatomy directory
-seg_file = strcat(Anat_dir,'/t1_class.nii.gz');
-cls = niftiRead(seg_file);
-
 % stimulus file (stimulus used to run retinotopic model - has to prepared from hvol.rm.retinotopicmodels.stim and hvol.rm.retinotopicmodels.analysis)
 % load(rm_stim_file);
 % rm_stim =  meg_stim;
@@ -52,7 +59,7 @@ rm_stim.window = hvol.rm.retinotopyParams.stim.stimwindow;
 rm_stim.X = hvol.rm.retinotopyParams.analysis.X;
 rm_stim.Y = hvol.rm.retinotopyParams.analysis.Y;
 
-if plot_results == 1
+if plot_stim == 1
    figure, 
    for idx_stim_frame = 1:size(rm_stim.im,2)
        cur_window = rm_stim.window;
@@ -181,7 +188,7 @@ for nn = 1:length(params)
     end
 end
 
-fname = fullfile(prf_mat_dir,'exported_prf_params.mat');
+fname = fullfile(prf_data_mrVmat,'exported_prf_params.mat');
 save(fname, 'prf_par_exp');
 
 end

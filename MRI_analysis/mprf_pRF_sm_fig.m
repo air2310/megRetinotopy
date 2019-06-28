@@ -1,19 +1,24 @@
+function mprf_pRF_sm_fig(dirPth)
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
 %                             (original and smoothed)
 % 3) surface plots (original and smoothed)
 
-%% 1) Variance explained distribution
-subjid = 'wlsubj004';
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
+prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
+prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat'); % original and smoothed pRF parameters in mrVista space in .mat
+mrSession_dir = dirPth.fmri.mrvPth; 
+coords_path = strcat(rootDir,mrSession_dir(2:end),'/Gray/');
 
-prf_mat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data',subjid);
-prf_mat = strcat(prf_mat_dir,'/data_dir');
-roi_path = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s/ROIs',subjid);
-coords_path = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession/Gray',subjid);
+anat_dir = dirPth.mri.anatPth; 
+roi_path = strcat(rootDir,anat_dir(2:end),'/ROIs/');
+% ----------
 
-data_file = dir(fullfile(prf_mat,'*.mat'));
-load(fullfile(prf_mat,data_file.name));
+data_file = dir(fullfile(prf_data_mrVmat,'*.mat'));
+load(fullfile(prf_data_mrVmat,data_file.name));
 
 % original prf parameters
 ve = prf_par_exp.varexplained;
@@ -144,7 +149,7 @@ for roi_idx = 1:num_roi
     scatter(ROI_params.prf_params{roi_idx}.ecc,ROI_params.prf_params{roi_idx}.sigma,[],c,'*');  hold on;
     scatter(ROI_params.prf_params{roi_idx}.ecc_sm,ROI_params.prf_params{roi_idx}.sigma_sm,[],c_sm,'*');
     
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     legend([tmp(2) strcat(tmp(2),'sm')],'Location','NorthWest')
     legend('Location','NorthWest')
     ylim([0 15]);
@@ -157,7 +162,7 @@ suptitle('Sigma')
 for roi_idx = 1:num_roi
     subplot(6,2,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.sigma,100)
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     title(tmp(2))   
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -171,7 +176,7 @@ suptitle('Sigma smoothed')
 for roi_idx = 1:num_roi
     subplot(6,2,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.sigma_sm,100)
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     title(tmp(2))   
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -186,7 +191,7 @@ suptitle('Beta')
 for roi_idx = 1:num_roi
     subplot(6,2,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.beta,100)
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     title(tmp(2))   
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -200,7 +205,7 @@ suptitle('Recomputed beta')
 for roi_idx = 1:num_roi
     subplot(6,2,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.recomp_beta,100)
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     title(tmp(2))   
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -216,7 +221,7 @@ for roi_idx = 1:num_roi
     scatter(ROI_params.prf_params{roi_idx}.x,ROI_params.prf_params{roi_idx}.y,[],c,'.');  hold on;
     scatter(ROI_params.prf_params{roi_idx}.x_sm,ROI_params.prf_params{roi_idx}.y_sm,[],c_sm,'.');
     
-    tmp = split_string(ROI_params.rois{roi_idx},'_');
+    tmp = strsplit(ROI_params.rois{roi_idx},'_');
     legend([tmp(2) strcat(tmp(2),'sm')],'Location','northeastoutside')
     legend('Location','NorthWestoutside')
     axis([-10 10 -10 10])
@@ -225,26 +230,28 @@ end
 
 %% 3) building mrMesh and displaying parameters on the mesh
 
-% prf parameters on mrVista surface
-hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-% Smooth the mesh
-hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
-
-% update map values
-prf_param = ecc;
-thr = sm_mask & ecc<20;
-
-map_val = nan(size(prf_param));
-map_val(thr) = prf_param(thr);
-
-hvol = viewSet(hvol,'displaymode','map');
-hvol = viewSet(hvol,'map',{map_val});
-hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
-
-% different colormaps for phase values
-
-% Update mesh
-hvol = meshColorOverlay(hvol,1);
-
-
+surf_visualize = 0;
+if surf_visualize ==1
+    % prf parameters on mrVista surface
+    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
+    % Smooth the mesh
+    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
+    
+    % update map values
+    prf_param = ecc;
+    thr = sm_mask & ecc<20;
+    
+    map_val = nan(size(prf_param));
+    map_val(thr) = prf_param(thr);
+    
+    hvol = viewSet(hvol,'displaymode','map');
+    hvol = viewSet(hvol,'map',{map_val});
+    hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
+    
+    % different colormaps for phase values
+    
+    % Update mesh
+    hvol = meshColorOverlay(hvol,1);
+    
+end
 

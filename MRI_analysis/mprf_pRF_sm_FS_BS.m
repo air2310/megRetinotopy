@@ -1,20 +1,25 @@
-function mprf_pRF_sm_FS_BS(subjid)
-
-FS_surface = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects/%s/surf',subjid);
-fs_prf_data = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data/surface/freesurfer',subjid);
-
-fs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/freesurfer',subjid);
-bs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',subjid);
+function mprf_pRF_sm_FS_BS(dirPth)
 
 
-bs_model_path = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Brainstorm_db/data/%s/R0774_RETMEG_Block1_5.12.17/',subjid); 
-bs_anat_path = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Brainstorm_db/anat/%s/',subjid);
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
 
-bs_model_file = strcat(bs_model_path,'headmodel_surf_os_meg.mat');
-bs_anat_file = strcat(bs_anat_path,'subjectimage_T1.mat');
+freesurfer_surface = strcat(rootDir,dirPth.freesurfer.surfPth(2:end));
+prf_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_prfFS(2:end));
+roi_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_roiFS(2:end));
 
-bs_prf_data = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data/surface/brainstorm',subjid);
-bs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',subjid);
+prf_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_prfBS(2:end));
+roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
+
+
+bs_model_path = strcat(rootDir,dirPth.brainstorm.dataPth(2:end));
+bs_model_file = strcat(bs_model_path,'/headmodel_surf_os_meg.mat');
+        
+bs_anat_path = strcat(rootDir,dirPth.brainstorm.anatPth(2:end));
+bs_anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
+
+% ----------
 
 load(bs_model_file);
 bs_head_model_surf = SurfaceFile;
@@ -47,7 +52,7 @@ for n=1:length(surfaces_to_load)
     % Loop over all (2, left and right) surfaces:
     for nn = 1:length(hs_to_load)
         cur_surf = [hs_to_load{nn} '.' surfaces_to_load{n}];
-        surf_file = fullfile(FS_surface,cur_surf);
+        surf_file = fullfile(freesurfer_surface,cur_surf);
         
         % Use the same routine as Brainstorm uses, otherwise the vertices 
         % are slightly off and intersectCols does not find all the matching 
@@ -80,7 +85,7 @@ for n=1:length(surfaces_to_load)
     % Export prfs    %
     %%%%%%%%%%%%%%%%%%
     
-    pname = fs_prf_data;
+    pname = prf_dir_FS;
     w_export = 'prf';
     
     % ROIs 
@@ -116,10 +121,10 @@ for n=1:length(surfaces_to_load)
             cur_out_file = [surfaces_to_load{n} '.' par_name];
             
             if strcmpi(w_export,'prf')
-                fname = fullfile(bs_prf_data,cur_out_file);
+                fname = fullfile(prf_dir_BS,cur_out_file);
                 
             elseif strcmpi(w_export,'roi')
-                fname = fullfile(bs_roi_dir,cur_out_file);
+                fname = fullfile(roi_dir_BS,cur_out_file);
                 
             end
             
@@ -135,7 +140,7 @@ for n=1:length(surfaces_to_load)
     % Export rois    %
     %%%%%%%%%%%%%%%%%%
     
-    pname = fs_roi_dir;
+    pname = roi_dir_FS;
     w_export = 'roi';
     
     % ROIs 
@@ -171,10 +176,10 @@ for n=1:length(surfaces_to_load)
             cur_out_file = [surfaces_to_load{n} '.' par_name];
             
             if strcmpi(w_export,'prf')
-                fname = fullfile(bs_prf_data,cur_out_file);
+                fname = fullfile(prf_dir_BS,cur_out_file);
                 
             elseif strcmpi(w_export,'roi')
-                fname = fullfile(bs_roi_dir,cur_out_file);
+                fname = fullfile(roi_dir_BS,cur_out_file);
                 
             end
             

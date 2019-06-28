@@ -1,20 +1,75 @@
-% Script containing basic steps involved in the model
 
-%% Anatomy
-   % Segmentation (freesurfer ???)
+%% mprf_main
+%
+% Wrapper script containing MEG and MRI preprocessing and analyses subfunctions 
+% involved in the MEG Retinotopy project.
+%
+% Workflow:
+% 0. Load paths 
+% 1. MEG data preprocessing
+%   1.1: xx
+%
+% 2. MRI data preprocessing
+%   2.1: xx
+%
+% 3. Forward model
+%   3.1: xx
+%
+%
+% This script assumes the following preprocessing steps:
+% - FreeSurfer's auto-segmentation (v6???)
+% - MRI distortion correction w/ top-up??
+%
+% This script requires the following toolboxes:
+% - Brainstorm (v??)
+% - FieldTrip (v??)
+% - VistaSoft (v??)
+% - meg_utils (v??)
+%
+% Add all with the ToolboxToolbox:
+%   tbUse('retmeg') 
+%
+% By Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
+%
+%
+%% 0. Load paths 
+subjID = 'wlsubj004';
+   
+dirPth = loadPaths(subjID);
+   
+
 
 
 %% MEG 
 
-   % Preprocessing
-     % input - raw MEG data (.sqd)
-     % output - preprocessed MEG (.m) - sensors x epochs x time x run 
+% Preprocessing options:
+opt.verbose       = false;
+opt.doFiltering   = true;
+opt.doDenoise     = true;
+opt.doSaveData    = true;
+opt.saveFig       = false; 
+opt.removeStartOfRunEpoch = false;
 
-     %************<code>***************
-  
-   % MEG stimulus (binarized and reduced to epochs x 10201 pixels)
+% Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
+% (matfile, MEG sensors x epochs x time points x run nr) 
+data  = preprocessMEGRetinotopyData(subjID, dirPth, opt);
+
+% Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
+% stim  = xxx(subjID, dirPth);
+
+% Get Gain matrix (produced via brainstorm)
+% gainMtx = xxx(subjID, dirPth);
+
+meg = struct();
+meg.data = data;
+meg.stim = stim;
+meg.gain = gainMtx;
+
    
-   % Gain matrix (from brainstorm)
+
+  
+   
+   
      
 %% fMRI
 
@@ -43,23 +98,17 @@
 
      % prf parameters + ROIs on mrVista volume space 
      
-     subjid='wlsubj004';
      
      %mprf_ROI % ROIs on mrVista space
+     plot_stim = 0; % flag to plot the stimulus movie
+     mprf_pRF_sm(dirPth,plot_stim) % pRF params from mrV >> smoothed pRF params on mrV (flag)
+     mprf_pRF_sm_fig(dirPth); % Generates summary figures for the pRF parameters before after smoothing
      
-     dir_pth.Anat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s',subjid);
-     dir_pth.mrSession_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/fMRI/%s/vistaSession',subjid);
-     dir_pth.prf_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data',subjid); % folder to save prf params (contains folders- nifti(.nii files), data_dir(.mat files))
+     mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS
+     mprf_pRF_sm_FS_fig(dirPth);
      
-     mprf_pRF_sm(subjid,dir_pth,0) % pRF params from mrV >> smoothed pRF params on mrV
-     mprf_pRF_sm_fig; % Generates summary figures for the pRF parameters after smoothing
-     
-     mprf_pRF_sm_FS(subjid) % smoothed pRF params on mrV >> smoothed pRF params on FS
-     mprf_pRF_sm_FS_fig;
-     
-     mprf_pRF_sm_FS_BS(subjid) % smoothed pRF params on FS >>  smoothed pRF params on BS
-     mprf_pRF_sm_FS_BS_fig;
-     
+     mprf_pRF_sm_FS_BS(dirPth) % smoothed pRF params on FS >>  smoothed pRF params on BS
+     mprf_pRF_sm_FS_BS_fig(dirPth);
      
      % smoothed prf parameters + ROIs on BS (pial) surface saved 
      
@@ -72,7 +121,7 @@
      
      %************<code>***************
      
-     [prf,model] = mprf_MEG_pred_BS(subjid);
+     [prf,model] = mprf_MEG_pred_BS(subjID);
      
      % predicted response to MEG stimulus at every BS surface saved
      
@@ -83,7 +132,7 @@
      
      %************<code>***************
      
-     meg_resp = mprf_MEG_pred_Msen(subjid); 
+     meg_resp = mprf_MEG_pred_Msen(subjID); 
      
      
    % Computing phase referenced amplitude from preprocessed MEG time series and

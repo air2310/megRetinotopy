@@ -1,29 +1,20 @@
+function mprf_pRF_sm_FS_BS_fig(dirPth)
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
 %                             (original and smoothed)
 % 3) surface plots (original and smoothed)
 
-%% 1) Variance explained distribution
-subjid = 'wlsubj004';
-
-% directories required
-Anat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s',subjid);
-bs_prf_data = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data/surface/brainstorm',subjid);
-bs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/brainstorm',subjid);
-
-% read prf parameters (original and smoothed) in brainstorm space
-% - variance explained - 
-% - sigma
-% - x & y
-% - beta & recomp_beta
-% - polar angle
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
+prf_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_prfBS(2:end));
+roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
+% ----------
 
 % ROIs
-
 surfaces_to_load = {'pial'};
-pname = bs_prf_data;
-w_export = 'roi';
+pname = prf_dir_BS;
 
 prf_files = dir(fullfile(pname,strcat(surfaces_to_load{1},'.*')));
 bs_prf = table(surfaces_to_load);
@@ -36,7 +27,7 @@ for nn = 1:length(prf_files)
     % load and concatenate:
     prf_data = read_curv(fullfile(pname,cur_prf_file));
     
-    add_t_1 = table({prf_data},'variableNames',par_name(2));clos
+    add_t_1 = table({prf_data},'variableNames',par_name(2));
     
     bs_prf = [bs_prf add_t_1];
 end
@@ -65,10 +56,7 @@ ylabel('prf size');
 
 
 % Check how ROIs are loaded
-pname = bs_roi_dir;
-
-w_export = 'roi';
-
+pname = roi_dir_BS;
 
 % ROIs
 roi_files = dir(fullfile(pname,strcat(surfaces_to_load{1},'.*')));
@@ -213,26 +201,29 @@ end
 
 %% 3) building mrMesh and displaying parameters on the mesh
 
-% prf parameters on mrVista surface
-hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-% Smooth the mesh
-hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
 
-% update map values
-prf_param = ecc;
-thr = sm_mask & ecc<20;
-
-map_val = nan(size(prf_param));
-map_val(thr) = prf_param(thr);
-
-hvol = viewSet(hvol,'displaymode','map');
-hvol = viewSet(hvol,'map',{map_val});
-hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
-
-% different colormaps for phase values
-
-% Update mesh
-hvol = meshColorOverlay(hvol,1);
-
+surf_visualize = 0;
+if surf_visualize ==1
+    % prf parameters on mrVista surface
+    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
+    % Smooth the mesh
+    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
+    
+    % update map values
+    prf_param = ecc;
+    thr = sm_mask & ecc<20;
+    
+    map_val = nan(size(prf_param));
+    map_val(thr) = prf_param(thr);
+    
+    hvol = viewSet(hvol,'displaymode','map');
+    hvol = viewSet(hvol,'map',{map_val});
+    hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
+    
+    % different colormaps for phase values
+    
+    % Update mesh
+    hvol = meshColorOverlay(hvol,1);
+end
 
 

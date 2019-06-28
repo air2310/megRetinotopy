@@ -1,25 +1,19 @@
+function mprf_pRF_sm_FS_fig(dirPth)
+
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
 %                             (original and smoothed)
 % 3) surface plots (original and smoothed)
 
-%% 1) Variance explained distribution
-subjid = 'wlsubj004';
+% File paths
+% ----------
+rootDir = dirPth.rootPth;
+prf_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_prfFS(2:end));
+fs_roi_dir = strcat(rootDir,dirPth.fmri.saveDataPth_roiFS(2:end));
+% ----------
 
-FS_surface = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Freesurfer_directory/Freesurfer_subjects/%s/surf',subjid);
-fs_prf_data = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/prf_data/surface/freesurfer',subjid);
-Anat_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Data/Anatomy/%s',subjid);
-fs_roi_dir = sprintf('/mnt/storage_2/projects/MEG/Retinotopy/Quality_check/%s/rois/surface/freesurfer',subjid);
-
-% read prf parameters (original and smoothed) in freesurfer space
-% - variance explained - 
-% - sigma
-% - x & y
-% - beta & recomp_beta
-% - polar angle
-
-pname = fs_prf_data;
+pname = prf_dir_FS;
 
 surfaces_to_load = {'pial'};
 hs_to_load = {'lh','rh'};
@@ -45,26 +39,10 @@ for nn = 1:length(lh_files)
 end
 
 
-
-% original prf parameters
-ve = fs_prf.varexplained{1};
-sigma = fs_prf.sigma{1};
-x = fs_prf.x{1}; y = fs_prf.y{1};
-[pol,ecc] = cart2pol(x,y);
-pol= mod(pol,2*pi);
-beta = fs_prf.beta{1};
-
-% smoothed prf parameters
-sigma_sm = fs_prf.sigma_smoothed{1};
-x_sm = fs_prf.x_smoothed{1}; y_sm = fs_prf.y_smoothed{1};
-[pol_sm,ecc_sm] = cart2pol(x_sm,y_sm);
-pol_sm= mod(pol_sm, 2*pi);
-recomp_beta = fs_prf.recomp_beta{1};
-
 % histogram of variance explained 
 %--------------------------------
 figure(101); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
-hist(ve,100);
+hist(fs_prf.varexplained{1},100);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
 h.EdgeColor = 'w';
@@ -75,10 +53,9 @@ xlabel('variance explained');
 %-------------------------
 % All voxels
 figure(102),set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2])
-sm_mask = ve > 0;
-ve_thr_mask = ve > 0.4;
+sm_mask = fs_prf.varexplained{1} > 0;
 c = sm_mask;
-scatter(ecc,sigma,[],c);
+scatter(fs_prf.eccentricity{1},fs_prf.sigma{1},[],c);
 title('voxels used for smoothing (ve>0)');
 xlabel('eccentricity');
 ylabel('prf size');
@@ -86,7 +63,6 @@ ylabel('prf size');
 
 % Check how ROIs are loaded
 pname = fs_roi_dir;
-w_export = 'roi';
 
 % ROIs
 lh_files = dir(fullfile(pname,'lh.*'));
@@ -235,26 +211,29 @@ end
 
 %% 3) building mrMesh and displaying parameters on the mesh
 
-% prf parameters on mrVista surface
-hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-% Smooth the mesh
-hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
 
-% update map values
-prf_param = ecc;
-thr = sm_mask & ecc<20;
-
-map_val = nan(size(prf_param));
-map_val(thr) = prf_param(thr);
-
-hvol = viewSet(hvol,'displaymode','map');
-hvol = viewSet(hvol,'map',{map_val});
-hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
-
-% different colormaps for phase values
-
-% Update mesh
-hvol = meshColorOverlay(hvol,1);
-
-
+surf_visualize = 0;
+if surf_visualize ==1
+    % prf parameters on mrVista surface
+    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
+    % Smooth the mesh
+    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
+    
+    % update map values
+    prf_param = ecc;
+    thr = sm_mask & ecc<20;
+    
+    map_val = nan(size(prf_param));
+    map_val(thr) = prf_param(thr);
+    
+    hvol = viewSet(hvol,'displaymode','map');
+    hvol = viewSet(hvol,'map',{map_val});
+    hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
+    
+    % different colormaps for phase values
+    
+    % Update mesh
+    hvol = meshColorOverlay(hvol,1);
+    
+end
 
