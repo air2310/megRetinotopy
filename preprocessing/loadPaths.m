@@ -8,6 +8,8 @@ dirPth  = struct();
 dirPth.rootPth = mprf_rootPath;
 dirPth.subjID  = subjID;
 
+dirPth.sessionPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Subject_sessions', subjID);
+
 
 %% ------ MEG ------
 dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG'); % should be sym link in git folder
@@ -17,6 +19,10 @@ dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_
 dirPth.meg.rawSqdPth    = fullfile(dirPth.meg.dataPth, subjID, 'raw');
 dirPth.meg.paramFilePth = fullfile(dirPth.meg.dataPth, subjID,  'paramFiles');
 dirPth.meg.stimFilePth  = fullfile(dirPth.meg.dataPth, subjID, 'stimFiles');
+dirPth.meg.processedDataPth = fullfile(dirPth.meg.dataPth, subjID, 'processed');
+
+dirPth.meg.stimFile     = fullfile(dirPth.meg.stimFilePth, 'MEG_retinotopy_stimulus_run_1.mat');
+dirPth.meg.stimGridFile = fullfile(dirPth.meg.stimFilePth, 'MEG_grid.mat');
 
 
 %% ------ FreeSurfer ------ 
@@ -42,6 +48,9 @@ dirPth.fmri.saveDataPth_prfBS = fullfile(dirPth.fmri.saveDataPth, 'prfBS');
 
 dirPth.fmri.saveDataPth_roiFS = fullfile(dirPth.fmri.saveDataPth, 'roiFS');
 dirPth.fmri.saveDataPth_roiBS = fullfile(dirPth.fmri.saveDataPth, 'roiBS');
+
+d = dir(fullfile(dirPth.fmri.mrvPth, 'Gray', '*','*fFit*'));
+dirPth.fmri.vistaGrayFitFile  = fullfile(d.folder, d.name);
 
 %% ------ Brainstorm ------ 
 dirPth.bsPth = fullfile(mprf_rootPath, 'data', 'brainstorm_db', 'MEG_Retinotopy'); % should be sym link in git folder
