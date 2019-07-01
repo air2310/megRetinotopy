@@ -1,9 +1,25 @@
-function out = preprocessMEGRetinotopyData(subjID, dirPth, opt)
-%
+function preprocData = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 % This function contains main analysis to preprocess subject's MEG data,
 % from the MEG Retinotopy project.
 %
-% Workflow:
+%       preprocData = preprocessMEGRetinotopyData(subjID, dirPth, opt)
+%
+% INPUTS
+%   subjID :      subject nr (string)
+%   dirPth :      paths locating subject's data and files (struct, see loadPaths.m)
+%   opt    :      options for preprocessing (struct)
+%                     - verbose     :  print text in command window and
+%                                      show debug figures
+%                     - doFiltering :  low pass filter
+%                     - doDenoise   :  GLM denoise for MEG
+%                     - doSaveData  :  Save data and conditions as matfiles
+%                     - saveFig     :  Save debug figures, only if verbose = true
+%                     - removeStartOfRunEpoch :  remove the first epoch of
+%                                                the bar sweep
+% OUTPUTS:
+%   preprocData    :     preprocessed data (time x epochs x channels x runs)
+%
+% WORKFLOW:
 %   0. Define parameters and paths
 %   1. Load MEG data
 %   2. Get Triggers
@@ -13,27 +29,28 @@ function out = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 %   6. Denoise time series
 %   7. Reblock and save prepreocessed timeseries
 %
+% DEPENDENCIES:
 % This script relies on the following toolboxes:
-% * meg_utils
-% * Fieldtrip
-% * megdenoise
-
-% All toolboxes can be added with the toolboxtoolbox command:
-% tbUse('retmeg') 
+%   * meg_utils
+%   * Fieldtrip
+%   * megdenoise
+%
+% All dependent toolboxes can be added with the ToolboxToolbox command:
+%   tbUse('retmeg')
 
 %% 0. Define parameters and paths
 
-% MEG Channel info:
-triggerChan    = 161:168;
-photoDiodeChan = 192;       %#ok<NASGU>
-dataChan       = 1:157;
-fs             = 1000;      % Sample rate (Hz)
+% MEG Channel info
+triggerChan         = 161:168;
+photoDiodeChan      = 192;               %#ok<NASGU>
+dataChan            = 1:157;
+fs                  = 1000;              % Sample rate (Hz)
 
 % Experiment info
-flickerFreq    = 10;        % Hz
-epochStartEnd  = [0.15 (0.15+1.1)]; % seconds (First 150 ms are blank, one epoch length = 1.100 s)
+flickerFreq         = 10;                % Hz
+epochStartEnd       = [0.15 (0.15+1.1)]; % seconds (First 150 ms are blank, one epoch length = 1.100 s)
 
-% Preprocessing info:
+% Preprocessing info
 varThreshold        = [0.05 20];
 badChannelThreshold = 0.2;
 badEpochThreshold   = 0.2;
@@ -60,10 +77,10 @@ cd(fullfile(dirPth.meg.dataPth,subjID));
 
 if opt.verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
 [ts, megFiles] = meg_load_sqd_data(dirPth.meg.rawSqdPth, '*Ret*'); %#ok<ASGLU>
-       
+
 
 %% 2. Get Triggers
-    
+
 % Trigger number legend:
 % 1-8 = barsweep orientations, there are only 5 orientations in the MEG
 % experiment with the following trigger nr's: 1, 3, 4, 6, 7.
@@ -71,22 +88,20 @@ if opt.verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
 % 20  = blink
 %
 % Some subjects have triggers missing (wlsubj058), or extra random triggers
-% (wlsubj040) which cannot be filtered out by our general meg_fix_triggers 
-% function. Therefore, these subjects have their own (modified) version of 
-% that function.
-%
-% Output of triggers.ts is time x chan (function from meg_utils)
+% (wlsubj040) which cannot be filtered out by our general meg_fix_triggers
+% function. Therefore, these subjects have their own (modified) version of
+% that function. Output of triggers.ts is time x chan (function from meg_utils)
 
 if opt.verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 
 % Get trigger time series (same length as MEG ts) and compute triggertiming
 switch subjID
     case 'wlsubj004'
-        triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); 
+        triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
         triggers.ts(697111:729608) = 0;      % wlsubj004: remove half run (to do: make it a general statement, not hardcoded)
         triggers.timing = find(triggers.ts);
     case 'wlsubj030'
-        triggers.ts = meg_fix_triggers(ts(triggerChan,:)'); 
+        triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
         triggers.ts(triggers.timing(1)) = 0; % wlsubj030: remove first trigger (not sure why this one is here)
         triggers.timing = find(triggers.ts);
     case 'wlsubj040'
@@ -109,8 +124,8 @@ if opt.verbose
     for ii = 1:length(triggerConditions(triggerConditions>0))+1
         fprintf('Condition %02d has \t%d triggers\n', triggerConditions(ii), sum(triggers.ts==triggerConditions(ii)));
     end
-        
-    % Plot triggers   
+    
+    % DEBUG: Plot triggers
     figure; plot(triggers.ts); title('Triggers'); xlabel('Time (ms)'); ylabel('trigger number');
     set(gca, 'TickDir', 'out', 'FontSize', 14);
     if opt.saveFig
@@ -125,7 +140,7 @@ end
 triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
 
-% Save stimulus conditions
+% Save stimulus conditions (if requested)
 if opt.doSaveData; save(fullfile(savePth, 'megStimConditions.mat'), 'triggers'); end
 
 % Epoch information about stimulus (bar sweep) epochs
@@ -135,10 +150,11 @@ totalStimEpochs               = length(triggers.onlyBarStim);
 % Derived stimulus information
 numOfOrientations             = length(unique(triggers.stimConditions((triggers.stimConditions>0)&(triggers.stimConditions<10)))); % note, only 5 orientations in MEG
 numRuns                       = length(dir(fullfile(dirPth.meg.stimFilePth,'*stimulus*')));
+numOfEpochsPerRun             = totalStimEpochs / numRuns;
 numOfEpochsPerOrientation     = totalStimEpochs / numOfOrientations / numRuns;
 
-
-if opt.verbose 
+% Print info (if requested)
+if opt.verbose
     fprintf('(%s) Epoch data...\n', mfilename);
     fprintf('(%s) Number of epochs: %d, with a total of %d stimulus epochs\n', mfilename, totalEpochs, totalStimEpochs);
     fprintf('(%s) Number of orientations: %d\n', mfilename, numOfOrientations);
@@ -146,40 +162,36 @@ if opt.verbose
     fprintf('(%s) Number of epochs per stimulus orientation: %d\n', mfilename, numOfEpochsPerOrientation);
 end
 % Epoch matrix dimensions: time x epochs x channels
-[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subjID); 
+[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subjID);
 
-% get size of data before removing epochs
+% Get size of data before removing epochs
 sz = size(data);
 
-% Set blink epochs to NaNs, leave blanks as is
-% data(:, triggers.stimConditions==10,:) = NaN;   % 10: Blank blocks
+% Set blink epochs to NaNs
 data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 
-% Set the first epoch of the first bar sweep to NaN ([EK]: not sure why we
-% do this? Maybe consider not doing this since we already remove the first
-% 150 ms of every epoch?)
+% If requested: set the first epoch of the first bar sweep to NaN
 if opt.removeStartOfRunEpoch
     beginOfSweep = 6:27:140;
     toRemove = startOfRun+beginOfSweep-1;
     data(:, toRemove, :) = NaN;
 end
-    
 
-% Plot a single channel to check data
+% DEBUG: Plot a single channel to check data
 if opt.verbose
     t = (1:size(data,1))./fs;
     ft = (0:length(t)-1)/max(t);
     
-    figure; 
-    for chan = 1:size(data,3) 
+    figure;
+    for chan = 1:size(data,3)
         cla
         subplot(211);
         plot(t,nanmean(data(:,:,chan),2));
         xlabel('Time (s)'); ylabel('Magnetic Flux (Tesla)');
         title(sprintf('Mean timeseries: Sensor %d', chan));
         set(gca, 'TickDir', 'out', 'FontSize', 14);
-
-
+        
+        
         subplot(212);
         amps = abs(fft(data(:,:,chan)))/size(data,1)*2;
         amps(1,:,:)=0; % Remove DC
@@ -195,18 +207,20 @@ if opt.verbose
 end
 
 %% 4. Filter MEG data
-if opt.doFiltering
 
+if opt.doFiltering
+    if opt.verbose; sprintf('(%s) High pass filter data...\n', mfilename); end
+    
     fParams.fStop = 0.1;    % LowPass filter (Hz)
     fParams.fPass = 1;      % BandPass filter (Hz)
     fParams.aStop = 60;     % Amplitude of lowpass filter (dB)
     fParams.aPass = 3;      % Amplitude band pass Ripple (dB)
     fParams.fs    = fs;     % Sample rate (Hz)
     
-    if opt.verbose; sprintf('(%s) High pass filter data...\n', mfilename); end
+    
     data = highPassFilterData(data, fParams, opt.verbose);
-
 end
+
 %% 5. Label bad channels / epochs
 
 if opt.verbose; sprintf('(%s) Check for bad channels or epochs in data...\n', mfilename); end
@@ -214,14 +228,11 @@ if opt.verbose; sprintf('(%s) Check for bad channels or epochs in data...\n', mf
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
     varThreshold, badChannelThreshold, badEpochThreshold, opt.verbose);
 
-if opt.saveFig
-    print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID)))
-end
+if opt.saveFig; print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID)); end
 
 %% 6. Denoise time series
 
 if opt.doDenoise
-
     if opt.verbose; sprintf('(%s) Denoise data...\n', mfilename); end
     
     % Define denoising options
@@ -230,7 +241,7 @@ if opt.doDenoise
     opt.removeMsEpochs      = false;
     opt.pcchoose            = 1.05;  % initial threshold
     opt.npcs2try            = 10;    % max nr of PCs = 10
-
+    
     % Get 10 Hz evoked signal (fft power)
     evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
     
@@ -248,21 +259,20 @@ if opt.doDenoise
     
     % Permute data and do denoising
     dataToDenoise = permute(data, [3,1,2]);
-    [results,evalout,denoised_spec, denoised_data] = ...
+    [results, ~, ~, denoised_data] = ...
         denoisedata(designMatrix(~badEpochs,:),dataToDenoise(~badChannels, :, ~badEpochs), evokedfun, evokedfun, opt);
     
     % Add Nans back into denoised data
     dataDenoised = NaN(sz(3),sz(1),sz(2));
     dataDenoised(~badChannels, :, ~badEpochs) = denoised_data{1};
     
-    % Plot figures 
+    % Plot figures
     if opt.verbose
         figure;
         plot(results.origmodel.r2,results.finalmodel.r2,'k.'); hold on;
-        plot([0 max([results.origmodel.r2,results.finalmodel.r2])],[0 max([results.origmodel.r2,results.finalmodel.r2])],'r-');
-        ylabel('Final R2');
-        xlabel('Orig R2');
-        axis square;
+        plot([0 max([results.origmodel.r2,results.finalmodel.r2])], ...
+            [0 max([results.origmodel.r2,results.finalmodel.r2])],'r-');
+        ylabel('Final R2'); xlabel('Orig R2'); axis square;
         set(gca, 'TickDir', 'out', 'FontSize', 14);
         
         if opt.saveFig
@@ -272,8 +282,8 @@ if opt.doDenoise
         freqIdx = mprfFreq2Index(size(denoised_data{1},2), flickerFreq, fs);
         t = (1:size(denoised_data{1},2))./fs;
         ft = (0:length(t)-1)/max(t);
-    
-        figure; 
+        
+        figure;
         for chan = 1:size(denoised_data{1},1)
             amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(denoised_data{1},2)*2;
             cla
@@ -293,72 +303,83 @@ if opt.doDenoise
         
         epochsBlankToPlot = triggers.stimConditions==10;
         blankDataToPlot    = squeeze(nanmean(dataDenoised(:,freqIdx,epochsBlankToPlot),3));
-
+        
         
         figure;
         megPlotMap(stimDataToPlot);
-        title('Steady state visually evoked field (10 Hz)');       
+        title('Steady state visually evoked field (10 Hz)');
         if opt.saveFig
             print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise', subjID)))
         end
-     
+        
     end % opt.verbose
 end % opt.doDenoise
 
 %% 7. Reblock and save prepreocessed timeseries
 % we reshape the data so that the matrix is will have 4 dimensions:
-% epochs are again split by the number of runs 
+%   time x epochs x channels x runs,
+% where epochs are again split by the number of runs
 
-if opt.doSaveData
-    if subject=='wlsubj030' % (ek): note, this should be derived from previous epoching part of the preprocessing..
-        numRuns = 10;
-        numEpochsPerRun = 211;
-    else
-        numRuns = 19;
-        numEpochsPerRun = 140;
-    end
-    % to do reshape back to time x epochs x channels x runs
-    if verbose; sprintf('(%s) Save data...\n', mfilename); end
-     
-    % SPLIT UP IN blocks   (i.e. number of RUNS)
-    dataBlocked =  NaN(sz(3), sz(1), sz(2)/numRuns, numRuns);
-    
-     % plot all triggers
-    figure; plot(triggers.stimConditions, 'LineWidth', 2); xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
+if verbose; sprintf('(%s) Save data...\n', mfilename); end
+
+if strcmp(subjID,'wlsubj030')
+    assert(numRuns==10);
+    assert(numOfEpochsPerRun==211);
+else
+    assert(numRuns==19);
+    assert(numOfEpochsPerRun==140);
+end
+
+% Set up array for splitting up in blocks   (i.e. number of RUNS)
+dataBlocked =  NaN(sz(3), sz(1), sz(2)/numRuns, numRuns);
+
+% plot all triggers
+if opt.verbose
+    figure;
+    plot(triggers.stimConditions, 'LineWidth', 2);
+    xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
     if saveFig
         print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers_stimCondition', subject)))
     end
-    
-    startOfRun = 1:numEpochsPerRun:(numRuns*numEpochsPerRun);
-    for n = 1:numRuns
-       
-        % Get first epoch
-        startEpoch = startOfRun(n);
-
-        % Get last epoch depending on the run number
-        if n < numRuns
-            lastEpoch  = startOfRun(n+1)-1;
-            theseEpochs = startEpoch:lastEpoch;
-        else
-            lastEpoch  = size(dataBlocked,3);
-            theseEpochs = startEpoch:(startEpoch+lastEpoch-1);
-        end
-        
-        % Get data and put in dataBlocked variable
-        dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
-
-        % Mark those that are blocked
-        plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4);
-    end
-            
-
-    
-    clear data;
-    data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
-    if doSaveData; save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3'); end;
 end
 
+startOfRun = 1:numEpochsPerRun:(numRuns*numEpochsPerRun);
+for n = 1:numRuns
+    
+    % Get first epoch
+    startEpoch = startOfRun(n);
+    
+    % Get last epoch depending on the run number
+    if n < numRuns
+        lastEpoch  = startOfRun(n+1)-1;
+        theseEpochs = startEpoch:lastEpoch;
+    else
+        lastEpoch  = size(dataBlocked,3);
+        theseEpochs = startEpoch:(startEpoch+lastEpoch-1);
+    end
+    
+    % Get data and put in dataBlocked variable
+    dataBlocked(:,:,:,n) = dataDenoised(:,:, theseEpochs);
+    
+    % Mark those that are blocked
+    if opt.verbose; plot(theseEpochs,triggers.stimConditions(theseEpochs),'r:', 'LineWidth', 4); end
+end
+
+% Clean up
+clear data;
+
+% Reshape
+data.data = permute(dataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
+
+% Save if requested
+if opt.doSaveData
+    save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3');
+end
+
+
 cd(curDir);
+
+end
 
 
 
