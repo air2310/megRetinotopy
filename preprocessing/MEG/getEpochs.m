@@ -9,7 +9,7 @@ epochSamples   = [skipTimepoints, numTimepoints+skipTimepoints]; %epoch length i
 
 
 % Skip every 10 triggers, to the triggers that define the start of every run
-tolerance = 3; % samples to allow to detect gaps between runs
+tolerance = 4; % samples to allow to detect gaps between runs
 if subject == 'wlsubj030'
     TR = 1500+tolerance;
 else

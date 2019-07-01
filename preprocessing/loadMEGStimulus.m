@@ -1,12 +1,12 @@
-function meg_stim = loadMEGStimulus(s)
+function meg_stim = loadMEGStimulus(dirPth, opt)
 
 % subfunction of loadStim, to specifically prepare the MEG stimulus
 
 % Load stimuli and grid
-stim = load(s.MEGStim.pth);
+stim = load(dirPth.meg.stimFile);
 stim = stim.stimulus;
 
-grid = load(s.MEGStimGrid.pth);
+grid = load(dirPth.meg.stimGridFile);
 grid = grid.grid;
 
 % Get x and y dim range from grid
@@ -28,7 +28,7 @@ stimTriggers = stim.seq(stim.trigSeq > 0);
 % and length(-50:50)= 101. So the X and Y grid used when solving
 % the retinotopy model with MRI data was 101x101. See vistasoft
 % function: makeStimFromScan(params,1);
-prfParams      = load(s.PRFParams.pth);
+prfParams      = load(dirPth.fmri.vistaGrayFitFile);
 szDownSampled  = sqrt(size(prfParams.params.stim.stimwindow,1));
 imOutSize      = [szDownSampled szDownSampled]; % imOutSize = [101 101];
 
@@ -71,8 +71,15 @@ meg_stim.Y  = meg_stim.resizedY(:);
 meg_stim.X  = meg_stim.X(meg_stim.window);
 meg_stim.Y  = meg_stim.Y(meg_stim.window);
 
-saveDir = fullfile(s.outPut.pth, 'stimuli', 'meg', 'imported_stimulus');
-if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
-save(fullfile(saveDir,'meg_stimulus.mat'), 'meg_stim');
+if opt.doSaveData
+    % save at two places, once on the server under Data/MEG/ and one in the
+    % Subject_sessions folder
+    saveDir1 = fullfile(dirPth.sessionPth, 'stimuli', 'meg', 'imported_stimulus');
+    saveDir2 = fullfile(dirPth.meg.processedDataPth);
+    if ~exist('saveDir1', 'dir'); mkdir(saveDir1); end;
+    if ~exist('saveDir2', 'dir'); mkdir(saveDir2); end;
+    save(fullfile(saveDir1,'meg_stimulus.mat'), 'meg_stim');
+    save(fullfile(saveDir2,'meg_stimulus.mat'), 'meg_stim');
+end
 
 end
