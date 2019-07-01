@@ -10,8 +10,8 @@ dirPth.subjID  = subjID;
 
 
 %% ------ MEG ------
-dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG');
-dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'meg');
+dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG'); % should be sym link in git folder
+dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'meg'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.meg.rawSqdPth    = fullfile(dirPth.meg.dataPth, subjID, 'raw');
@@ -20,7 +20,7 @@ dirPth.meg.stimFilePth  = fullfile(dirPth.meg.dataPth, subjID, 'stimFiles');
 
 
 %% ------ FreeSurfer ------ 
-dirPth.fsPth            = fullfile(mprf_rootPath,'data','Freesurfer_subjects');
+dirPth.fsPth            = fullfile(mprf_rootPath,'data','Freesurfer_subjects'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.fs.segPth        = fullfile(dirPth.fsPth, subjID);
@@ -28,8 +28,8 @@ dirPth.fs.surfPth       = fullfile(dirPth.fs.segPth, 'surf');
 
 
 %% ------ fMRI ------ 
-dirPth.fmri.dataPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'fMRI');
-dirPth.fmri.saveDataPth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'fmri');
+dirPth.fmri.dataPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'fMRI'); % should be sym link in git folder
+dirPth.fmri.saveDataPth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'fmri'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.fmri.mrvPth       = fullfile(dirPth.fmri.dataPth, subjID, 'vistaSession');
@@ -44,7 +44,7 @@ dirPth.fmri.saveDataPth_roiFS = fullfile(dirPth.fmri.saveDataPth, 'roiFS');
 dirPth.fmri.saveDataPth_roiBS = fullfile(dirPth.fmri.saveDataPth, 'roiBS');
 
 %% ------ Brainstorm ------ 
-dirPth.bsPth = fullfile(mprf_rootPath, 'data', 'brainstorm_db', 'MEG_Retinotopy');
+dirPth.bsPth = fullfile(mprf_rootPath, 'data', 'brainstorm_db', 'MEG_Retinotopy'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.bs.dataPth = fullfile(dirPth.bsPth,'data',subjID);
