@@ -419,7 +419,7 @@ for run = 1:nruns
     end
     
     seq_meg(isnan(seq_meg)) = 1;
-    all_triggers = [10 20 all_orientations+1]; % 10 = blink, 20 = blank orientations - 1 * 45 = orientation in degrees
+    all_triggers = [10 20 all_orientations+1]; % 10 = blank, 20 = blink, 1-8= orientations - 1 * 45 = orientation in degrees
     
     n_blink_frames = blink_time_meg ./ step_time_meg;
     n_blank_frames = blank_time_meg ./ step_time_meg;
