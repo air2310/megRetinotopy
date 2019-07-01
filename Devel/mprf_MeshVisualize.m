@@ -102,21 +102,37 @@ for h = 1:length(hemi)
     z     = mshFS.vertices(3,:)';
 
     % The colormap will, by default, paint sulci dark and gyri light
-    cmap = [gray(128); jet(128)];
-    curvature = mshFS.colors(1,:)';
-    colors = curvature;
-    colors(mshFS.curvature<0) = -1.5;
-    colors(mshFS.curvature>=0) = -.5;
-    
-    nanIdx = isnan(curvPrfData);
+    cmap = hsv(266);
+        
+    % Get curvature
+    curv = mshFS.curvature; 
 
-    dataIdx = find(curvPrfData(~nanIdx));
+    % Preallocate space for colors to plot (nr vertices x 3 for RGB)
+    colors = NaN(size(curv,2),3);
+    sz     = length(cmap)-1;
+    clim   = [0 max(curvPrfData(:))];
+        
+    % Implement colors in curvature
+    colors(curv<=0,:) = .25;
+    colors(curv>0,:) = .75;
 
-    colors(dataIdx) = curvPrfData(dataIdx);
-%     colors(nanIdx) = -.5;
+    % Get index for data above the requested thresh (default = 0) and select
+    % those data
+    if (strcmp(prfParams{p}, 'eccentricity') || strcmp(prfParams{p}, 'eccentricity_smoothed'))
+        ii = find(curvPrfData(varExpl.(hemi{h})>0.1));
+    end
+           
+    Z = curvPrfData(ii);
+
+    % Convert to 1-266
+    Z_ind = round(sz.*((Z-min(Z)) ./ (max(Z)-min(Z))))+1;
+
+    % overlay in colors variable
+    colors(ii,:) = cmap(Z_ind,:);
+
     % Render the triangle mesh
-    tH = trimesh(faces, x,y,z);
-    
+    figure; tH = trimesh(faces, x,y,z);
+
     % Make it look nice
     set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData',colors)
     axis equal off; colormap(cmap); set(gca, 'CLim', [cm_low, cm_high])
@@ -137,27 +153,24 @@ end
 
 %% (4) Visualize prf data on BS surface
 
-prfParam = 'eccentricity';
-
-fprintf('Loading prf data: %s on Brainstorm mesh: %s\n', hemi{h}, prfParam);
-
-
-prfDataPthBS = fullfile(prfDataDir, 'brainstorm', sprintf('pial.%s', prfParam));
-[curvPrfBS, fnum] = read_curv(prfDataPthBS);
-
-nanIdx  = isnan(curvPrfBS);
-% dataIdx = find(curvPrfBS);
-
-curvPrfBS(nanIdx) = -0.5;
-
-colors = curvPrfBS;
-clims = [-10 10];
-
 thresh = 0;
+clims  = [];
 
-ttl = sprintf('Brainstorm prf data: %s', prfParam);
-visualizeBrainstormMesh(brainstormAnatDir, colors, thresh, clims, [], ttl)
-axis off;
-colorbar;
+for p = 1:length(prfParams)
+    
+    fprintf('Loading prf data: %s on Brainstorm mesh\n', prfParams{p});
+    
+    prfDataPthBS = fullfile(prfDataDir, 'surface', 'brainstorm', sprintf('pial.%s', prfParams{p}));
+    [curvPrfBS, fnum] = read_curv(prfDataPthBS);
+    nanIdx = isnan(curvPrfBS);
+    
+    cmap = hsv(266);
+    
+    ttl = sprintf('Brainstorm prf data: %s', prfParams{p});
+    visualizeBrainstormMesh(brainstormAnatDir, curvPrfBS, cmap, thresh, clims, [], ttl)
+    axis off;
+
+    
+end
 
 
