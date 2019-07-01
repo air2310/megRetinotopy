@@ -3,10 +3,14 @@
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions 
 % involved in the MEG Retinotopy project.
 %
-% Workflow:
-% 0. Load paths 
-% 1. MEG data preprocessing
-%   1.1: xx
+% WORKFLOW:
+% 0. Load paths and define parameters
+%
+% 1. MEG data preprocessing:
+%   1.0 Define preprocessing options
+%   1.1 Preprocess MEG data from raw
+%   1.2 Load MEG stim
+%   1.3 Load MEG Gain matrix 
 %
 % 2. MRI data preprocessing
 %   2.1: xx
@@ -31,33 +35,35 @@
 % By Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
 %
 %
-%% 0. Load paths 
-subjID = 'wlsubj004';
-   
+%% 0. Load paths
+
+% Define subject ID
+subjID = 'wlsubj058';
+
+% Load paths with data files for this subject
 dirPth = loadPaths(subjID);
    
 
-
-
 %% MEG 
 
-% Preprocessing options:
-opt.verbose       = true;
-opt.doFiltering   = true;
-opt.doDenoise     = true;
-opt.doSaveData    = true;
-opt.saveFig       = false; 
+% 1.0 Preprocessing options:
+opt.verbose               = true;
+opt.doFiltering           = true;
+opt.doDenoise             = true;
+opt.doSaveData            = true;
+opt.saveFig               = false; 
 opt.removeStartOfRunEpoch = false;
 
-% Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
+% 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
 % (matfile, MEG sensors x epochs x time points x run nr) 
-data  = preprocessMEGRetinotopyData(subjID, dirPth, opt);
+data        = preprocessMEGRetinotopyData(subjID, dirPth, opt);
 
-% Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
-% stim  = xxx(subjID, dirPth);
+% 1.2 Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
+stim        = loadStim(subjID, dirPth, opt);
 
-% Get Gain matrix (produced via brainstorm)
-% gainMtx = xxx(subjID, dirPth);
+% 1.3 Get Gain matrix (produced via brainstorm)
+opt.fullSizeGainMtx = false;
+gainMtx             = loadGainMtx(subjID, dirPth, opt);
 
 meg = struct();
 meg.data = data;
