@@ -1,42 +1,47 @@
-function mprf_pRF_sm(dirPth,plot_stim)
-% mprf_pRF_sm - Smooth (without interpolation,VE_thr=0) prf parameters on the mrVista volume view  
+function mprf_pRF_sm(dirPth,verbose)
+% mprf_pRF_sm(dirPth,plot_stim)
+%
+% Function to smooth prf parameters in mrVista Gray Ribbon (volume)
+% (without interpolation,since variance explained threshold is set to 0:
+% VE_thr=0)
 %                  
+% INPUTS:
+%   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
+%   verbose     :   boolean flag to plot MRI stimulus or not
 %
-%
-
+%% ----------
 % File paths
 % ----------
-rootDir = dirPth.rootPth;
+anat_dir  = fullfile(dirPth.fmri.mrvPth, '3DAnatomy');
+anat_file = fullfile(anat_dir,'t1.nii.gz');
+seg_file  = fullfile(anat_dir,'t1_class.nii.gz');
+cls       = niftiRead(seg_file);
 
-anat_dir = dirPth.mri.anatPth; 
-anat_file = strcat(rootDir,anat_dir(2:end),'/t1.nii.gz');
-seg_file = strcat(rootDir,anat_dir(2:end),'/t1_class.nii.gz');
-cls = niftiRead(seg_file);
+% Directories to save results
+prf_dir_mrv     = dirPth.fmri.saveDataPth_prfMrv;
+prf_data_mrVNif = fullfile(prf_dir_mrv, 'nifti');   % original and smoothed pRF parameters in mrVista space in .nii
+prf_data_mrVmat = fullfile(prf_dir_mrv,'mat');      % original and smoothed pRF parameters in mrVista space in .mat
 
-% directories to save results
-% original and smoothed pRF parameters in mrVista space in .nii 
-prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
-prf_data_mrVNif = strcat(rootDir,prf_dir_mrv(2:end),'/nifti'); % original and smoothed pRF parameters in mrVista space in .nii
-prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat'); % original and smoothed pRF parameters in mrVista space in .mat
+% Create directories if they don't exist, otherwise there will be an error
+% saving the data
+if ~exist(prf_data_mrVNif,'dir'); mkdir(prf_data_mrVNif); end
+if ~exist(prf_data_mrVmat,'dir'); mkdir(prf_data_mrVmat); end
 
-mrSession_dir = dirPth.fmri.mrvPth; 
-% ----------
+% Step inside the vistasession directory to access mrSESSION.mat
+cd(dirPth.fmri.mrvPth);
 
+%% ---------------------------------------
+% Load Retinotopy model parameters
+% ----------------------------------------
 
-% step inside the vistasession directory contain mrSESSION.mat
-cd(mrSession_dir);
-
-% We need a volume view:
+% We need a volume view, with 'Averages' data type to add the RM model
 data_type = 'Averages';
 setVAnatomyPath(anat_file);
 hvol = initHiddenGray;
-hvol = viewSet(hvol,'curdt',data_type);% Set the volume view to the current data type and add the RM model
-% from mrVista session directory
-if strcmpi(dirPth.subjID,'wlsubj004')
-    rm_model = strcat('./Gray/Averages/rm_retModel-20170519-155117-fFit.mat');
-else
-    rm_model = strcat('./Gray/Averages/rm_Averages-fFit.mat');
-end
+hvol = viewSet(hvol,'curdt',data_type);  
+
+% Load mrVista retinotopy Gray file 
+rm_model = dirPth.fmri.vistaGrayFitFile;
 hvol = rmSelect(hvol,1,rm_model);
 
 % Mask to exclude unreliable voxels (i.e. VE == 0) from the smoothing
@@ -46,36 +51,37 @@ sm_mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
 
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
-% We need the mrVista segmentation to check if the selection of pRF
-% parameters is correct, i.e. all selected pRF parameters must fall in the
-% gray matter.
 
-% stimulus file (stimulus used to run retinotopic model - has to prepared from hvol.rm.retinotopicmodels.stim and hvol.rm.retinotopicmodels.analysis)
-% load(rm_stim_file);
-% rm_stim =  meg_stim;
+% stimulus file (stimulus used to run retinotopic model - has to prepared
+% from hvol.rm.retinotopicmodels.stim and
+% hvol.rm.retinotopicmodels.analysis) load(rm_stim_file):
 rm_stim.im = hvol.rm.retinotopyParams.stim.images_unconvolved;
 rm_stim.im_conv = hvol.rm.retinotopyParams.analysis.allstimimages';
 rm_stim.window = hvol.rm.retinotopyParams.stim.stimwindow;
 rm_stim.X = hvol.rm.retinotopyParams.analysis.X;
 rm_stim.Y = hvol.rm.retinotopyParams.analysis.Y;
 
-if plot_stim == 1
+% Visualize MRI stimulus if requested
+if verbose
    figure, 
    for idx_stim_frame = 1:size(rm_stim.im,2)
        cur_window = rm_stim.window;
        cur_window(cur_window==1)=rm_stim.im(:,idx_stim_frame);
-       imagesc(reshape(cur_window,[101,101]));
+       imagesc(reshape(cur_window,[101,101])); colormap gray; axis square;
        pause(0.05);
    end    
 end
 
-%%
+%% ----------------------------------------
+% Smooth prf parameters and recompute betas
+% -----------------------------------------
 
 % Initialize the weighted connectivity matrix used in the smoothing
 wConMat = [];
 
 for nn = 1:length(params)
     
+    % Select prf parameter
     cur_param = params{nn};
         
     % Load the current parameter in the VOLUME view. This is mainly used to
@@ -84,15 +90,12 @@ for nn = 1:length(params)
     hvol = rmLoad(hvol,1,cur_param,'map');
     hvol = refreshScreen(hvol);
     
-    
     % Get the data directly from the retinotopic model as well. This is the
     % data that we use to smooth and store for further analyses:
     if strcmpi(cur_param,'beta')
         tmp = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
-        prf_par_exp.(cur_param) = squeeze(tmp);
-        
-    else
-        
+        prf_par_exp.(cur_param) = squeeze(tmp);  
+    else 
         prf_par_exp.(cur_param) = rmGet(hvol.rm.retinotopyModels{1},cur_param);
     end
     
@@ -188,6 +191,42 @@ for nn = 1:length(params)
     end
 end
 
+% Create polar angle and eccentricity maps (for smoothed and unsmoothed)
+types = {'unsmooth', 'smooth'};
+for ii = 1:length(types)
+    
+    if strcmp(types(ii), 'unsmooth')
+    
+        [ang, ecc] = cart2pol(prf_par_exp.x, prf_par_exp.y);
+        ang_deg    = mod(ang, 2*pi);
+    
+        prf_par_exp.polar_angle = ang_deg;
+        prf_par_exp.eccentricity = ecc;
+        postFix = '.nii.gz';
+
+    elseif strcmp(types(ii), 'smooth')
+        
+        [ang, ecc] = cart2pol(prf_par_exp.x_smoothed, prf_par_exp.y_smoothed);
+        ang_deg    = mod(ang, 2*pi);    
+        
+        prf_par_exp.polar_angle_smoothed = ang_deg;
+        prf_par_exp.eccentricity_smoothed = ecc;
+        postFix = '_smoothed.nii.gz';
+    end
+
+    fname = fullfile(prf_data_mrVNif,['polar_angle' postFix]);
+    hvol = viewSet(hvol,'map',{ang_deg});
+    functionals2nifti(hvol,1 , fname);
+    mprfCheckParameterNiftiAlignment(cls, fname);
+    
+    fname = fullfile(prf_data_mrVNif,['eccentricity' postFix]);
+    hvol = viewSet(hvol,'map',{ecc});
+    functionals2nifti(hvol,1 , fname);
+    mprfCheckParameterNiftiAlignment(cls, fname);
+
+end
+
+% Save smoothed prf parameters
 fname = fullfile(prf_data_mrVmat,'exported_prf_params.mat');
 save(fname, 'prf_par_exp');
 
