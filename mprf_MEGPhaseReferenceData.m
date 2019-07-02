@@ -12,9 +12,13 @@ function phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGRespon
 
 
 
+phaseRange = linspace(0,pi,20); % range of values to search for the reference phase
 
-
-
+% to do:
+% - FFT of MEG data
+% - Get phase & amplitude at 10 Hz
+% - Pick reference phase that results in positive amplitudes, and thus
+% positive beta values for stimulus peaks in predicted MEG response
 
 
 
