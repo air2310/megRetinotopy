@@ -16,14 +16,18 @@
 %   2.1: xx
 %
 % 3. Forward model
-%   3.1: xx
+%   3.1: Predict response for MEG stimulus at Surface level (could be BS or FS)
+%   3.2: Predict response for MEG stimulus at MEG sensor level (multiply
+%           with gain matrix)
+%   3.3: Computing phase referenced amplitude from preprocessed MEG data 
+%           and predicted MEG responses from cortical surface
 %
-%
-% This script assumes the following preprocessing steps:
+% DEPENDENCIES:
+% 1. Preprocessing steps:
 % - FreeSurfer's auto-segmentation (v6???)
 % - MRI distortion correction w/ top-up??
 %
-% This script requires the following toolboxes:
+% 2. Toolboxes:
 % - Brainstorm (v??)
 % - FieldTrip (v??)
 % - VistaSoft (v??)
@@ -32,8 +36,8 @@
 % Add all with the ToolboxToolbox:
 %   tbUse('retmeg')
 %
+% 
 % By Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
-%
 %
 %% 0. Load paths
 
@@ -63,7 +67,7 @@ opt.useSmoothedData       = true;      % MRI prf parameters
 if ~skipMEGPreproc
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
-    [data, conditions] = preprocessMEGRetinotopyData(subjID, dirPth, opt); %#ok<ASGLU>
+    [data, conditions] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
     
     % 1.2 Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
     stim  = loadStim(subjID, dirPth, opt);
@@ -132,7 +136,7 @@ mprf_pRF_sm_FS_BS_fig(dirPth);
 
 %% 3. Forward model
 
-% 3.1 Predict response to MEG stimulus at Surface level (could be BS or FS)
+% 3.1 Predict response for MEG stimulus at Surface level (could be BS or FS)
 %       inputs (1) path to pRF parameters on surface (string)
 %              (2) MEG stimulus (struct with x, y, images, etc)
 %       output - predicted responses on surface (epochs x vertices)
