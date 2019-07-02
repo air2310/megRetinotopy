@@ -1,78 +1,114 @@
-function mprf_pRF_sm_fig(dirPth)
+function mprf_pRF_sm_fig(subjID, dirPth)
+% Function to plot parameters on mrVista surface after mprf_pRF_sm
+%                  
+% INPUTS:
+%   subjID      :   subject name (string)
+%   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
+%  
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
 %                             (original and smoothed)
-% 3) surface plots (original and smoothed)
+% 3) mrVista surface plots (original and smoothed)
 
-% File paths
-% ----------
-rootDir = dirPth.rootPth;
-prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
-prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat'); % original and smoothed pRF parameters in mrVista space in .mat
-mrSession_dir = dirPth.fmri.mrvPth; 
-coords_path = strcat(rootDir,mrSession_dir(2:end),'/Gray/');
 
-anat_dir = dirPth.mri.anatPth; 
-roi_path = strcat(rootDir,anat_dir(2:end),'/ROIs/');
-% ----------
+%% ------------
+%   File paths
+% -------------
+anat_dir    = fullfile(dirPth.fmri.mrvPth, '3DAnatomy');
+coords_path = fullfile(dirPth.fmri.mrvPth, 'Gray');
+roi_path    = fullfile(anat_dir, 'ROIs');
+
+% Directories to load results
+prf_dir_mrv     = dirPth.fmri.saveDataPth_prfMrv;
+prf_data_mrVmat = fullfile(prf_dir_mrv,'mat');      % original and smoothed pRF parameters in mrVista space in .mat
+prf_data_mrVNif = fullfile(prf_dir_mrv, 'nifti');   % original and smoothed pRF parameters in mrVista space in .nii
 
 data_file = dir(fullfile(prf_data_mrVmat,'*.mat'));
 load(fullfile(prf_data_mrVmat,data_file.name));
 
+
+% Other settings to define
+surf_visualize = 1;
+Var_Exp_Thr    = 0.4;
+Ecc_Thr        = [0 10]; % degrees
+
+%% --------------------
+%   Get prf parameters
+%  --------------------
+
 % original prf parameters
-ve = prf_par_exp.varexplained;
-sigma = prf_par_exp.sigma;
-x = prf_par_exp.x; y = prf_par_exp.y;
-[pol,ecc] = cart2pol(x,y);
-pol= mod(pol,2*pi);
-beta = prf_par_exp.beta;
+ve          = prf_par_exp.varexplained;
+sigma       = prf_par_exp.sigma;
+x           = prf_par_exp.x;
+y           = prf_par_exp.y;
 
-% smoothed prf parameters
-sigma_sm = prf_par_exp.sigma_smoothed;
-x_sm = prf_par_exp.x_smoothed; y_sm = prf_par_exp.y_smoothed;
+% Convert to polar angle and eccentricity
+[pol,ecc]   = cart2pol(x,y);
+pol         = mod(pol,2*pi);
+beta        = prf_par_exp.beta;
+
+% Smoothed prf parameters
+sigma_sm        = prf_par_exp.sigma_smoothed;
+x_sm            = prf_par_exp.x_smoothed; y_sm = prf_par_exp.y_smoothed;
+recomp_beta     = prf_par_exp.recomp_beta;
+
+% Again, convert to polar angle and eccentricity
 [pol_sm,ecc_sm] = cart2pol(x_sm,y_sm);
-pol_sm= mod(pol_sm, 2*pi);
-recomp_beta = prf_par_exp.recomp_beta;
+pol_sm          = mod(pol_sm, 2*pi);
 
-% histogram of variance explained 
-%--------------------------------
-figure(1); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
+%% ----------------------
+%   Visualize some stats
+%  ----------------------
+
+% Variance explained
+figure(1); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400]); box off;
 hist(ve,100);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
 h.EdgeColor = 'w';
-title('variance explained of prf fits');
-xlabel('variance explained');
+title('Variance explained of all pRF model fits')
+xlabel('Variance explained'); ylabel('Frequency')
+set(gca, 'FontSize', 15, 'TickDir', 'out')
 
-% prf size vs eccentricity
-%-------------------------
-% All voxels
+% prf size vs eccentricity (all voxels)
 figure(2),set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2])
 sm_mask = ve > 0;
-ve_thr_mask = ve > 0.4;
+% ve_thr_mask = ve > 0.4;
 c = sm_mask;
 scatter(ecc,sigma,[],c);
 title('voxels used for smoothing (ve>0)');
 xlabel('eccentricity');
 ylabel('prf size');
+set(gca, 'FontSize', 15, 'TickDir', 'out')
+legend('Included'); legend boxoff
 
-% fits for different visual areas
+%% ------------------------------------------------
+%   Separate prf params for different ROIs
+%  ------------------------------------------------
 
+% Load Wang Atlas ROIs compatible with mrVista
+if strcmp(subjID, 'wlsubj004')
+    rois = {'WangAtlas_V1_Combined','WangAtlas_V2_Combined','WangAtlas_V3_Combined',...
+        'WangAtlas_IPS_Combined','WangAtlas_LO_Combined','WangAtlas_V3AB_Combined',...
+        'WangAtlas_MT_Combined','WangAtlas_VO1','WangAtlas_VO2','WangAtlas_FEF',...
+        'WangAtlas_hV4'};
+else
+    d = dir(fullfile(roi_path, 'WangAtlas_*'));
+    for rr = 1:length(d)
+        thisRoi = strsplit(d(rr).name, '.');
+        rois{rr} = thisRoi{1};
+    end
+end
 
-rois = [{'WangAtlas_V1_Combined'},{'WangAtlas_V2_Combined'},{'WangAtlas_V3_Combined'},...
-        {'WangAtlas_IPS_Combined'},{'WangAtlas_LO_Combined'},{'WangAtlas_V3AB_Combined'}...
-        {'WangAtlas_MT_Combined'},{'WangAtlas_VO1'},{'WangAtlas_VO2'},{'WangAtlas_FEF'},...
-        {'WangAtlas_hV4'}];
-    
-rois = rois';    
-    
-num_roi = length(rois);
+rois = rois';
+
+num_roi   = length(rois);
 roi_fname = cell(num_roi,1);
 
 for roi_idx = 1:num_roi
-    roi_fname{roi_idx,1} = fullfile(roi_path,strcat(rois{roi_idx},'.mat'));
-end    
+    roi_fname{roi_idx,1} = fullfile(roi_path,[rois{roi_idx} '.mat']);
+end
 
 ROI_params = table(rois,roi_fname);
 
@@ -80,12 +116,9 @@ ROI_params = table(rois,roi_fname);
 coordsFile = fullfile(coords_path,'coords.mat');
 load(coordsFile);
 
-
 % Apply these thresholds on the pRF parameters for both the conditions
 model_data_thr = cell(num_roi,1);
 
-Var_Exp_Thr = 0.4;
-Ecc_Thr = [0 10];
 for roi_idx = 1:num_roi
     %Load the current roi
     load(ROI_params.roi_fname{roi_idx});
@@ -112,12 +145,12 @@ for roi_idx = 1:num_roi
     
     % preallocate variables
     index_thr_tmp = cell(1);
-       
+    
     index_thr_tmp{1} = model_data{1}.varexp > Var_Exp_Thr & model_data{1}.ecc < Ecc_Thr(2) & model_data{1}.ecc > Ecc_Thr(1) ;
-        
+    
     % Determine the thresholded indices for each of the ROIs
     roi_index{roi_idx,1} = index_thr_tmp{1} ;
-       
+    
     % Current model parameters- contains x,y, sigma,
     model_data_thr{roi_idx,1}.varexp = model_data{1}.varexp(roi_index{roi_idx,1});
     model_data_thr{roi_idx,1}.ecc = model_data{1}.ecc(roi_index{roi_idx,1});
@@ -140,12 +173,14 @@ end
 add_t_1 = table(model_data_thr, 'VariableNames',{'prf_params'});
 ROI_params = [ROI_params add_t_1];
 
+
+% Plot pRF size vs ecc
 figure(4),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-suptitle('pRF size vs ecc')
+title('pRF size vs ecc')
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(num_roi/2,2,roi_idx);
     scatter(ROI_params.prf_params{roi_idx}.ecc,ROI_params.prf_params{roi_idx}.sigma,[],c,'*');  hold on;
     scatter(ROI_params.prf_params{roi_idx}.ecc_sm,ROI_params.prf_params{roi_idx}.sigma_sm,[],c_sm,'*');
     
@@ -158,12 +193,15 @@ end
 % Sigma histogram
 %-----------------------
 figure(6),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Sigma')
+title('Sigma')
+ncols = 2;
+nrows = ceil(num_roi/ncols);
+
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.sigma,100)
     tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))   
+    title(tmp(2))
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -172,12 +210,12 @@ end
 % Smoothed sigma histogram
 %-----------------------
 figure(7),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Sigma smoothed')
+title('Sigma smoothed')
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.sigma_sm,100)
     tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))   
+    title(tmp(2))
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -187,12 +225,12 @@ end
 % Beta histogram
 %-----------------------
 figure(8),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Beta')
+title('Beta')
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.beta,100)
     tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))   
+    title(tmp(2))
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -201,12 +239,12 @@ end
 % recomputed beta histogram
 %-----------------------
 figure(9),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Recomputed beta')
+title('Recomputed beta')
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.recomp_beta,100)
     tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))   
+    title(tmp(2))
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -215,9 +253,9 @@ end
 figure(10),set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080]);
 c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-suptitle('pRF center distribution')
+title('pRF center distribution')
 for roi_idx = 1:num_roi
-    subplot(6,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     scatter(ROI_params.prf_params{roi_idx}.x,ROI_params.prf_params{roi_idx}.y,[],c,'.');  hold on;
     scatter(ROI_params.prf_params{roi_idx}.x_sm,ROI_params.prf_params{roi_idx}.y_sm,[],c_sm,'.');
     
@@ -225,33 +263,80 @@ for roi_idx = 1:num_roi
     legend([tmp(2) strcat(tmp(2),'sm')],'Location','northeastoutside')
     legend('Location','NorthWestoutside')
     axis([-10 10 -10 10])
-   
+    
 end
 
-%% 3) building mrMesh and displaying parameters on the mesh
+%% --------------------------------------------------------------------
+%   Load mrMesh and display Wang Rois and prf parameters on the mesh
+%  --------------------------------------------------------------------
 
-surf_visualize = 0;
-if surf_visualize ==1
-    % prf parameters on mrVista surface
-    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-    % Smooth the mesh
-    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
+if surf_visualize
     
-    % update map values
-    prf_param = ecc;
-    thr = sm_mask & ecc<20;
+    % Go to vista session and open a mrVista Gray window
+    cd(dirPth.fmri.mrvPth)
+    vw = mrVista('3');
     
-    map_val = nan(size(prf_param));
-    map_val(thr) = prf_param(thr);
+    % Load rh and lh mesh
+    mesh1 = fullfile(anat_dir, 'Left', '3DMeshes', 'Left_inflated.mat');
+    mesh2 = fullfile(anat_dir, 'Right', '3DMeshes', 'Right_inflated.mat');
+    [vw, OK] = meshLoad(vw, mesh1, 1); if ~OK, error('Mesh server failure'); end
+    [vw, OK] = meshLoad(vw, mesh2, 1); if ~OK, error('Mesh server failure'); end
     
-    hvol = viewSet(hvol,'displaymode','map');
-    hvol = viewSet(hvol,'map',{map_val});
-    hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
+    % Get prf parameters saved as nifti's
+    prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed', ...
+        'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
     
-    % different colormaps for phase values
+    % Load and draw Wang ROIs
+    for idx = 1:num_roi
+        roiFile = sprintf('%s',rois{idx});
+        vw = loadROI(vw, roiFile);
+        sprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
+    end
     
-    % Update mesh
-    hvol = meshColorOverlay(hvol,1);
+    vw = viewSet(vw, 'ROI draw method', 'perimeter');
+    vw = refreshScreen(vw);
+    vw = meshUpdateAll(vw);
     
+    % Load and draw prf parameters
+    for ii = 1:length(prfParams)
+        
+        sprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
+        
+        prfParamNifti =  fullfile(prf_data_mrVNif, sprintf('%s.nii.gz', prfParams{ii}));
+        
+        vw = viewSet(vw,'displaymode','map');
+        vw = loadParameterMap(vw,prfParamNifti);
+        
+        % Add smoothing/ve mask?
+        vw.map{1} = vw.map{1}.*sm_mask;
+        
+        % Set colormap and limits
+        vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
+        
+        switch prfParam
+            case {'polar_angle', 'polar_angle_smoothed'}
+                vw = viewSet(vw, 'mapwin', [eps 180]);
+                vw = viewSet(vw, 'mapclip', [eps 180]);
+                vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvCmap');
+            case {'eccentricity', 'eccentricity_smoothed'}
+                vw = viewSet(vw, 'mapwin', [eps 20]);
+                vw = viewSet(vw, 'mapclip', [eps 20]);
+            case {'beta', 'recomp_beta'}
+                vw = viewSet(vw, 'mapwin', [eps 20]);
+                vw = viewSet(vw, 'mapclip', [eps 20]);
+        end
+        
+        % Update views
+        vw = refreshScreen(vw);
+        vw = meshUpdateAll(vw);       
+        
+        % Copy the mesh to a Matlab figure
+        % fH = figure('Color', 'w');
+        % imagesc(mrmGet(viewGet(vw, 'Mesh'), 'screenshot')/255); axis image; axis off;
+    
+    end
+end
+
+
 end
 
