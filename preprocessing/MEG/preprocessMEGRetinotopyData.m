@@ -268,13 +268,6 @@ if opt.doDenoise
         designConditions(triggers.stimConditions==uniqueStimConds(ii))=ii;
     end
     
-%     if ~strcmp(subjID, 'wlsubj030')
-%         designConditions(designConditions==3) = 2;
-%         designConditions(designConditions==4) = 3;
-%         designConditions(designConditions==6) = 4;
-%         designConditions(designConditions==7) = 5;
-%     end
-    
     designMatrix     = conditions2design(designConditions);
     
     % Permute data and do denoising
