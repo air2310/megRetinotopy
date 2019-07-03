@@ -97,7 +97,12 @@ end
 
 if ~exist(sub_bsdir, 'dir'); mkdir(sub_bsdir); end
 
-
+% Open up brainstorm if database can't be found
+if ~exist('GlobalData.DataBase.iProtocol', 'var')
+    brainstorm nogui;
+end
+    
+    
 sub_fs_interp = @(dat)(tess_fs2bst(sub_bs, sub_fsdir, dat.lh, dat.rh, pialSurface));
 
 sub_bs_angle = sub_fs_interp(sub_fs_angle);
@@ -127,8 +132,7 @@ save(sub_bs_eccen_matfile, 'sub_bs_eccen');
 save(sub_bs_areas_matfile, 'sub_bs_areas');
 save(sub_bs_sigma_matfile, 'sub_bs_sigma');
 
-
-
-
+% make sure to exit brainstorm
+brainstorm exit;
 
 return
