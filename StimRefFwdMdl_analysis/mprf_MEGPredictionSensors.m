@@ -13,7 +13,16 @@ function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain)
 % OUTPUTS:
 %   predicted response time series for every MEG sensor (epochs x sensors)
 
+% Get nans in matrix
+nanMask = isnan(predSurfaceResponse);
+
+% Create output matrix
+% predMEGResponse = NaN(size(nanMask,1), size(gain,1));
+
+% Replace NaNs with zero's output matrix
+predSurfaceResponse(nanMask)=0;
 
 predMEGResponse = predSurfaceResponse * gain';
+
 
 return
