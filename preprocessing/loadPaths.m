@@ -49,7 +49,7 @@ dirPth.fmri.saveDataPth_prfBS = fullfile(dirPth.fmri.saveDataPth, 'prfBS');
 dirPth.fmri.saveDataPth_roiFS = fullfile(dirPth.fmri.saveDataPth, 'roiFS');
 dirPth.fmri.saveDataPth_roiBS = fullfile(dirPth.fmri.saveDataPth, 'roiBS');
 
-d = dir(fullfile(dirPth.fmri.mrvPth, 'Gray', '*','*fFit*'));
+d = dir(fullfile(dirPth.fmri.mrvPth, 'Gray', 'Averages','*fFit*'));
 dirPth.fmri.vistaGrayFitFile  = fullfile(d.folder, d.name);
 
 %% ------ Brainstorm ------ 

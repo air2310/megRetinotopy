@@ -173,6 +173,8 @@ end
 add_t_1 = table(model_data_thr, 'VariableNames',{'prf_params'});
 ROI_params = [ROI_params add_t_1];
 
+ncols = 2;
+nrows = ceil(num_roi/ncols);
 
 % Plot pRF size vs ecc
 figure(4),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
@@ -180,7 +182,7 @@ c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 title('pRF size vs ecc')
 for roi_idx = 1:num_roi
-    subplot(num_roi/2,2,roi_idx);
+    subplot(nrows,ncols,roi_idx);
     scatter(ROI_params.prf_params{roi_idx}.ecc,ROI_params.prf_params{roi_idx}.sigma,[],c,'*');  hold on;
     scatter(ROI_params.prf_params{roi_idx}.ecc_sm,ROI_params.prf_params{roi_idx}.sigma_sm,[],c_sm,'*');
     
@@ -194,9 +196,6 @@ end
 %-----------------------
 figure(6),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 title('Sigma')
-ncols = 2;
-nrows = ceil(num_roi/ncols);
-
 for roi_idx = 1:num_roi
     subplot(nrows,ncols,roi_idx);
     hist(ROI_params.prf_params{roi_idx}.sigma,100)
