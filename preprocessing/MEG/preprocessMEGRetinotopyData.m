@@ -1,4 +1,4 @@
-function data = preprocessMEGRetinotopyData(subjID, dirPth, opt)
+function [data, triggers] = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 % This function contains main analysis to preprocess subject's MEG data,
 % from the MEG Retinotopy project.
 %
@@ -103,6 +103,7 @@ switch subjID
         triggers.timing = find(triggers.ts);
     case 'wlsubj030'
         triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
+        triggers.timing = find(triggers.ts);
         triggers.ts(triggers.timing(1)) = 0; % wlsubj030: remove first trigger (not sure why this one is here)
         triggers.timing = find(triggers.ts);
     case 'wlsubj040'
@@ -177,10 +178,20 @@ sz = size(data);
 data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 
 % If requested: set the first epoch of the first bar sweep to NaN
-if opt.removeStartOfRunEpoch
-    numBlinkBlanks = 5;
-    beginOfSweep = (numBlinkBlanks+1):(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
-    toRemove = startOfRun+beginOfSweep-1;
+if opt.removeStartOfRunEpoch    
+    numBlinkBlanks = 5;    
+    if strcmp(subjID,'wlsubj030')
+        beginOfSweep = 1:(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
+        toRemove = startOfRun+beginOfSweep-1;        
+    else
+        beginOfSweep = (numBlinkBlanks+1):(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
+        toRemove = startOfRun+beginOfSweep-1;
+    end
+    
+    if opt.verbose
+        figure; plot(triggers.stimConditions);
+        hold on; plot(toRemove,triggers.stimConditions(toRemove), 'rx')
+    end
     data(:, toRemove, :) = NaN;
 end
 
@@ -267,13 +278,6 @@ if opt.doDenoise
     for ii = 1:length(uniqueStimConds)
         designConditions(triggers.stimConditions==uniqueStimConds(ii))=ii;
     end
-    
-%     if ~strcmp(subjID, 'wlsubj030')
-%         designConditions(designConditions==3) = 2;
-%         designConditions(designConditions==4) = 3;
-%         designConditions(designConditions==6) = 4;
-%         designConditions(designConditions==7) = 5;
-%     end
     
     designMatrix     = conditions2design(designConditions);
     

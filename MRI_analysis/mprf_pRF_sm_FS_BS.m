@@ -34,10 +34,12 @@ hs_to_load = {'lh','rh'};        % In this order as BS concatenates the hemisphe
 % Check surface:
 if any(strcmpi('pial',strsplit(bs_head_model_surf,'_')))
     surfaces_to_load = {'pial'};
-    
-elseif any(strcmpi('white',strsplit(bs_head_model_surf,'_')))
-    surfaces_to_load = {'white'};
-    
+
+    % (EK): Don't load white surface, since order of vertices is different
+    % and will not match the downsampled prf data or rois
+% elseif any(strcmpi('white',strsplit(bs_head_model_surf,'_')))
+%     surfaces_to_load = {'white'};
+%     
 else
     error('Could not determine the surface to load');
     
