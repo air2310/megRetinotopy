@@ -108,8 +108,8 @@ meg.gain = gainMtx;
      plot_stim = 0; % flag to plot the stimulus movie
      mprf_pRF_sm(dirPth,plot_stim) % pRF params from mrV >> smoothed pRF params on mrV (flag)
      mprf_pRF_sm_fig(dirPth); % Generates summary figures for the pRF parameters before after smoothing
-     
-     mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS
+
+     mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS     
      mprf_pRF_sm_FS_fig(dirPth);
      
      mprf_pRF_sm_FS_BS(dirPth) % smoothed pRF params on FS >>  smoothed pRF params on BS
