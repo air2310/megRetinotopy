@@ -60,11 +60,14 @@ opt.doFiltering           = true;  % MEG preprocessing
 opt.doDenoise             = true;  % MEG preprocessing
 opt.removeStartOfRunEpoch = false; % MEG preprocessing
 
-opt.varExplThresh         = [0.1 inf]; % MRI prf parameters
-opt.useSmoothedData       = true;      % MRI prf parameters
+opt.varExplThresh         = [0.1 inf]; % MRI prf preprocessing parameters
+opt.useSmoothedData       = true;      % MRI prf preprocessing parameters
+
+opt.useBensonMaps         = true;     % Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+
 %% 1. MEG data preprocessing
 
-if ~skipMEGPreproc
+if ~opt.skipMEGPreproc
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
     [data, conditions] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
@@ -88,7 +91,15 @@ meg.stim = stim;
 meg.gain = gainMtx;
 
 
-%% 2. MRI data preprocessing
+%% 2 MRI data preprocessing
+
+mri     = struct();
+
+if opt.useBensonMaps 
+    [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
+else
+    mri.prfSurfPath = fullfile(dirPth.fmri.saveDataPth_prfBS);
+end
 
 % Preprocessing
 % input - raw fMRI data (dicoms)
@@ -136,8 +147,7 @@ mprf_pRF_sm_FS_BS_fig(dirPth);
 %              (2) MEG stimulus (struct with x, y, images, etc)
 %       output - predicted responses on surface (epochs x vertices)
 
-prfSurfPath = fullfile(dirPth.fmri.saveDataPth_prfBS);
-predSurfResponse = mprf_MEGPredictionFromSurface(prfSurfPath, meg.stim, subjID, dirPth, opt);
+predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, subjID, dirPth, opt);
 
 % 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
