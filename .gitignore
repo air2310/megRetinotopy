@@ -1,5 +1,6 @@
 *.m~
 *.DS_Store
+data
 data/*
 *.sh~
 zionAddPaths.m
