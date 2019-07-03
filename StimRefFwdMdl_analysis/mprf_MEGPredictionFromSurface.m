@@ -18,8 +18,10 @@ function predResponseAllVertices = mprf_MEGPredictionFromSurface(prfSurfPath, st
 %% Find prf parameter files
 
 % Define pRF parameters to read from surface
-if opt.useSmoothedData
+if (~opt.useBensonMaps && opt.useSmoothedData)
     prfParams = {'varexplained', 'mask', 'x_smoothed', 'y_smoothed', 'sigma_smoothed', 'recomp_beta'};
+elseif opt.useBensonMaps
+    prfParams = {'mask', 'x', 'y', 'sigma', 'beta'};
 else
     prfParams = {'varexplained', 'mask', 'x', 'y', 'sigma', 'beta'};
 end
@@ -62,7 +64,11 @@ for idx = 1:length(prfParams)
     
     % 4. Make roi mask
     elseif strcmp(prfParams{idx},'mask') % (original file: NaN = outside mask, 0 = inside mask)
-        prf.roimask = ~isnan(theseData);   
+        prf.roimask = ~isnan(theseData);
+        
+        % Benson maps don't have variance explained map, so we just use the
+        % same vertices as the roi mask
+        if opt.useBensonMaps; prf.vemask = prf.roimask; end
     
     % 5. Mask data
     else  
@@ -72,10 +78,11 @@ for idx = 1:length(prfParams)
 end
 
 %% Get RFs from prf surface parameters (stim locations x vertices)
-x0    = prf.(prfParams{3});
-y0    = prf.(prfParams{4});
-sigma = prf.(prfParams{5});
-beta  = prf.(prfParams{6});
+fn = fieldnames(prf);
+x0    = prf.(fn{cellfind(regexp(prfParams, 'x'))});
+y0    = prf.(fn{cellfind(regexp(prfParams, 'y'))});
+sigma = prf.(fn{cellfind(regexp(prfParams, 'sigma'))});
+beta  = prf.(fn{cellfind(regexp(prfParams, 'beta'))});
 
 % Build RFs that fall within the stimulus aperture
 RF = rfGaussian2d(stim.X,stim.Y,sigma,sigma,false, x0, y0);
