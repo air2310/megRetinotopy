@@ -56,21 +56,31 @@ opt.verbose               = true;  % General
 opt.doSaveData            = true;  % General
 opt.saveFig               = false; % General
 opt.fullSizeGainMtx       = false; % General
-opt.doFiltering           = true;  % MEG preprocessing
-opt.doDenoise             = true;  % MEG preprocessing
-opt.removeStartOfRunEpoch = false; % MEG preprocessing
 
-opt.varExplThresh         = [0.1 inf]; % MRI prf preprocessing parameters
-opt.useSmoothedData       = true;      % MRI prf preprocessing parameters
+opt.doFiltering           = true;       % MEG preprocessing
+opt.doDenoise             = true;       % MEG preprocessing
+opt.removeStartOfRunEpoch = false;      % MEG preprocessing
+opt.varThreshold          = [0.05 20];  % MEG preprocessing
+opt.badChannelThreshold   = 0.2;        % MEG preprocessing
+opt.badEpochThreshold     = 0.2;        % MEG preprocessing
+opt.triggerChan           = 161:168;    % MEG Sensor info
+opt.photoDiodeChan        = 192;        % MEG Sensor info          
+opt.dataChan              = 1:157;      % MEG Sensor info
+opt.fs                    = 1000;       % MEG Sensor info: Sample rate (Hz) 
+opt.flickerFreq           = 10;         % MEG Experiment info: Stim freq (Hz)   
+opt.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 
-opt.useBensonMaps         = true;     % Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt.varExplThresh         = [0.1 inf]; % MRI prf: Preprocessing
+opt.useSmoothedData       = true;      % MRI prf: Preprocessing
+
+opt.useBensonMaps         = true;      % MRI prf: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 
 %% 1. MEG data preprocessing
 
 if ~opt.skipMEGPreproc
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
-    [data, conditions] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
+    [data, conditions, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
     
     % 1.2 Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
     stim  = loadStim(subjID, dirPth, opt);
@@ -86,7 +96,7 @@ else % If you want to skip preprocessing
 end
 
 meg      = struct();
-meg.data = data;
+meg.data = data.data.data;
 meg.stim = stim;
 meg.gain = gainMtx;
 
@@ -164,7 +174,7 @@ predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain);
 %              (2) predicted MEG responses (epochs x sensors)
 %       output - Phase referenced MEG time series (sensors x epochs)
 
-phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse);
+phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, opt);
 
 
 % pred.prf = prf;
