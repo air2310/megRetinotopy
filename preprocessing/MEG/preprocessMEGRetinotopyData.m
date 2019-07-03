@@ -1,4 +1,4 @@
-function [data, triggers] = preprocessMEGRetinotopyData(subjID, dirPth, opt)
+function [data, triggers, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 % This function contains main analysis to preprocess subject's MEG data,
 % from the MEG Retinotopy project.
 %
@@ -39,21 +39,6 @@ function [data, triggers] = preprocessMEGRetinotopyData(subjID, dirPth, opt)
 %   tbUse('retmeg')
 
 %% 0. Define parameters and paths
-
-% MEG Channel info
-triggerChan         = 161:168;
-photoDiodeChan      = 192;               %#ok<NASGU>
-dataChan            = 1:157;
-fs                  = 1000;              % Sample rate (Hz)
-
-% Experiment info
-flickerFreq         = 10;                % Hz
-epochStartEnd       = [0.15 (0.15+1.1)]; % seconds (First 150 ms are blank, one epoch length = 1.100 s)
-
-% Preprocessing info
-varThreshold        = [0.05 20];
-badChannelThreshold = 0.2;
-badEpochThreshold   = 0.2;
 
 % Make folder to save figure
 if (opt.saveFig && ~exist(dirPth.meg.saveFigPth, 'dir'))
@@ -98,22 +83,22 @@ if opt.verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
 % Get trigger time series (same length as MEG ts) and compute triggertiming
 switch subjID
     case 'wlsubj004'
-        triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
         triggers.ts(697111:729608) = 0;      % wlsubj004: remove half run (to do: make it a general statement, not hardcoded)
         triggers.timing = find(triggers.ts);
     case 'wlsubj030'
-        triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
         triggers.timing = find(triggers.ts);
         triggers.ts(triggers.timing(1)) = 0; % wlsubj030: remove first trigger (not sure why this one is here)
         triggers.timing = find(triggers.ts);
     case 'wlsubj040'
-        triggers.ts = meg_fix_triggers_wlsubj040(ts(triggerChan,:)');
+        triggers.ts = meg_fix_triggers_wlsubj040(ts(opt.triggerChan,:)');
         triggers.timing = find(triggers.ts);
     case 'wlsubj058'
-        triggers.ts = meg_fix_triggers_wlsubj058(ts, triggerChan);
+        triggers.ts = meg_fix_triggers_wlsubj058(ts,opt.triggerChan);
         triggers.timing = find(triggers.ts);
     case 'wlsubj068'
-        triggers.ts = meg_fix_triggers(ts(triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
         triggers.timing = find(triggers.ts);
 end
 
@@ -164,7 +149,7 @@ if opt.verbose
     fprintf('(%s) Number of epochs per stimulus orientation: %d\n', mfilename, numOfEpochsPerOrientation);
 end
 % Epoch matrix dimensions: time x epochs x channels
-[data, startOfRun] = getEpochs(ts(dataChan,:), triggers, epochStartEnd, flickerFreq, fs, subjID);
+[data, startOfRun] = getEpochs(ts(opt.dataChan,:), triggers, opt.epochStartEnd, opt.flickerFreq, opt.fs, subjID);
 
 if length(startOfRun) > numRuns+1
     warning('(%s) Variable "startOfRun" has more values (%d) than actual number of runs (%d).. resetting "startOfRuns".. \n', mfilename, length(startOfRun), numRuns)
@@ -197,7 +182,7 @@ end
 
 % DEBUG: Plot a single channel to check data
 if opt.verbose
-    t = (1:size(data,1))./fs;
+    t = (1:size(data,1))./opt.fs;
     ft = (0:length(t)-1)/max(t);
     
     figure;
@@ -236,7 +221,7 @@ if opt.doFiltering
     fParams.fPass = 1;      % BandPass filter (Hz)
     fParams.aStop = 60;     % Amplitude of lowpass filter (dB)
     fParams.aPass = 3;      % Amplitude band pass Ripple (dB)
-    fParams.fs    = fs;     % Sample rate (Hz)
+    fParams.fs    = opt.fs;     % Sample rate (Hz)
     
     
     data = highPassFilterData(data, fParams, opt.verbose);
@@ -247,11 +232,14 @@ end
 if opt.verbose; sprintf('(%s) Check for bad channels or epochs in data...\n', mfilename); end
 
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
-    varThreshold, badChannelThreshold, badEpochThreshold, opt.verbose);
+    opt.varThreshold, opt.badChannelThreshold, opt.badEpochThreshold, opt.verbose);
 
 if strcmp(subjID, 'wlsubj040')
     badChannels([98, 42]) = 1;
 end
+
+opt.badChannels = badChannels;
+opt.badEpochs   = badEpochs;
 
 if opt.saveFig; print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID))); end
 
@@ -268,7 +256,7 @@ if opt.doDenoise
     opt.npcs2try            = 10;    % max nr of PCs = 10
     
     % Get 10 Hz evoked signal (fft power)
-    evokedfun        = @(x)mprfDenoiseEvalFun(x,[flickerFreq, flickerFreq] ,fs);
+    evokedfun        = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
     
     % Get design matrix
     designConditions = zeros(size(triggers.stimConditions));
@@ -303,8 +291,8 @@ if opt.doDenoise
             print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth, sprintf('%s_r2_denoising', subjID)))
         end
         
-        freqIdx = mprfFreq2Index(size(denoised_data{1},2), flickerFreq, fs);
-        t = (1:size(denoised_data{1},2))./fs;
+        freqIdx = mprfFreq2Index(size(denoised_data{1},2), opt.flickerFreq, opt.fs);
+        t = (1:size(denoised_data{1},2))./opt.fs;
         ft = (0:length(t)-1)/max(t);
         
         figure;
@@ -312,7 +300,7 @@ if opt.doDenoise
             amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(denoised_data{1},2)*2;
             cla
             plot(ft,nanmean(squeeze(amps),2)); hold on;
-            plot([flickerFreq flickerFreq], [0 max(nanmean(squeeze(amps),2))]); title(chan);
+            plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(squeeze(amps),2))]); title(chan);
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
             if opt.saveFig
@@ -363,7 +351,7 @@ if opt.verbose
     plot(triggers.stimConditions, 'LineWidth', 2);
     xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
     if opt.saveFig
-        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers_stimCondition', subject)))
+        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers_stimCondition', subjID)))
     end
 end
 
