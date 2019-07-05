@@ -1,4 +1,4 @@
-function phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt)
+function phRefAmp10Hz = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt)
 % Function to computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
@@ -12,7 +12,7 @@ function phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGRespon
 
 
 % Define the number of references phases to try
-phaseRange = linspace(0,pi,20); % range of values to search for the reference phase
+phaseRange = linspace(0,2*pi,100); % range of values to search for the reference phase
 
 % Check dimensions of MEG data
 [nTimepoints, nEpochs, nRuns, nSensors] = size(megData);
@@ -34,13 +34,13 @@ amp     = abs(F)/size(megData,1)*2;
 amp10Hz = squeeze(amp(freqIdx,:,:,:)); % one value per epoch x run x sensor
 ph10Hz  = squeeze(ph(freqIdx, :,:,:)); % one value per epoch x run x sensor
 
-phRef10Hz = NaN(length(phaseRange), nEpochs, nRuns, nSensors);
-B         = NaN(length(phaseRange), nRuns, nSensors);
-predPhRefResponse = NaN(length(phaseRange), nEpochs, nRuns, nSensors);
-CoD       = NaN(length(phaseRange), nRuns, nSensors);
+varexpl           = NaN(length(phaseRange), nRuns, nSensors);
+refPhase          = NaN(length(phaseRange), nRuns, nSensors);
 
+warning off
+fprintf('(%s) Checking best reference phase .', mfilename)
 for rp = 1:length(phaseRange)
-    
+    fprintf('.')
     % Get reference phase
     thisRefPhase = phaseRange(rp);
     
@@ -65,70 +65,39 @@ for rp = 1:length(phaseRange)
             angPhaseDiff = cos(phaseDiff);
             
             % Scale amplitude by angle of phase difference
-            phRef10Hz(rp, ~currentnans,run,sensor) = amp10Hz(~currentnans,run,sensor).*angPhaseDiff(~currentnans);
+            phRef10Hz = amp10Hz(~currentnans,run,sensor).*angPhaseDiff(~currentnans);
             
             % Get predicted MEG response and a set of ones for capturing
             % the average
             X = [ones(size(predMEGResponse(~currentnans,sensor))) predMEGResponse(~currentnans,sensor)];
             
             % Regress prediction from phase referenced 10 Hz MEG response
-            B_tmp = X \ phRef10Hz(rp, ~currentnans,run,sensor)';
+            [B,~,~,~,stats] = regress(phRef10Hz,X);
             
-            % Pick reference phase that results in positive amplitudes, and thus
-            % positive beta values for stimulus peaks in predicted MEG response
-            if B_tmp(2)<0
-                fprintf('(%s): RefPhase %d, Sensor %d, Run %d, current beta is negative: %d \n', mfilename, thisRefPhase, sensor, run, B_tmp(2)) % skip
+            varexpl(rp,run,sensor) = stats(1);
+            
+            if B(2) < 0
+                % If regression results in a negative scale factor, then
+                % add pi to the reference phase
+                refPhase(rp,run,sensor) = thisRefPhase+pi;
             else
-                B(rp,run,sensor) = B_tmp(2);
-            
-                % Get the predicted times series with this reference phase beta
-                predPhRefResponse(rp,~currentnans,run,sensor) =  X * B_tmp;
-
-                % Compute coefficient of determination:
-                CoD(rp,run,sensor) = 1 - (var(phRef10Hz(rp, ~currentnans,run,sensor) - predPhRefResponse(rp,~currentnans,run,sensor)) ...
-                                ./ var(phRef10Hz(rp, ~currentnans,run,sensor)));
+                refPhase(rp,run,sensor) = thisRefPhase;
             end
+ 
         end
     end
 end
+warning on
+fprintf('\n(%s) done!\n',mfilename)
 
 % Get phase that gives max CoD per run, per sensor
-[maxPhase, maxPhaseIdx] = max(CoD);
+[~, maxVarExplIdx] = max(varexpl);
 
+maxPhase     = refPhase(maxVarExplIdx);
 phaseDiff    = ph10Hz - maxPhase;
 maxAngle     = cos(phaseDiff);
 phRefAmp10Hz = amp10Hz.*maxAngle;
 
-% Take mean across 19 runs
-meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));
-
-
-%% Get predicted response that explains most variance from mean response
-
-% preallocate space
-meanPredResponse = NaN(nEpochs,nSensors);
-meanCoD = NaN(1,nSensors);
-for s = 1:nSensors
-    
-    % Identify and remove nans
-    meanNanMask = isnan(meanPhRefAmp10Hz(:,s));
-    meanPrediction = predMEGResponse(~meanNanMask,s);
-    meanData = meanPhRefAmp10Hz(~meanNanMask,s);
-    
-    % Create predictions
-    meanX = [ones(size(meanPrediction)) meanPrediction];
-    
-    % Regress out predictions
-    meanB = meanX \ meanData;
-    
-    % Compute scaled predictions with betas
-    meanPredResponse(~meanNanMask,s) =  meanX * meanB;
-
-    % Compute coefficient of determination:
-    meanCoD(s) = 1 - (var(meanData - meanPredResponse(~meanNanMask,s)) ...
-                                ./ var(meanData));
-
-end
 
 return
 
