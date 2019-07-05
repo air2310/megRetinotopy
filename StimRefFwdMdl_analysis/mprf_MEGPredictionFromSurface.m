@@ -19,9 +19,9 @@ function predResponseAllVertices = mprf_MEGPredictionFromSurface(prfSurfPath, st
 
 % Define pRF parameters to read from surface
 if (~opt.useBensonMaps && opt.useSmoothedData)
-    prfParams = {'varexplained', 'mask', 'x_smoothed', 'y_smoothed', 'sigma_smoothed', 'recomp_beta'};
+    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed', };
 elseif opt.useBensonMaps
-    prfParams = {'mask', 'x', 'y', 'sigma', 'beta'};
+    prfParams = {'mask', 'beta', 'x', 'y', 'sigma'};
 else
     prfParams = {'varexplained', 'mask', 'x', 'y', 'sigma', 'beta'};
 end
@@ -38,10 +38,11 @@ for ii = 1:length(d)
         emptyFile(ii) = 0;
     end
 end
-d(find(emptyFile)) = [];
+d(find(emptyFile)) = []; %#ok<FNDSB>
 
 % Display prf parameters
-sprintf('Found surface prf parameters: %s \n', d.name)
+fprintf('(%s): Found the following prf parameters on the surface: \n',  mfilename)
+fprintf('\t %s \n', d.name)
 
 
 %% Get prf parameters
@@ -52,37 +53,48 @@ for idx = 1:length(prfParams)
     param = dir(fullfile(prfSurfPath, sprintf('*.%s',prfParams{idx})));
     theseData = read_curv(fullfile(prfSurfPath,param.name));
     
-    % 2. Check variance explained by pRF model and make mask if requested
-    if ((strcmp(prfParams{idx},'varexplained')) && any(opt.varExplThresh))
-        prf.(prfParams{idx}) = theseData;
-        prf.vemask = ((prf.varexplained > opt.varExplThresh(1)) & (prf.varexplained < opt.varExplThresh(2)));
-    
-    % 3. If not, make mask with all ones
-    elseif strcmp(prfParams{idx},'varexplained')
-        prf.(prfParams{idx}) = theseData;
-        prf.vemask = true(size(prf.varexplained));
-    
-    % 4. Make roi mask
-    elseif strcmp(prfParams{idx},'mask') % (original file: NaN = outside mask, 0 = inside mask)
-        prf.roimask = ~isnan(theseData);
+    switch prfParams{idx}
         
-        % Benson maps don't have variance explained map, so we just use the
-        % same vertices as the roi mask
-        if opt.useBensonMaps; prf.vemask = prf.roimask; end
+        case 'varexplained'
+            prf.(prfParams{idx}) = theseData;
+            
+            % 2. Check variance explained by pRF model and make mask if requested
+            if any(opt.varExplThresh)    
+                prf.vemask = ((prf.varexplained > opt.varExplThresh(1)) & (prf.varexplained < opt.varExplThresh(2)));
+            else % 3. If not, make mask with all ones
+                prf.vemask = true(size(prf.varexplained));
+            end
     
-    % 5. Mask data
-    else  
-        prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);        
+    
+        case 'mask' % 4. Make roi mask (original file: NaN = outside mask, 0 = inside mask)
+            prf.roimask = ~isnan(theseData);
+        
+            % Benson maps don't have variance explained map, so we just use the
+            % same vertices as the roi mask
+            if opt.useBensonMaps; prf.vemask = prf.roimask; end
+            
+        case {'beta', 'recomp_beta'}
+            if any(opt.betaPrctileThresh)
+                thresh = prctile(theseData, opt.betaPrctileThresh);
+                betamask = ((theseData > thresh(1)) & (theseData < thresh(2)));
+                theseData(~betamask) = NaN;
+                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
+            else
+                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
+            end
+    
+        case {'x_smoothed', 'x', 'y_smoothed', 'y', 'sigma_smoothed', 'sigma'}
+            prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
     end
-
+            
 end
 
 %% Get RFs from prf surface parameters (stim locations x vertices)
 fn = fieldnames(prf);
-x0    = prf.(fn{cellfind(regexp(prfParams, 'x'))});
-y0    = prf.(fn{cellfind(regexp(prfParams, 'y'))});
-sigma = prf.(fn{cellfind(regexp(prfParams, 'sigma'))});
-beta  = prf.(fn{cellfind(regexp(prfParams, 'beta'))});
+x0    = prf.(fn{cellfind(regexp(fn, '\<x'))});
+y0    = prf.(fn{cellfind(regexp(fn, '\<y'))});
+sigma = prf.(fn{cellfind(regexp(fn, '\<sigma'))});
+beta  = prf.(fn{cellfind(regexp(fn, 'beta'))});
 
 % Build RFs that fall within the stimulus aperture
 RF = rfGaussian2d(stim.X,stim.Y,sigma,sigma,false, x0, y0);
@@ -95,11 +107,16 @@ predResponseAllVertices(:, prf.vemask & prf.roimask) = predResponse;
 
 % Plot predicted response BS surface
 if opt.verbose
-    figure, plot(1:140,predResponseAllVertices)
+    t = (0:size(stim.im,2)-1) .* diff(opt.epochStartEnd);
+    figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
+    plot(t,predResponseAllVertices);
+    title('Predicted response to stimulus from all vertices, using pRF parameters from surface')
+    xlabel('Time (s)'); ylabel('Predicted vertex response (a.u.)');
+    set(gca, 'FontSize', 14, 'TickDir','out'); box off
 end
 
 % save predicted response to MEG stimuli for every vertex
 if opt.doSaveData
     if ~exist(fullfile(prfSurfPath,'pred_resp')); mkdir(fullfile(prfSurfPath,'pred_resp')); end;
-    save(fullfile(prfSurfPath,'pred_resp'),'predResponseAllVertices');
+    save(fullfile(prfSurfPath,'pred_resp','predResponseAllVertices'));
 end
