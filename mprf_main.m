@@ -73,9 +73,10 @@ opt.flickerFreq           = 10;         % MEG Experiment info: Stim freq (Hz)
 opt.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 
 opt.varExplThresh         = [0.1 inf]; % MRI prf: Preprocessing
+opt.betaPrctileThresh     = [0 95];    % Remove beta outliers by only taking up to the 95th percentile
 opt.useSmoothedData       = true;      % MRI prf: Preprocessing
 
-opt.useBensonMaps         = true;      % MRI prf: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt.useBensonMaps         = false;      % MRI prf: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 
 %% 1. MEG data preprocessing
 
@@ -180,25 +181,14 @@ predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain);
 
 phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, opt);
 
+% 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
+%       inputs (1) Phase referenced MEG time series (sensors x time)
+%              (2) predicted MEG sensor responses from MRI prfs
+%       outputs(1) modelfit to mean phase-referenced MEG data,
+%              (2) variance explained per MEG sensor 
 
-% pred.prf = prf;
-% pred.model = model;
-% pred.syn = 0;
-% pred.meg_resp = meg_resp;
-% 
-% cur_time = datestr(now);
-% cur_time(cur_time == ' ' | cur_time == ':' | cur_time == '-') = '_';
-% pred.cur_time = cur_time;
-% 
-% mprfSession_run_original_model_server(pred,meg_data_file_path,plot_figure);
-% 
+[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phaseRefMEGResponse, predMEGResponse, opt);
 
-% Comparing predicted MEG time series and phase referenced MEG time series
-% input - predicted MEG time series on MEG sensor space
-%       - Phase referenced MEG time series (sensors x time)
-% output - variance explained per MEG sensor
-
-%************<code>***************
 
 %% Figures
 
