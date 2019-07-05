@@ -44,6 +44,7 @@
 % Define subject ID
 subjID = 'wlsubj068';
 
+%%
 % Load paths with data files for this subject
 dirPth = loadPaths(subjID);
 
