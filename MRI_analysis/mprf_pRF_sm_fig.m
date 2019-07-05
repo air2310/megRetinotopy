@@ -312,7 +312,7 @@ if surf_visualize
         % Set colormap and limits
         vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
         
-        switch prfParam
+        switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
                 vw = viewSet(vw, 'mapwin', [eps 180]);
                 vw = viewSet(vw, 'mapclip', [eps 180]);
