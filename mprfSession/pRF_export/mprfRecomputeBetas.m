@@ -2,7 +2,7 @@ function beta_out = mprfRecomputeBetas(stim, sigma, X, Y, mresp)
 
 beta_out = nan(size(sigma));
 
-sprintf('(%s): Recomputing betas:\n', mfilename)
+fprintf('(%s): Recomputing betas:\n', mfilename)
 figure; xlabel('time (TRs)'); ylabel('Unnormalized response (betas)');
 box off
 
