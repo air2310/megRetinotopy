@@ -24,5 +24,16 @@ predSurfaceResponse(nanMask)=0;
 
 predMEGResponse = predSurfaceResponse * gain';
 
+if opt.verbose
+    figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
+    plot(predMEGResponse); hold on;
+    plot(zeros(1,size(predMEGResponse,1)),'k')
+    title('Predicted MEG response from MRI prfs')
+    xlabel('time points (epochs)');
+    ylabel('MEG response (T??)');
+    ylim([-1,1]*max(abs(predMEGResponse(:))))
+    set(gca, 'FontSize', 14, 'TickDir', 'out'); box off;
+end
+
 
 return
