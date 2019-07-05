@@ -1,10 +1,10 @@
 function mprf_pRF_sm_fig(subjID, dirPth)
 % Function to plot parameters on mrVista surface after mprf_pRF_sm
-%                  
+%
 % INPUTS:
 %   subjID      :   subject name (string)
 %   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
-%  
+%
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
@@ -271,6 +271,12 @@ end
 
 if surf_visualize
     
+    close all;
+    
+    % Get directory to save images
+    saveDir = fullfile(dirPth.fmri.saveDataPth_prfMrv, 'figs');
+    if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+    
     % Go to vista session and open a mrVista Gray window
     cd(dirPth.fmri.mrvPth)
     vw = mrVista('3');
@@ -285,16 +291,26 @@ if surf_visualize
     prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed', ...
         'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
     
+    % Hide rois in gray view when loading
+    vw = viewSet(vw, 'hide gray rois', true);
+    
     % Load and draw Wang ROIs
     for idx = 1:num_roi
         roiFile = sprintf('%s',rois{idx});
         vw = loadROI(vw, roiFile);
-        sprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
+        fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
     end
     
     vw = viewSet(vw, 'ROI draw method', 'perimeter');
     vw = refreshScreen(vw);
     vw = meshUpdateAll(vw);
+    
+    % Get list of viewpoints and meshes when saving different images
+    viewList={'back','left','right','bottom','top'};
+    viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
+    mshToPrint = viewGet(vw,'allmeshes');
+    idList = [mshToPrint{1}.id, mshToPrint{2}.id];
+    idName = {mshToPrint{1}.name, mshToPrint{2}.name};
     
     % Load and draw prf parameters
     for ii = 1:length(prfParams)
@@ -309,30 +325,43 @@ if surf_visualize
         % Add smoothing/ve mask?
         vw.map{1} = vw.map{1}.*sm_mask;
         
-        % Set colormap and limits
-        vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
-        
         switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
                 vw = viewSet(vw, 'mapwin', [eps 2*pi]);
                 vw = viewSet(vw, 'mapclip', [eps 2*pi]);
                 vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvCmap');
+                
             case {'eccentricity', 'eccentricity_smoothed'}
-                vw = viewSet(vw, 'mapwin', [eps 20]);
-                vw = viewSet(vw, 'mapclip', [eps 20]);
-            case {'beta', 'recomp_beta'}
-                vw = viewSet(vw, 'mapwin', [eps 20]);
-                vw = viewSet(vw, 'mapclip', [eps 20]);
+                % Set colormap and limits
+                vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
+                vw = viewSet(vw, 'mapwin', [eps Ecc_Thr(2)]);
+                vw = viewSet(vw, 'mapclip', [eps Ecc_Thr(2)]);
+                
+            case {'beta', 'recomp_beta', 'varexplained'}
+                maxBetaCmap = prctile(vw.map{1},90);
+                
+                vw = viewSet(vw, 'mapwin', [eps maxBetaCmap]);
+                vw = viewSet(vw, 'mapclip', [eps maxBetaCmap]);
         end
         
         % Update views
         vw = refreshScreen(vw);
-        vw = meshUpdateAll(vw);       
+        vw = meshUpdateAll(vw);
         
         % Copy the mesh to a Matlab figure
-        % fH = figure('Color', 'w');
-        % imagesc(mrmGet(viewGet(vw, 'Mesh'), 'screenshot')/255); axis image; axis off;
-    
+        for thisID = 1:length(idList)
+            for thisView=1:length(viewList)
+                cam.actor=0;
+                cam.rotation = rotationMatrix3d(viewVectors{thisView});
+                mrMesh('localhost',idList(thisID),'set',cam);
+                
+                fH = figure('Color', 'w'); clf;
+                imagesc(mrmGet(viewGet(vw, 'Mesh'), 'screenshot')/255); axis image; axis off;
+                print(fH, fullfile(saveDir,sprintf('%s_%s_%s',idName{thisID}, prfParams{ii},viewList{thisView})), '-dpng');
+                
+            end
+        end
+        
     end
 end
 
