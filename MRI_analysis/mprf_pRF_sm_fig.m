@@ -299,7 +299,7 @@ if surf_visualize
     % Load and draw prf parameters
     for ii = 1:length(prfParams)
         
-        sprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
+        fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
         prfParamNifti =  fullfile(prf_data_mrVNif, sprintf('%s.nii.gz', prfParams{ii}));
         
@@ -314,8 +314,8 @@ if surf_visualize
         
         switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
-                vw = viewSet(vw, 'mapwin', [eps 180]);
-                vw = viewSet(vw, 'mapclip', [eps 180]);
+                vw = viewSet(vw, 'mapwin', [eps 2*pi]);
+                vw = viewSet(vw, 'mapclip', [eps 2*pi]);
                 vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvCmap');
             case {'eccentricity', 'eccentricity_smoothed'}
                 vw = viewSet(vw, 'mapwin', [eps 20]);
