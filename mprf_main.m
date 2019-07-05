@@ -53,6 +53,7 @@ cd(mprf_rootPath)
 
 % Set options
 opt.skipMEGPreproc        = true;  % General
+opt.skipMRIPreproc        = true;  % General
 opt.verbose               = true;  % General
 opt.doSaveData            = true;  % General
 opt.saveFig               = false; % General
@@ -137,20 +138,22 @@ end
 
 % prf parameters + ROIs on mrVista volume space
 
+if ~opt.skipMRIPreproc
 
-%mprf_ROI % ROIs on mrVista space
-mprf_pRF_sm(dirPth,opt.verbose) % pRF params from mrV >> smoothed pRF params on mrV (flag)
+    %mprf_ROI % ROIs on mrVista space
+    mprf_pRF_sm(dirPth,opt.verbose) % pRF params from mrV >> smoothed pRF params on mrV (flag)
 
-mprf_pRF_sm_fig(subjID, dirPth); % Generates summary figures for the pRF parameters before after smoothing
+    mprf_pRF_sm_fig(subjID, dirPth); % Generates summary figures for the pRF parameters before after smoothing
 
-mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS
-mprf_pRF_sm_FS_fig(dirPth);
+    mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS
+    mprf_pRF_sm_FS_fig(dirPth);
 
-mprf_pRF_sm_FS_BS(dirPth) % smoothed pRF params on FS >>  smoothed pRF params on BS
-mprf_pRF_sm_FS_BS_fig(dirPth);
+    mprf_pRF_sm_FS_BS(dirPth) % smoothed pRF params on FS >>  smoothed pRF params on BS
+    mprf_pRF_sm_FS_BS_fig(dirPth);
 
-% smoothed prf parameters + ROIs on BS (pial) surface saved
+    % smoothed prf parameters + ROIs on BS (pial) surface saved
 
+end
 %% 3. Forward model
 
 % 3.1 Predict response for MEG stimulus at Surface level (could be BS or FS)

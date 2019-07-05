@@ -62,7 +62,7 @@ pol_sm          = mod(pol_sm, 2*pi);
 %  ----------------------
 
 % Variance explained
-figure(1); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400]); box off;
+figure(1); clf; set(gcf, 'Color', 'w', 'Position', [102   999   1920   400]); box off;
 hist(ve,100);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
@@ -72,7 +72,7 @@ xlabel('Variance explained'); ylabel('Frequency')
 set(gca, 'FontSize', 15, 'TickDir', 'out')
 
 % prf size vs eccentricity (all voxels)
-figure(2),set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2])
+figure(2); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2]); box off;
 sm_mask = ve > 0;
 % ve_thr_mask = ve > 0.4;
 c = sm_mask;
@@ -177,7 +177,7 @@ ncols = 2;
 nrows = ceil(num_roi/ncols);
 
 % Plot pRF size vs ecc
-figure(4),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+figure(4), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 title('pRF size vs ecc')
@@ -194,7 +194,7 @@ end
 
 % Sigma histogram
 %-----------------------
-figure(6),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+figure(5), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 title('Sigma')
 for roi_idx = 1:num_roi
     subplot(nrows,ncols,roi_idx);
@@ -208,7 +208,7 @@ end
 
 % Smoothed sigma histogram
 %-----------------------
-figure(7),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+figure(6), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 title('Sigma smoothed')
 for roi_idx = 1:num_roi
     subplot(nrows,ncols,roi_idx);
@@ -223,7 +223,7 @@ end
 
 % Beta histogram
 %-----------------------
-figure(8),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+figure(7), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 title('Beta')
 for roi_idx = 1:num_roi
     subplot(nrows,ncols,roi_idx);
@@ -237,7 +237,7 @@ end
 
 % recomputed beta histogram
 %-----------------------
-figure(9),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+figure(8), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 title('Recomputed beta')
 for roi_idx = 1:num_roi
     subplot(nrows,ncols,roi_idx);
@@ -249,7 +249,7 @@ for roi_idx = 1:num_roi
     h.EdgeColor = 'w';
 end
 
-figure(10),set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080]);
+figure(9), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080]);
 c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 title('pRF center distribution')
@@ -299,7 +299,7 @@ if surf_visualize
     % Load and draw prf parameters
     for ii = 1:length(prfParams)
         
-        sprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
+        fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
         prfParamNifti =  fullfile(prf_data_mrVNif, sprintf('%s.nii.gz', prfParams{ii}));
         
@@ -314,8 +314,8 @@ if surf_visualize
         
         switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
-                vw = viewSet(vw, 'mapwin', [eps 180]);
-                vw = viewSet(vw, 'mapclip', [eps 180]);
+                vw = viewSet(vw, 'mapwin', [eps 2*pi]);
+                vw = viewSet(vw, 'mapclip', [eps 2*pi]);
                 vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvCmap');
             case {'eccentricity', 'eccentricity_smoothed'}
                 vw = viewSet(vw, 'mapwin', [eps 20]);
