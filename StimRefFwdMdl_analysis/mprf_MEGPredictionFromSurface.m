@@ -1,13 +1,12 @@
-function predResponseAllVertices = mprf_MEGPredictionFromSurface(prfSurfPath, stim, subjID, dirPth, opt)
+function predResponseAllVertices = mprf_MEGPredictionFromSurface(prfSurfPath, stim, dirPth, opt)
 
 % Function to make predictions for every vertex on given surface
 % 
-%   [pred_response, model] = mprf_MEGPredictionFromSurface(prfSurfPath, meg.stim, subjID, dirPth, opt);
+%   [pred_response, model] = mprf_MEGPredictionFromSurface(prfSurfPath, meg.stim, dirPth, opt);
 %
 % INPUTS:
 %   prfSurfPath     : path to prf parameters on surface (string)
 %   stim            : meg stimulus struct (should contain tktktktk)
-%   subjID          : subject name (string)
 %   dirPth          : paths to files for given subject
 %   opt             : struct with boolean flags
 %
@@ -113,10 +112,16 @@ if opt.verbose
     title('Predicted response to stimulus from all vertices, using pRF parameters from surface')
     xlabel('Time (s)'); ylabel('Predicted vertex response (a.u.)');
     set(gca, 'FontSize', 14, 'TickDir','out'); box off
+     if opt.saveFig; 
+         if ~exist(dirPth.model.saveFigPth, 'dir'); mkdir(dirPth.model.saveFigPth); end
+         print(fullfile(dirPth.model.saveFigPth, ...
+            sprintf('predPRFResponseFromSurface_benson%d_highres%d_smoothed%d', ...
+            opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
+    end
 end
 
 % save predicted response to MEG stimuli for every vertex
 if opt.doSaveData
-    if ~exist(fullfile(prfSurfPath,'pred_resp')); mkdir(fullfile(prfSurfPath,'pred_resp')); end;
+    if ~exist(fullfile(prfSurfPath,'pred_resp'), 'dir'); mkdir(fullfile(prfSurfPath,'pred_resp')); end;
     save(fullfile(prfSurfPath,'pred_resp','predResponseAllVertices'));
 end

@@ -1,4 +1,4 @@
-function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, opt)
+function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, dirPth, opt)
 % Function to compare phase referenced steady-state data MEG data
 % to predicted MEG responses from MRI prfs
 %
@@ -48,12 +48,18 @@ end
 
 % Plot some figures
 if opt.verbose
+    
     % remove nan sensors and sort by var expl.
     [val, idx] = sort(meanVarExpl, 'descend');
     tmp = idx(~isnan(val)); top10=tmp(1:10);
+    ve = val(~isnan(val));
     
     % Plot var expl mesh
-    figure; megPlotMap(meanVarExpl,[0 max(meanVarExpl)],[], 'parula','Var expl of mean phase-ref MEG data by modelfit')
+    figure; megPlotMap(meanVarExpl,[0 max(meanVarExpl)],[], 'parula','Var expl of mean phase-ref MEG data by modelfit');
+    if opt.saveFig 
+        if ~exist(dirPth.model.saveFigPth); mkdir(dirPth.model.saveFigPth); end
+        print(fullfile(dirPth.model.saveFigPth, 'varexpl_mesh'), '-dpng');
+    end
     
     % Plot Mean phase-referenced steady-state response and predicted response to
     % stimulus for top 10 sensors
@@ -66,10 +72,15 @@ if opt.verbose
         subplot(5,2,ii);
         plot(t, meanPhRefAmp10Hz(:,top10(ii)), 'ko-', 'LineWidth',2);
         hold on; plot(t, meanPredResponse(:,top10(ii)), 'r', 'LineWidth',4);
-        title(sprintf('Sensor %d',top10(ii)))
+        title(sprintf('Sensor %d, var expl: %1.2f',top10(ii), ve(ii)))
         xlabel('Time (s)'); ylabel('MEG response (Tesla)');
         set(gca, 'FontSize', 14, 'TickDir','out'); box off
     end
+    
+    if opt.saveFig
+        print(fullfile(dirPth.model.saveFigPth, 'varexpl_timeseries'), '-dpng');
+    end
+    
 end
 
 

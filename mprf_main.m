@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj068';
+subjID = 'wlsubj058';
 
 %%
 % Load paths with data files for this subject
@@ -56,7 +56,7 @@ opt.skipMEGPreproc        = true;  % General
 opt.skipMRIPreproc        = true;  % General
 opt.verbose               = true;  % General
 opt.doSaveData            = true;  % General
-opt.saveFig               = false; % General
+opt.saveFig               = true; % General
 opt.fullSizeGainMtx       = false; % General
 
 opt.doFiltering           = true;       % MEG preprocessing
@@ -72,11 +72,11 @@ opt.fs                    = 1000;       % MEG Sensor info: Sample rate (Hz)
 opt.flickerFreq           = 10;         % MEG Experiment info: Stim freq (Hz)   
 opt.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 
-opt.varExplThresh         = [0.1 inf]; % MRI prf: Preprocessing
-opt.betaPrctileThresh     = [0 95];    % Remove beta outliers by only taking up to the 95th percentile
-opt.useSmoothedData       = true;      % MRI prf: Preprocessing
+opt.varExplThresh         = [0.1 inf]; % MRI prf model: Remove low variance explained vertices
+opt.betaPrctileThresh     = [0 95];    % MRI prf model: Remove beta outliers by only taking up to the 95th percentile
+opt.useSmoothedData       = true;      % MRI prf model: Use smoothed surface data or not
 
-opt.useBensonMaps         = false;      % MRI prf: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt.useBensonMaps         = false;     % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 
 %% 1. MEG data preprocessing
 
@@ -162,7 +162,7 @@ end
 %              (2) MEG stimulus (struct with x, y, images, etc)
 %       output - predicted responses on surface (epochs x vertices)
 
-predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, subjID, dirPth, opt);
+predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, dirPth, opt);
 
 % 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
@@ -171,7 +171,7 @@ predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, subj
 %              (2) gain matrix (sensors x vertices)
 %       output - predicted MEG responses (epochs x sensors)
 
-predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain);
+predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain, dirPth, opt);
 
 % 3.3 Computing phase referenced amplitude from preprocessed MEG data 
 % and predicted MEG responses from cortical surface
@@ -179,7 +179,7 @@ predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain);
 %              (2) predicted MEG responses (epochs x sensors)
 %       output - Phase referenced MEG time series (sensors x epochs)
 
-phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, opt);
+phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, dirPth, opt);
 
 % 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       inputs (1) Phase referenced MEG time series (sensors x time)
@@ -187,7 +187,7 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, opt)
 %       outputs(1) modelfit to mean phase-referenced MEG data,
 %              (2) variance explained per MEG sensor 
 
-[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phaseRefMEGResponse, predMEGResponse, opt);
+[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phaseRefMEGResponse, predMEGResponse, dirPth, opt);
 
 
 %% Figures

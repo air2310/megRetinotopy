@@ -1,4 +1,4 @@
-function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain)
+function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain, dirPth, opt)
 % Function to compute predicted response at MEG sensors from predicted
 % surface response (using MEG stimulus), by multiplying responses with gain
 % matrix
@@ -9,6 +9,8 @@ function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain)
 %   predSurfaceResponse :  predicted responses from surface (epochs x vertices)
 %   gain                :  gain matrix, weighted sum of vertices contributing 
 %                           to each individual MEG sensor (sensors x vertices)
+%   dirPth              : paths to files for given subject
+%   opt                 :  struct with boolean flag options
 %
 % OUTPUTS:
 %   predicted response time series for every MEG sensor (epochs x sensors)
@@ -33,6 +35,10 @@ if opt.verbose
     ylabel('MEG response (T??)');
     ylim([-1,1]*max(abs(predMEGResponse(:))))
     set(gca, 'FontSize', 14, 'TickDir', 'out'); box off;
+    if opt.saveFig; print(fullfile(dirPth.model.saveFigPth, ...
+            sprintf('predMEGResponseFromPRF_benson%d_highres%d_smoothed%d', ...
+            opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
+    end
 end
 
 
