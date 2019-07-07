@@ -206,7 +206,8 @@ if opt.verbose
         drawnow; pause(0.1);
         
         if opt.saveFig
-            print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_singleSensor%d_timeseries', subjID, chan)))
+            if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), mkdir(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'));end
+            print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries',sprintf('%s_singleSensor%d_timeseries', subjID, chan)))
         end
         
     end
@@ -304,7 +305,8 @@ if opt.doDenoise
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
             if opt.saveFig
-                print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
+                if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));end
+                print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra',sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
             end
             drawnow; pause(0.1)
         end
