@@ -1,4 +1,4 @@
-function phRefAmp10Hz = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt)
+function phRefAmp10Hz = mprf_MEGPhaseReferenceData(megData, predMEGResponse, dirPth, opt)
 % Function to computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
@@ -6,6 +6,9 @@ function phRefAmp10Hz = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt
 % INPUTS:
 %   megData         : preprocessed MEG data (time x epochs x run x sensors)
 %   predMEGResponse : predicted MEG responses (epochs x sensors)
+%   dirPth          : paths to files for given subject
+%   opt             :  struct with boolean flag options
+
 %
 % OUTPUT:
 %   phaseRefMEGResponse : Phase referenced MEG time series (sensors x epochs)
@@ -38,7 +41,7 @@ varexpl           = NaN(length(phaseRange), nRuns, nSensors);
 refPhase          = NaN(length(phaseRange), nRuns, nSensors);
 
 warning off
-fprintf('(%s) Checking best reference phase .', mfilename)
+fprintf('(%s): Checking best reference phase .', mfilename)
 for rp = 1:length(phaseRange)
     fprintf('.')
     % Get reference phase
@@ -83,7 +86,7 @@ for rp = 1:length(phaseRange)
             else
                 refPhase(rp,run,sensor) = thisRefPhase;
             end
- 
+            
         end
     end
 end
@@ -91,13 +94,55 @@ warning on
 fprintf('\n(%s) done!\n',mfilename)
 
 % Get phase that gives max CoD per run, per sensor
-[~, maxVarExplIdx] = max(varexpl);
+[maxVarExplVal, maxVarExplIdx] = max(varexpl);
 
 maxPhase     = refPhase(maxVarExplIdx);
 phaseDiff    = ph10Hz - maxPhase;
 maxAngle     = cos(phaseDiff);
 phRefAmp10Hz = amp10Hz.*maxAngle;
 
+if opt.verbose
+    
+    % Visualize the mean reference phase across sensors
+    fH1 = figure; clf;
+    megPlotMap(squeeze(nanmean(maxPhase,2)), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
+    
+    % Visualize the variance explained for every run across sensors
+    fH2 = figure; set(fH2, 'Position', [17,578,1543,760]);
+    for r = 1:nRuns
+        subplot(3,7,r);
+        dataToPlot = squeeze(maxVarExplVal(:,r,:));
+        if all(isnan(dataToPlot))
+            dataToPlot = zeros(size(dataToPlot));
+        end
+        megPlotMap(dataToPlot, [0 0.6],[], 'parula',sprintf('Run %d', r));
+        drawnow;
+    end
+    
+    if opt.saveFig
+        print(fH1,fullfile(dirPth.model.saveFigPth, ...
+            sprintf('mesh_xvalRefPhase_benson%d_highres%d_smoothed%d', ...
+            opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
+        
+        print(fH2,fullfile(dirPth.model.saveFigPth, ...
+            sprintf('mesh_varExplbyXvalRefPhase_benson%d_highres%d_smoothed%d', ...
+            opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
+    end
+    
+    % Visualize the reference phase for every run across sensors
+    fH3 = figure;
+    for s = 1:nSensors
+        clf;
+        mprf_polarplot(ones(size(maxPhase,2),1),maxPhase(1,:,s));
+        title(sprintf('Best xval reference phases for 19 runs, sensor %d - mean r^2: %1.2f',s,nanmean(maxVarExplVal(1,:,s),2)));
+        drawnow;
+        if opt.saveFig
+            print(fH3,fullfile(dirPth.model.saveFigPth, ...
+                sprintf('sensor%d_xvalRefPhase_benson%d_highres%d_smoothed%d', ...
+                s, opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
+        end
+    end
+end % opt.verbose
 
 return
 
