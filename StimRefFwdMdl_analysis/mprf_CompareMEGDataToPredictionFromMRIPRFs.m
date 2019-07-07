@@ -58,7 +58,7 @@ if opt.verbose
     figure; megPlotMap(meanVarExpl,[0 max(meanVarExpl)],[], 'parula','Var expl of mean phase-ref MEG data by modelfit');
     if opt.saveFig 
         if ~exist(dirPth.model.saveFigPth); mkdir(dirPth.model.saveFigPth); end
-        print(fullfile(dirPth.model.saveFigPth, 'varexpl_mesh'), '-dpng');
+        print(fullfile(dirPth.model.saveFigPth, sprintf('varexpl_mesh_highres%d_smoothed%d_bensonmaps%d',opt.fullSizeGainMtx, opt.useSmoothedData, opt.useBensonMaps)), '-dpng');
     end
     
     % Plot Mean phase-referenced steady-state response and predicted response to
@@ -78,7 +78,7 @@ if opt.verbose
     end
     
     if opt.saveFig
-        print(fullfile(dirPth.model.saveFigPth, 'varexpl_timeseries'), '-dpng');
+        print(fullfile(dirPth.model.saveFigPth, sprintf('varexpl_timeseries_highres%d_smoothed%d_bensonmaps%d',opt.fullSizeGainMtx, opt.useSmoothedData, opt.useBensonMaps)), '-dpng');
     end
     
 end
