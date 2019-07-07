@@ -10,6 +10,8 @@ dirPth.subjID  = subjID;
 
 dirPth.sessionPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Subject_sessions', subjID);
 
+dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit'); % should be sym link in git folder
+
 
 %% ------ MEG ------
 dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG'); % should be sym link in git folder
