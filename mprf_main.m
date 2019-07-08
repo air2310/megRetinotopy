@@ -72,6 +72,7 @@ opt.fs                    = 1000;       % MEG Sensor info: Sample rate (Hz)
 opt.flickerFreq           = 10;         % MEG Experiment info: Stim freq (Hz)   
 opt.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 
+opt.eccThresh             = [0 10];    % MRI prf model: only use eccentricities that fall within the stimulus (20 deg in diameter)
 opt.varExplThresh         = [0.1 inf]; % MRI prf model: Remove low variance explained vertices
 opt.betaPrctileThresh     = [0 95];    % MRI prf model: Remove beta outliers by only taking up to the 95th percentile
 opt.useSmoothedData       = true;      % MRI prf model: Use smoothed surface data or not
@@ -142,9 +143,9 @@ end
 if ~opt.skipMRIPreproc
 
     %mprf_ROI % ROIs on mrVista space
-    mprf_pRF_sm(dirPth,opt.verbose) % pRF params from mrV >> smoothed pRF params on mrV (flag)
+    mprf_pRF_sm(dirPth,opt) % pRF params from mrV >> smoothed pRF params on mrV (flag)
 
-    mprf_pRF_sm_fig(subjID, dirPth); % Generates summary figures for the pRF parameters before after smoothing
+    mprf_pRF_sm_fig(subjID, dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
 
     mprf_pRF_sm_FS(dirPth) % smoothed pRF params on mrV >> smoothed pRF params on FS
     mprf_pRF_sm_FS_fig(dirPth);
