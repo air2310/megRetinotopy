@@ -1,270 +1,270 @@
-function mprf_pRF_sm_fig(subjID, dirPth)
-% Function to plot parameters on mrVista surface after mprf_pRF_sm
+function mprf_pRF_sm_fig(subjID, dirPth, opt)
+% Function to visualize prf parameters as histograms and on mrVista surface
+% after completing the function mprf_pRF_sm().
+%   1) distribution of variance explained, beta, prf size, prf position 
+%       values for all voxels in visual ROIs and across all ROIs
+% 	2) prf size vs eccentricity (different rois)
+%                               (original and smoothed)
+%   3) mrVista surface plots (original and smoothed)
 %
 % INPUTS:
 %   subjID      :   subject name (string)
 %   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
 %
-% plots after mprf_pRF_sm
-% 1) distribution of variance explained values for all voxels
-% 2) prf size vs eccentricity (different rois)
-%                             (original and smoothed)
-% 3) mrVista surface plots (original and smoothed)
-
+% OUTPUTS:
+%   none
+%
+%see also mprf_pRF_sm
 
 %% ------------
-%   File paths
+%  0. Get file paths and load mrVista retinotopy data
 % -------------
-anat_dir    = fullfile(dirPth.fmri.mrvPth, '3DAnatomy');
-coords_path = fullfile(dirPth.fmri.mrvPth, 'Gray');
-roi_path    = fullfile(anat_dir, 'ROIs');
+anatDir         = fullfile(dirPth.fmri.mrvPth, '3DAnatomy');
+grayCoordsDir   = fullfile(dirPth.fmri.mrvPth, 'Gray');
+roiDir          = fullfile(anatDir, 'ROIs');
 
-% Directories to load results
-prf_dir_mrv     = dirPth.fmri.saveDataPth_prfMrv;
-prf_data_mrVmat = fullfile(prf_dir_mrv,'mat');      % original and smoothed pRF parameters in mrVista space in .mat
-prf_data_mrVNif = fullfile(prf_dir_mrv, 'nifti');   % original and smoothed pRF parameters in mrVista space in .nii
+% Get original prf parameters from mat-file
+load(fullfile(dirPth.fmri.saveDataPth_prfMrv, 'mat', 'exported_prf_params.mat'), 'prf_par_exp');
+prf = prf_par_exp; clear prf_par_exp;
 
-data_file = dir(fullfile(prf_data_mrVmat,'*.mat'));
-load(fullfile(prf_data_mrVmat,data_file.name));
+load(fullfile(grayCoordsDir,'coords.mat'), 'coords');
 
-
-% Other settings to define
-surf_visualize = 1;
-Var_Exp_Thr    = 0.4;
-Ecc_Thr        = [0 10]; % degrees
-
-%% --------------------
-%   Get prf parameters
-%  --------------------
-
-% original prf parameters
-ve          = prf_par_exp.varexplained;
-sigma       = prf_par_exp.sigma;
-x           = prf_par_exp.x;
-y           = prf_par_exp.y;
-
-% Convert to polar angle and eccentricity
-[pol,ecc]   = cart2pol(x,y);
-pol         = mod(pol,2*pi);
-beta        = prf_par_exp.beta;
-
-% Smoothed prf parameters
-sigma_sm        = prf_par_exp.sigma_smoothed;
-x_sm            = prf_par_exp.x_smoothed; y_sm = prf_par_exp.y_smoothed;
-recomp_beta     = prf_par_exp.recomp_beta;
-
-% Again, convert to polar angle and eccentricity
-[pol_sm,ecc_sm] = cart2pol(x_sm,y_sm);
-pol_sm          = mod(pol_sm, 2*pi);
-
-%% ----------------------
-%   Visualize some stats
-%  ----------------------
-
-% Variance explained
-figure(1); clf; set(gcf, 'Color', 'w', 'Position', [102   999   1920   400]); box off;
-hist(ve,100);
-h = findobj(gca,'Type','patch');
-h.FaceColor = [0 0.5 0.5];
-h.EdgeColor = 'w';
-title('Variance explained of all pRF model fits')
-xlabel('Variance explained'); ylabel('Frequency')
-set(gca, 'FontSize', 15, 'TickDir', 'out')
-
-% prf size vs eccentricity (all voxels)
-figure(2); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2]); box off;
-sm_mask = ve > 0;
-% ve_thr_mask = ve > 0.4;
-c = sm_mask;
-scatter(ecc,sigma,[],c);
-title('voxels used for smoothing (ve>0)');
-xlabel('eccentricity');
-ylabel('prf size');
-set(gca, 'FontSize', 15, 'TickDir', 'out')
-legend('Included'); legend boxoff
 
 %% ------------------------------------------------
 %   Separate prf params for different ROIs
 %  ------------------------------------------------
 
-% Load Wang Atlas ROIs compatible with mrVista
-if strcmp(subjID, 'wlsubj004')
-    rois = {'WangAtlas_V1_Combined','WangAtlas_V2_Combined','WangAtlas_V3_Combined',...
-        'WangAtlas_IPS_Combined','WangAtlas_LO_Combined','WangAtlas_V3AB_Combined',...
-        'WangAtlas_MT_Combined','WangAtlas_VO1','WangAtlas_VO2','WangAtlas_FEF',...
-        'WangAtlas_hV4'};
-else
-    d = dir(fullfile(roi_path, 'WangAtlas_*'));
-    for rr = 1:length(d)
-        thisRoi = strsplit(d(rr).name, '.');
-        rois{rr} = thisRoi{1};
+% Load Wang Atlas ROIs compatible with mrVista, combine
+% dorsal/ventral/etc rois
+roisToCombine = {'V1','V2','V3',...
+                'IPS','LO','TO','VO', 'PHC'};
+
+d = dir(fullfile(roiDir, 'WangAtlas_*'));
+t = struct2table(d);
+
+clear roiName roiLoc
+
+for rc = 1:length(roisToCombine)
+    match = contains(t.name,roisToCombine(rc));
+    
+    matchIdx = find(match);
+    tmpData = [];
+    for ii = 1:length(matchIdx)
+        load(fullfile(roiDir, t.name{matchIdx(ii)}));
+        [~, indices] = intersect(coords', ROI.coords', 'rows' );
+        tmpData = [tmpData; indices];
     end
-end
-
-rois = rois';
-
-num_roi   = length(rois);
-roi_fname = cell(num_roi,1);
-
-for roi_idx = 1:num_roi
-    roi_fname{roi_idx,1} = fullfile(roi_path,[rois{roi_idx} '.mat']);
-end
-
-ROI_params = table(rois,roi_fname);
-
-% Load coordinate file
-coordsFile = fullfile(coords_path,'coords.mat');
-load(coordsFile);
-
-% Apply these thresholds on the pRF parameters for both the conditions
-model_data_thr = cell(num_roi,1);
-
-for roi_idx = 1:num_roi
-    %Load the current roi
-    load(ROI_params.roi_fname{roi_idx});
-    
-    % find the indices of the voxels from the ROI intersecting with all the voxels
-    [~, indices_mean] = intersect(coords', ROI.coords', 'rows' );
-    
-    model_data = cell(1);
-    % Current model parameters- contains x,y, sigma,
-    model_data{1}.varexp = ve(:,indices_mean);
-    model_data{1}.ecc = ecc(:,indices_mean);
-    model_data{1}.sigma = sigma(:,indices_mean);
-    model_data{1}.pol = pol(:,indices_mean);
-    model_data{1}.x = x(:,indices_mean);
-    model_data{1}.y = y(:,indices_mean);
-    model_data{1}.beta = beta(:,indices_mean);
-    
-    model_data{1}.ecc_sm = ecc_sm(:,indices_mean);
-    model_data{1}.sigma_sm = sigma_sm(:,indices_mean);
-    model_data{1}.pol_sm = pol_sm(:,indices_mean);
-    model_data{1}.x_sm = x_sm(:,indices_mean);
-    model_data{1}.y_sm = y_sm(:,indices_mean);
-    model_data{1}.recomp_beta = recomp_beta(:,indices_mean);
-    
-    % preallocate variables
-    index_thr_tmp = cell(1);
-    
-    index_thr_tmp{1} = model_data{1}.varexp > Var_Exp_Thr & model_data{1}.ecc < Ecc_Thr(2) & model_data{1}.ecc > Ecc_Thr(1) ;
-    
-    % Determine the thresholded indices for each of the ROIs
-    roi_index{roi_idx,1} = index_thr_tmp{1} ;
-    
-    % Current model parameters- contains x,y, sigma,
-    model_data_thr{roi_idx,1}.varexp = model_data{1}.varexp(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.ecc = model_data{1}.ecc(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.sigma = model_data{1}.sigma(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.pol = model_data{1}.pol(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.x = model_data{1}.x(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.y = model_data{1}.y(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.beta = model_data{1}.beta(roi_index{roi_idx,1});
-    
-    model_data_thr{roi_idx,1}.ecc_sm = model_data{1}.ecc_sm(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.sigma_sm = model_data{1}.sigma_sm(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.pol_sm = model_data{1}.pol_sm(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.x_sm = model_data{1}.x_sm(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.y_sm = model_data{1}.y_sm(roi_index{roi_idx,1});
-    model_data_thr{roi_idx,1}.recomp_beta = model_data{1}.recomp_beta(roi_index{roi_idx,1});
+        
+    roiName(rc) = roisToCombine(rc);
+    roiLoc{rc} = unique(tmpData, 'rows');
     
 end
+    
+singleRois = ~contains(t.name,roisToCombine);
+for sr = find(singleRois)'
+    
+    % Remove irrelevant parts of filename
+    tmp = strsplit(t.name{sr}, {'.','_'});
+        
+    % Add ROI name and location to list
+    roiName(end+1) = tmp(2);
 
-% Store the thresholded pRF values in a table
-add_t_1 = table(model_data_thr, 'VariableNames',{'prf_params'});
-ROI_params = [ROI_params add_t_1];
+    load(fullfile(roiDir, t.name{sr}));
+    [~, indices] = intersect(coords', ROI.coords', 'rows');
+    roiLoc{end+1} = indices;
+end    
+ 
+% Apply roi masks to pRF parameters
+numRoi = length(roiName);
+prfROIData = struct();
+fn = fieldnames(prf);
 
-ncols = 2;
-nrows = ceil(num_roi/ncols);
+vemask    = (prf.varexplained > opt.varExplThresh(1) & prf.varexplained < opt.varExplThresh(2));
+eccenmask = (prf.eccentricity > opt.eccThresh(1) & prf.eccentricity < opt.eccThresh(2));
+
+for p = 1:length(fn)
+    
+    allroitmp = [];
+    for roiIdx = 1:numRoi
+
+       thisFieldName = fn{p};
+       data = prf.(fn{p});
+       
+       if strcmp(thisFieldName,'varexplained')
+           data = data(roiLoc{roiIdx});
+           prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));          
+       
+       elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
+           data = data(roiLoc{roiIdx});
+           thresh = prctile(data, opt.betaPrctileThresh);
+           betamask = ((data > thresh(1)) & (data < thresh(2)));
+           prfROIData.(roiName{roiIdx}).(fn{p}) = data(betamask);
+       else
+           
+           % Mask
+           data = data(roiLoc{roiIdx});
+           data = data((vemask(roiLoc{roiIdx}) & eccenmask(roiLoc{roiIdx})));
+           
+           prfROIData.(roiName{roiIdx}).(fn{p}) = data;
+       end
+       allroitmp  = [allroitmp, prfROIData.(roiName{roiIdx}).(fn{p})];
+    end
+    prfROIData.allROI.(thisFieldName) = allroitmp;
+end
+
+roiName(end+1) = {'allROI'};
+numRois = length(roiName);
+
+%% ----------------------
+%  1. Visualize distribution of prf parameters for all voxels (whole brain)
+%  ----------------------
+
+% Variance explained (all voxels, whole brain)
+figure(1); clf; set(gcf, 'Color', 'w', 'Position', [63,894,586,417]);
+hist(prf.varexplained,100);
+h = findobj(gca,'Type','patch');
+h.FaceColor = [0 0.5 0.5];
+h.EdgeColor = 'w';
+title('Variance explained of pRF model fits (all vertices, whole brain)')
+xlabel('Variance explained'); ylabel('Frequency')
+set(gca, 'FontSize', 15, 'TickDir', 'out'); box off;
+
+% prf size vs eccentricity (all voxels, whole brain)
+figure(2); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2]);
+smoothing_mask = prf.varexplained > 0;
+c_orig = smoothing_mask;
+scatter(prf.eccentricity,prf.sigma,[],c_orig);
+title('Voxels used for smoothing (ve>0)');
+xlabel('Eccentricity  (deg)');
+ylabel('Prf size (deg)');
+xlim([0 17]); ylim([0 17]); axis square;
+set(gca, 'FontSize', 15, 'TickDir', 'out'); box off;
+legend('All voxels', 'Included for smoothing (ve>0)'); legend boxoff
+
+%% ------------------------------------------------
+%  2. Visualize prf params for different ROIs
+%  ------------------------------------------------
+
+nrows = 2;
+ncols = ceil(numRois/nrows);
+nbins = 50;
 
 % Plot pRF size vs ecc
-figure(4), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-title('pRF size vs ecc')
-for roi_idx = 1:num_roi
+%-----------------------
+figure(3), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'pRF size vs ecc');
+c_orig 	 = [0.5 1 0]; 
+c_smooth = [0 0.5 1]; 
+
+for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    scatter(ROI_params.prf_params{roi_idx}.ecc,ROI_params.prf_params{roi_idx}.sigma,[],c,'*');  hold on;
-    scatter(ROI_params.prf_params{roi_idx}.ecc_sm,ROI_params.prf_params{roi_idx}.sigma_sm,[],c_sm,'*');
+    scatter(prfROIData.(roiName{roi_idx}).eccentricity, prfROIData.(roiName{roi_idx}).sigma,[],c_orig,'*');  hold on;
+    scatter(prfROIData.(roiName{roi_idx}).eccentricity_smoothed, prfROIData.(roiName{roi_idx}).sigma_smoothed,[],c_smooth,'*');
     
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    legend([tmp(2) strcat(tmp(2),'sm')],'Location','NorthWest')
+    title(roiName{roi_idx}, 'FontSize', 15)
+    legend('original','smoothed','Location','NorthWest')
     legend('Location','NorthWest')
-    ylim([0 15]);
+    ylim([0 10]); xlim([0 10]); axis square
+    ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
+
 
 % Sigma histogram
 %-----------------------
-figure(5), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Sigma')
-for roi_idx = 1:num_roi
+figure(4), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Sigma');
+for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(ROI_params.prf_params{roi_idx}.sigma,100)
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))
+    hist(prfROIData.(roiName{roi_idx}).sigma,nbins)
+
+    title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    xlim([0 10]); box off; 
+    ylabel('Frequency'); xlabel('PRF size (deg)')
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
 
 % Smoothed sigma histogram
 %-----------------------
-figure(6), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Sigma smoothed')
-for roi_idx = 1:num_roi
+figure(5), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Sigma smoothed');
+for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(ROI_params.prf_params{roi_idx}.sigma_sm,100)
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))
+    
+    hist(prfROIData.(roiName{roi_idx}).sigma_smoothed,nbins)
+    title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    xlim([0 10]); box off; 
+    ylabel('Frequency'); xlabel('PRF smoothed size (deg)')
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
 
 
 % Beta histogram
 %-----------------------
-figure(7), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Beta')
-for roi_idx = 1:num_roi
+figure(6), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
+for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(ROI_params.prf_params{roi_idx}.beta,100)
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))
+    hist(prfROIData.(roiName{roi_idx}).beta,nbins)
+
+    title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; 
+    ylabel('Frequency'); xlabel('PRF beta (a.u.)')
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
 
 % recomputed beta histogram
 %-----------------------
-figure(8), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Recomputed beta')
-for roi_idx = 1:num_roi
+figure(7), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Recomputed beta')
+for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(ROI_params.prf_params{roi_idx}.recomp_beta,100)
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    title(tmp(2))
+    hist(prfROIData.(roiName{roi_idx}).recomp_beta,nbins)
+   
+    title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; 
+    ylabel('Frequency'); xlabel('PRF beta (a.u.)')
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
 
-figure(9), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080]);
-c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-title('pRF center distribution')
-for roi_idx = 1:num_roi
+figure(8), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080], 'Name', 'pRF center distribution');
+
+% polar plot params
+params.grid          = 'on';
+params.line          = 'off';
+params.gridColor     = [0.7,0.7,0.7];
+params.fontSize      = 20;
+params.symbol        = 'o';
+params.size          = 1;
+params.color         = 'w';
+params.fillColor     = 'w';
+params.maxAmp        = 15;
+params.ringTicks     = [0:5:10];
+params.gridLineWidth = 0.01;
+params.lineWidth     = 0.2;
+
+for roi_idx = 1:numRois
+    
     subplot(nrows,ncols,roi_idx);
-    scatter(ROI_params.prf_params{roi_idx}.x,ROI_params.prf_params{roi_idx}.y,[],c,'.');  hold on;
-    scatter(ROI_params.prf_params{roi_idx}.x_sm,ROI_params.prf_params{roi_idx}.y_sm,[],c_sm,'.');
+    title(roiName{roi_idx})
+    polarPlot(0,params); hold on;
     
-    tmp = strsplit(ROI_params.rois{roi_idx},'_');
-    legend([tmp(2) strcat(tmp(2),'sm')],'Location','northeastoutside')
-    legend('Location','NorthWestoutside')
-    axis([-10 10 -10 10])
-    
-end
+    x = prfROIData.(roiName{roi_idx}).x;
+    y = prfROIData.(roiName{roi_idx}).y;
+    x_smoothed = prfROIData.(roiName{roi_idx}).x_smoothed;
+    y_smoothed  = prfROIData.(roiName{roi_idx}).y_smoothed;
 
+    plot(x,y,'o','MarkerFaceColor',c_orig,'MarkerSize',2); hold all;
+    plot(x_smoothed,y_smoothed,'o','MarkerFaceColor',c_smooth,'MarkerSize',2);
+
+end
 %% --------------------------------------------------------------------
 %   Load mrMesh and display Wang Rois and prf parameters on the mesh
 %  --------------------------------------------------------------------
@@ -282,8 +282,8 @@ if surf_visualize
     vw = mrVista('3');
     
     % Load rh and lh mesh
-    mesh1 = fullfile(anat_dir, 'Left', '3DMeshes', 'Left_inflated.mat');
-    mesh2 = fullfile(anat_dir, 'Right', '3DMeshes', 'Right_inflated.mat');
+    mesh1 = fullfile(anatDir, 'Left', '3DMeshes', 'Left_inflated.mat');
+    mesh2 = fullfile(anatDir, 'Right', '3DMeshes', 'Right_inflated.mat');
     [vw, OK] = meshLoad(vw, mesh1, 1); if ~OK, error('Mesh server failure'); end
     [vw, OK] = meshLoad(vw, mesh2, 1); if ~OK, error('Mesh server failure'); end
     
@@ -295,7 +295,7 @@ if surf_visualize
     vw = viewSet(vw, 'hide gray rois', true);
     
     % Load and draw Wang ROIs
-    for idx = 1:num_roi
+    for idx = 1:numRois
         roiFile = sprintf('%s',rois{idx});
         vw = loadROI(vw, roiFile);
         fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
@@ -323,7 +323,7 @@ if surf_visualize
         vw = loadParameterMap(vw,prfParamNifti);
         
         % Add smoothing/ve mask?
-        vw.map{1} = vw.map{1}.*sm_mask;
+        vw.map{1} = vw.map{1}.*smoothing_mask;
         
         switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
@@ -338,10 +338,11 @@ if surf_visualize
                 vw = viewSet(vw, 'mapclip', [eps Ecc_Thr(2)]);
                 
             case {'beta', 'recomp_beta', 'varexplained'}
-                maxBetaCmap = prctile(vw.map{1},90);
-                
-                vw = viewSet(vw, 'mapwin', [eps maxBetaCmap]);
-                vw = viewSet(vw, 'mapclip', [eps maxBetaCmap]);
+                if opt.betaPrctileThresh
+                    maxBetaCmap = prctile(vw.map{1},[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
+                    vw = viewSet(vw, 'mapwin', [eps maxBetaCmap]);
+                    vw = viewSet(vw, 'mapclip', [eps maxBetaCmap]);
+                end                
         end
         
         % Update views
