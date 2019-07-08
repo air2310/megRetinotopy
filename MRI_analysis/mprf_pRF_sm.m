@@ -1,4 +1,4 @@
-function mprf_pRF_sm(dirPth,verbose)
+function mprf_pRF_sm(dirPth,opt)
 % mprf_pRF_sm(dirPth,plot_stim)
 %
 % Function to smooth prf parameters in mrVista Gray Ribbon (volume)
@@ -7,7 +7,7 @@ function mprf_pRF_sm(dirPth,verbose)
 %                  
 % INPUTS:
 %   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
-%   verbose     :   boolean flag to plot MRI stimulus or not
+%   opt         :   struct with boolean flags, needed to request plotting MRI stimulus or not
 %
 %% ----------
 % File paths
@@ -55,14 +55,14 @@ params = {'sigma','x','y','varexplained','beta'};
 % stimulus file (stimulus used to run retinotopic model - has to prepared
 % from hvol.rm.retinotopicmodels.stim and
 % hvol.rm.retinotopicmodels.analysis) load(rm_stim_file):
-rm_stim.im = hvol.rm.retinotopyParams.stim.images_unconvolved;
+rm_stim.im      = hvol.rm.retinotopyParams.stim.images_unconvolved;
 rm_stim.im_conv = hvol.rm.retinotopyParams.analysis.allstimimages';
-rm_stim.window = hvol.rm.retinotopyParams.stim.stimwindow;
-rm_stim.X = hvol.rm.retinotopyParams.analysis.X;
-rm_stim.Y = hvol.rm.retinotopyParams.analysis.Y;
+rm_stim.window  = hvol.rm.retinotopyParams.stim.stimwindow;
+rm_stim.X       = hvol.rm.retinotopyParams.analysis.X;
+rm_stim.Y       = hvol.rm.retinotopyParams.analysis.Y;
 
 % Visualize MRI stimulus if requested
-if verbose
+if opt.verbose
    figure, 
    for idx_stim_frame = 1:size(rm_stim.im,2)
        cur_window = rm_stim.window;
@@ -102,19 +102,11 @@ for nn = 1:length(params)
     % current parameter's NIFTI file:
     fname = fullfile(prf_data_mrVNif,[cur_param '.nii.gz']);
     
-    % Load the current parameter in the VOLUME view. This is mainly used to
-    % export the pRF parameters to nifti files. The nifti files are really
-    % just for inspection and are not used in any further analyses
-    hvol = viewSet(hvol,'curdt',data_type);
-    hvol = refreshScreen(hvol);
-    
     % Store the data as nifti and check against the segmentation to see if
     % parameter nifti aligns with the segmentation:
     functionals2nifti(hvol,1 , fname);
     mprfCheckParameterNiftiAlignment(cls, fname);
-    
-    prf_par_exp.(cur_param) = rmGet(hvol.rm.retinotopyModels{1},cur_param);
-    
+        
     switch lower(cur_param)
         
         case 'beta'
@@ -123,34 +115,28 @@ for nn = 1:length(params)
             % reconstructing the pRF, multiplying it with the stimulus and
             % it's beta, and taking the maximum response from the
             % predicted time series
-            mresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),sm_mask);
+            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),sm_mask);
                  
-            % Store the maximum responses as a nifti file:
-            
-            fname = fullfile(prf_data_mrVNif,'mresp.nii.gz');
-            prf_par_exp.('mresp') = mresp;
-            hvol = viewSet(hvol,'map',{mresp});
+            % Store the maximum responses as a nifti file: 
+            hvol = viewSet(hvol,'map',{maxresp});
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(cls, fname);
-            
-            prf_par_exp.('mresp') = mresp;
             
              % Smooth the maximum responses on the cortical surface
-            [mresp_sm, wConMat] = dhkGraySmooth(hvol,mresp,[ ],wConMat, sm_mask);
+            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, sm_mask);
             
             % Export smoothed maximum responses as a nifti:
-            hvol = viewSet(hvol,'map',{mresp_sm});
-            fname = fullfile(prf_data_mrVNif,'mresp_smoothed.nii.gz');
+            hvol = viewSet(hvol,'map',{maxresp_smoothed});
+            fname = fullfile(prf_data_mrVNif,'maxresp_smoothed.nii.gz');
             functionals2nifti(hvol, 1, fname);
             mprfCheckParameterNiftiAlignment(cls, fname);
             
-            prf_par_exp.('mresp_smoothed') = mresp_sm;
-            
+            prf_par_exp.('mresp_smoothed') = maxresp_smoothed; %(ek): not really necessary to save, since we don't use it
             
             % Recompute the beta by dividing the smoothed maxumimum
             % responses by the maximum response given the stimulus and
             % smoothed pRF parameters:
-            recomp_beta = mprfRecomputeBetas(rm_stim,sigma_smooth,x0_smooth,y0_smooth,mresp_sm);
+            recomp_beta = mprfRecomputeBetas(rm_stim,sigma_smooth,x0_smooth,y0_smooth,maxresp_smoothed);
             
             % Store as nifti:
             fname = fullfile(prf_data_mrVNif,'recomp_beta.nii.gz');
