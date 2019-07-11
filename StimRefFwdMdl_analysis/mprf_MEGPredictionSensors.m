@@ -18,14 +18,17 @@ function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain, 
 % Get nans in matrix
 nanMask = isnan(predSurfaceResponse);
 
-% Create output matrix
-% predMEGResponse = NaN(size(nanMask,1), size(gain,1));
-
 % Replace NaNs with zero's output matrix
 predSurfaceResponse(nanMask)=0;
 
+% Get predict MEG response by multiplying response with gain matrix 
 predMEGResponse = predSurfaceResponse * gain';
 
+
+
+
+
+%% Debug figures
 if opt.verbose
     figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
     plot(predMEGResponse); hold on;
