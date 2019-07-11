@@ -47,44 +47,36 @@ for rp = 1:length(phaseRange)
     % Get reference phase
     thisRefPhase = phaseRange(rp);
     
-    for run = 1:nRuns
+    for leftOutRun = 1:nRuns
         
         % Get leftout runs
-        leftOutRuns = setdiff(1:nRuns,run);
+        otherRuns = setdiff(1:nRuns,leftOutRun);
         
         for sensor = 1:nSensors
-            currentnans = isnan(amp10Hz(:,run,sensor));
+            
+            currentnans = isnan(amp10Hz(:,leftOutRun,sensor))';
             
             % Select current phase data from left out runs
-            tmp = ph10Hz(:, leftOutRuns, sensor); % (epochs x runs-1)
+            tmp = ph10Hz(~currentnans, otherRuns, sensor); % (epochs x runs-1)
             
             % Get average phase across left out runs (epochs x 1)
-            leftOutAverage_ph10Hz = angle(nansum(exp(tmp*1i),2));
+            otherRunsAverage_ph10Hz = circularavg(tmp, [], 2);
             
-            % Compute difference between reference and actual run
-            phaseDiff = leftOutAverage_ph10Hz - thisRefPhase;
+            % Rescale amplitudes with diff between reference phase and
+            % average phase of other runs
+            phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz(~currentnans,leftOutRun,sensor), otherRunsAverage_ph10Hz, thisRefPhase);
             
-            % Compute angle of phase difference
-            angPhaseDiff = cos(phaseDiff);
+             % Regress prediction from phase referenced 10 Hz MEG response
+            [B, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,sensor));
             
-            % Scale amplitude by angle of phase difference
-            phRef10Hz = amp10Hz(~currentnans,run,sensor).*angPhaseDiff(~currentnans);
-            
-            % Get predicted MEG response and a set of ones for capturing
-            % the average
-            X = [ones(size(predMEGResponse(~currentnans,sensor))) predMEGResponse(~currentnans,sensor)];
-            
-            % Regress prediction from phase referenced 10 Hz MEG response
-            [B,~,~,~,stats] = regress(phRef10Hz,X);
-            
-            varexpl(rp,run,sensor) = stats(1);
+            varexpl(rp,leftOutRun,sensor) = ve;
             
             if B(2) < 0
                 % If regression results in a negative scale factor, then
                 % add pi to the reference phase
-                refPhase(rp,run,sensor) = thisRefPhase+pi;
+                refPhase(rp,leftOutRun,sensor) = thisRefPhase+pi;
             else
-                refPhase(rp,run,sensor) = thisRefPhase;
+                refPhase(rp,leftOutRun,sensor) = thisRefPhase;
             end
             
         end
@@ -96,16 +88,15 @@ fprintf('\n(%s) done!\n',mfilename)
 % Get phase that gives max CoD per run, per sensor
 [maxVarExplVal, maxVarExplIdx] = max(varexpl);
 
-maxPhase     = refPhase(maxVarExplIdx);
-phaseDiff    = ph10Hz - maxPhase;
-maxAngle     = cos(phaseDiff);
-phRefAmp10Hz = amp10Hz.*maxAngle;
+bestRefPhase = refPhase(maxVarExplIdx);
+phRefAmp10Hz = rescaleAmpsWithRefPhase(amp10Hz, ph10Hz, bestRefPhase);
+
 
 if opt.verbose
     
     % Visualize the mean reference phase across sensors
     fH1 = figure; clf;
-    megPlotMap(squeeze(nanmean(maxPhase,2)), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
+    megPlotMap(circularavg(squeeze(bestRefPhase),[],1), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
     
     % Visualize the variance explained for every run across sensors
     fH2 = figure; set(fH2, 'Position', [17,578,1543,760]);
@@ -133,11 +124,13 @@ if opt.verbose
     fH3 = figure;
     for s = 1:nSensors
         clf;
-        mprf_polarplot(ones(size(maxPhase,2),1),maxPhase(1,:,s));
+        mprf_polarplot(ones(size(bestRefPhase,2),1),bestRefPhase(1,:,s));
         title(sprintf('Best xval reference phases for 19 runs, sensor %d - mean r^2: %1.2f',s,nanmean(maxVarExplVal(1,:,s),2)));
         drawnow;
         if opt.saveFig
-            print(fH3,fullfile(dirPth.model.saveFigPth, ...
+            if ~exist(fullfile(dirPth.model.saveFigPth, 'refphase'),'dir')
+                mkdir(fullfile(dirPth.model.saveFigPth, 'refphase')); end
+            print(fH3,fullfile(dirPth.model.saveFigPth, 'refphase', ...
                 sprintf('sensor%d_xvalRefPhase_benson%d_highres%d_smoothed%d', ...
                 s, opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
         end
