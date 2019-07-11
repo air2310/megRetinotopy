@@ -57,7 +57,7 @@ opt.skipMRIPreproc        = true;  % General
 opt.verbose               = true;  % General
 opt.doSaveData            = true;  % General
 opt.saveFig               = true; % General
-opt.fullSizeGainMtx       = false; % General
+opt.fullSizeGainMtx       = true; % General
 
 opt.doFiltering           = true;       % MEG preprocessing
 opt.doDenoise             = true;       % MEG preprocessing
@@ -111,8 +111,10 @@ mri     = struct();
 
 if opt.useBensonMaps 
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
+elseif opt.fullSizeGainMtx
+    mri.prfSurfPath = dirPth.fmri.saveDataPth_prfFS;  
 else
-    mri.prfSurfPath = fullfile(dirPth.fmri.saveDataPth_prfBS);
+    mri.prfSurfPath = dirPth.fmri.saveDataPth_prfBS;
 end
 
 % Preprocessing
