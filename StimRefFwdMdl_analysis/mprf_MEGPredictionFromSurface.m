@@ -4,12 +4,17 @@ function predResponseAllVertices = mprf_MEGPredictionFromSurface(prf, stim)
 %   predResponseAllVertices = mprf_MEGPredictionFromSurface(prf, stim)
 %
 % INPUTS:
-%   prf                     : struct with prf data, separate for every parameter
-%   stim                    : meg stimulus struct (should contain fieldname
-%                             'im', with windowed stimulus images for every epoch)
+%   prf               : struct with prf data, separate for every parameter
+%   stim              : meg stimulus struct (should contain fieldname
+%                      'im', with windowed stimulus images for every epoch)
 %
 % OUTPUTS:
 %   predResponseAllVertices : predicted response time series (vertex x timepoints)
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % Find loaded prf parameters
 fn = fieldnames(prf);

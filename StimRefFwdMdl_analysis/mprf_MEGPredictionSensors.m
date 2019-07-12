@@ -3,17 +3,23 @@ function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain)
 % surface response (using MEG stimulus), by multiplying responses with gain
 % matrix
 % 
-%   predMEGResponse = mprf_MEGPredictionSensors(predResponse, gain, subjID) 
+%   predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain) 
 %
 % INPUTS:
-%   predSurfaceResponse :  predicted responses from surface (epochs x vertices)
-%   gain                :  gain matrix, weighted sum of vertices contributing 
-%                           to each individual MEG sensor (sensors x vertices)
+%   predSurfaceResponse : predicted responses from surface
+%                           (epochs x vertices)
+%   gain                : gain matrix, weighted sum of vertices contributing 
+%                           to each individual MEG sensor
+%                           (sensors x vertices)
 %
-% OUTPUTS:
-%   predMEGResponse     : predicted response time series for every MEG sensor (epochs x sensors)
+% OUTPUT:
+%   predMEGResponse     : predicted MEG sensor responses
+%                           (epochs x sensors)
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
-% Get nans in matrix
+% Locate nans in matrix
 nanMask = isnan(predSurfaceResponse);
 
 % Replace NaNs with zero's output matrix

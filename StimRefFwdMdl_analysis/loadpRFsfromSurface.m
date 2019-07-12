@@ -4,14 +4,20 @@ function prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt)
 %       prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt)
 % 
 % INPUTS:
-%   prfSurfPath     : path to surface files containing prf parameters (string)
+%   prfSurfPath     : path to surface files containing prf parameters (str)
 %   dirPth          : paths to files for given subject (struct)
 %   opt             : struct with boolean flags. Should contain the field 
-%                     'perturbOrigPRFs' with one of the following definitions:
+%                     'perturbOrigPRFs' with one of following definitions:
 %                     'position', 'size', 'scramble', or false to exit
 %
 % OUTPUTS:
 %   prf             : struct with prf data on surface found in prfSurfPath 
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % Check files in folder and remove empty files
 d = dir(fullfile(prfSurfPath, '*'));

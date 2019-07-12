@@ -5,14 +5,21 @@ function phRefAmp10Hz = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGRespon
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
 %
 % INPUTS:
-%   megData         : preprocessed MEG data (time x epochs x run x sensors)
-%   predMEGResponse : predicted MEG responses (epochs x sensors)
+%   megData         : preprocessed MEG data
+%                       (time x epochs x run x sensors)
+%   predMEGResponse : predicted MEG responses
+%                       (epochs x sensors)
 %   dirPth          : paths to files for given subject
-%   opt             :  struct with boolean flag options
-
+%   opt             : struct with boolean flag options
+%
 %
 % OUTPUT:
-%   phaseRefMEGResponse : Phase referenced MEG time series (sensors x epochs)
+%   phRefAmp10Hz    : Phase referenced MEG time series
+%                       (sensors x epochs x runs [x optional variations])
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')
@@ -33,7 +40,8 @@ end
 
 
 % Allocate space
-phRefAmp10Hz = NaN(size(megData,2), size(megData,3), size(predMEGResponse,4), nIter);
+[~, nEpochs, nRuns, nSensors] = size(megData);
+phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);
 
 % loop over dimensions, if necessary
 for ii = 1:nIter

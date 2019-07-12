@@ -4,14 +4,23 @@ function predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfaceResponse,
 % while still allowing multiple analysis options.
 %
 % INPUTS:
-%   predSurfaceResponse :  predicted responses from surface (epochs x vertices)
-%   gain                :  gain matrix, weighted sum of vertices contributing
-%                           to each individual MEG sensor (sensors x vertices)
+%   predSurfaceResponse : predicted responses from surface
+%                           (epochs x vertices)
+%   gain                : gain matrix, defines weighted sum of vertices
+%                           contributing to each individual MEG sensor 
+%                           (sensors x vertices)
 %   dirPth              : paths to files for given subject
-%   opt                 :  struct with boolean flag options
+%   opt                 : struct with boolean flag options
 %
-% OUTPUTS:
-%   predMEGResponse : predicted response time series for every MEG sensor (epochs x sensors)
+% OUTPUT:
+%   predMEGResponse   : predicted response time series for every MEG sensor
+%                          (epochs x sensors x optional variations)
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')

@@ -1,6 +1,23 @@
-function [prf, prfSurfPath] = mprf_varyPRFPositionOnSurface(prfSurfPath, opt)
-
-if opt.verbose; fprintf('(%s): Vary pRF position...\n', mfilename); end
+function prf = mprf_varyPRFPositionOnSurface(prfSurfPath, opt)
+% Function to perturb original pRF parameters, by rotating the original pRF
+% center position estimated with fMRI around the polar angle on the
+% cortical surface.
+%
+%       prf = mprf_varyPRFSizeOnSurface(prfSurfPath, opt)
+% 
+% INPUTS:
+%   prfSurfPath     : path to surface files containing prf parameters (string)
+%   opt             : struct with boolean flags. Should contain the field 
+%                     'perturbOrigPRFs' with one of the following definitions:
+%                     'position', 'size', 'scramble', or false to exit
+%
+% OUTPUT:
+%   prf             : struct with prf data, separate for every parameter
+%
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 % Get range to vary prf position
 if (~isfield(opt,'varyPosition') || isempty(opt.varyPosition))
@@ -8,6 +25,8 @@ if (~isfield(opt,'varyPosition') || isempty(opt.varyPosition))
 else
     range = opt.varyPosition;
 end
+
+if opt.verbose; fprintf('(%s): Rotate pRF position along polar angles: %s\n', mfilename, sprintf('%1.1f ', range)); end
 
 % Load prf parameters on surface
 % if (~opt.useBensonMaps && opt.useSmoothedData)
@@ -42,7 +61,7 @@ if opt.doSaveData
         MRIwrite(struct('vol', surfdata), surfdatamgzfile);
     end
     % Save smoothed prf parameters
-    surfmatfname = fullfile(prfSurfPath,'preturbed_prf_params.mat');
+    surfmatfname = fullfile(prfSurfPath,'perturbed_prf_params_vary_pos.mat');
     save(surfmatfname, 'prf');
 end
 

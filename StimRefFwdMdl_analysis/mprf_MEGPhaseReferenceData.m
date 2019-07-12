@@ -10,10 +10,13 @@ function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceDat
 
 %
 % OUTPUT:
-%   phRefAmp10Hz        : Phase referenced MEG time series (sensors x epochs)
+%   phRefAmp10Hz        : Phase referenced MEG time series (epochs x runs x sensors)
 %   bestRefPhase        : Ref phases that gives highest var explained (1 x runs x sensors)
 %   maxVarExplVal       : Variance explained by best ref phases (1 x runs x sensors)
-
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 % Define the number of references phases to try
 phaseRange = linspace(0,2*pi,100); % range of values to search for the reference phase

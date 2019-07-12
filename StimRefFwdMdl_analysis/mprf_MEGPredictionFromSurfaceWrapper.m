@@ -10,7 +10,12 @@ function predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(prfSurfPath, st
 %   opt             : struct with boolean flags
 %
 % OUTPUTS:
-%   predResponseAllVertices : predicted response time series (vertex x timepoints)
+%   predSurfResponse : predicted response time series (vertex x timepoints [x optional variations])
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % Create folders if figures are saved
 if opt.saveFig
