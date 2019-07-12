@@ -1,17 +1,20 @@
-function prfs_perturbed = mprf_perturbOrigPRFs(prfSurfPath, dirPth, opt)
+function mprf_perturbOrigPRFs(prfSurfPath, opt)
 % Wrapper function to perturb original pRF parameters on the cortical
 % surface.
 %       mprf_perturbOrigPRFs(prfSurfPath, dirPth, opt)
 % 
 % INPUTS:
 %   prfSurfPath     : path to surface files containing prf parameters (string)
-%   dirPth          : paths to files for given subject (struct)
 %   opt             : struct with boolean flags. Should contain the field 
 %                     'perturbOrigPRFs' with one of the following definitions:
 %                     'position', 'size', 'scramble', or false to exit
 %
 % OUTPUTS:
 %   none
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
                       
 % Select appropiate pertubation function
 switch opt.perturbOrigPRFs
@@ -21,11 +24,11 @@ switch opt.perturbOrigPRFs
         return;
     
     case 'position'
-        prfs_perturbed = mprf_varyPRFPositionOnSurface(prfSurfPath, opt);
+        mprf_varyPRFPositionOnSurface(prfSurfPath, opt);
         
     case 'size'
-        prfs_perturbed = mprf_varyPRFSizeOnSurface(prfSurfPath, opt);
+        mprf_varyPRFSizeOnSurface(prfSurfPath, opt);
         
     case 'scramble'
-        prfs_perturbed = mprf_scramblePRFOnSurface(prfSurfPath, opt);
+        mprf_scramblePRFOnSurface(prfSurfPath, opt);
 end
