@@ -39,7 +39,7 @@ opt.useSmoothedData       = true;           % MRI prf model: Use smoothed surfac
 opt.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 
 % --- PERTUBATION of pRF models ---
-opt.perturbOrigPRFs       = 'position';     % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
+opt.perturbOrigPRFs       = false;          % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
 opt.varyPosition          = -pi:(pi/4):pi;  % PERTUBATION of MRI prf model: Vary the prf center (polar angle rotation)
 opt.varySize              = unique(round(logspace(log10(0.2),log10(10),20),1)); % PERTUBATION of MRI prf model: Vary the prf size (scale sigma)
 opt.nScrambles            = 1000;
