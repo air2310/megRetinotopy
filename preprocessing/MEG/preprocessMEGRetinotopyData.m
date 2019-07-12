@@ -37,6 +37,10 @@ function [data, triggers, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt
 %
 % All dependent toolboxes can be added with the ToolboxToolbox command:
 %   tbUse('retmeg')
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 %% 0. Define parameters and paths
 
