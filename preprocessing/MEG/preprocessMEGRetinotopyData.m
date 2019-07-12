@@ -78,7 +78,7 @@ if opt.verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
 % function. Therefore, these subjects have their own (modified) version of
 % that function. Output of triggers.ts is time x chan (function from meg_utils)
 
-if opt.verbose; sprintf('(%s) Get triggers from data...\n', mfilename); end
+if opt.verbose; fprintf('(%s) Get triggers from data...\n', mfilename); end
 
 % Get trigger time series (same length as MEG ts) and compute triggertiming
 switch subjID
@@ -230,7 +230,7 @@ end
 
 %% 5. Label bad channels / epochs
 
-if opt.verbose; sprintf('(%s) Check for bad channels or epochs in data...\n', mfilename); end
+if opt.verbose; fprintf('(%s) Check for bad channels or epochs in data...\n', mfilename); end
 
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
     opt.varThreshold, opt.badChannelThreshold, opt.badEpochThreshold, opt.verbose);
@@ -334,7 +334,7 @@ end % opt.doDenoise
 %   time x epochs x channels x runs,
 % where epochs are again split by the number of runs
 
-if opt.verbose; sprintf('(%s) Save data...\n', mfilename); end
+if opt.verbose; fprintf('(%s) Save data...\n', mfilename); end
 
 if strcmp(subjID,'wlsubj030')
     assert(numRuns==10);
