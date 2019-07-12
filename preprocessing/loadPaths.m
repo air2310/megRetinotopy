@@ -10,9 +10,6 @@ dirPth.subjID  = subjID;
 
 dirPth.sessionPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Subject_sessions', subjID);
 
-dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit'); % should be sym link in git folder
-
-
 %% ------ MEG ------
 dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG'); % should be sym link in git folder
 dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'meg'); % should be sym link in git folder
@@ -61,3 +58,9 @@ dirPth.bsPth = fullfile(mprf_rootPath, 'data', 'brainstorm_db', 'MEG_Retinotopy'
 dirPth.bs.dataPth = fullfile(dirPth.bsPth,'data',subjID);
 dirPth.bs.anatPth = fullfile(dirPth.bsPth,'anat',subjID);
 
+%% ----- Modelfitting ----
+
+dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit'); % should be sym link in git folder
+
+
+end
