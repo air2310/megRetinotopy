@@ -1,18 +1,29 @@
 function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, dirPth, opt)
-% Function to compare phase referenced steady-state data MEG data
-% to predicted MEG responses from MRI prfs
+% Function to compare phase referenced steady-state data MEG data to
+% predicted MEG responses from MRI prfs
 %
-%    [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, opt)
+%    [meanPredResponse,meanVarExpl] =
+%    mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, ...
+%    predMEGResponse, opt)
 %
 % INPUTS:
-%   phRefAmp10Hz    : phase-referenced steady-state MEG sensor data (epochs x run x sensors)
-%   predMEGResponse : predicted MEG responses (epochs x sensors)
-%   dirPth          : paths to files for given subject
-%   opt             : struct with options
+%   phRefAmp10Hz     : phase-referenced steady-state MEG sensor data
+%                       (epochs x run x sensors)
+%   predMEGResponse  : predicted MEG responses
+%                       (epochs x sensors)
+%   dirPth           : paths to files for given subject
+%   opt              : struct with options
 %
 % OUTPUT:
-%   meanPredResponse : mean predicted response (sensors x epochs x optional variations)
-%   meanVarExpl      : variance explained of mean data by modelfit (1 x sensors [x optional variations])
+%   meanPredResponse : mean predicted response
+%                       (sensors x epochs x optional variations)
+%   meanVarExpl      : variance explained of mean data by modelfit 
+%                       (1 x sensors [x optional variations])
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')
