@@ -52,32 +52,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt.skipMEGPreproc        = true;  % General
-opt.skipMRIPreproc        = true;  % General
-opt.verbose               = true;  % General
-opt.doSaveData            = true;  % General
-opt.saveFig               = true; % General
-opt.fullSizeGainMtx       = true; % General
-
-opt.doFiltering           = true;       % MEG preprocessing
-opt.doDenoise             = true;       % MEG preprocessing
-opt.removeStartOfRunEpoch = false;      % MEG preprocessing
-opt.varThreshold          = [0.05 20];  % MEG preprocessing
-opt.badChannelThreshold   = 0.2;        % MEG preprocessing
-opt.badEpochThreshold     = 0.2;        % MEG preprocessing
-opt.triggerChan           = 161:168;    % MEG Sensor info
-opt.photoDiodeChan        = 192;        % MEG Sensor info          
-opt.dataChan              = 1:157;      % MEG Sensor info
-opt.fs                    = 1000;       % MEG Sensor info: Sample rate (Hz) 
-opt.flickerFreq           = 10;         % MEG Experiment info: Stim freq (Hz)   
-opt.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
-
-opt.eccThresh             = [0 10];    % MRI prf model: only use eccentricities that fall within the stimulus (20 deg in diameter)
-opt.varExplThresh         = [0.1 inf]; % MRI prf model: Remove low variance explained vertices
-opt.betaPrctileThresh     = [0 95];    % MRI prf model: Remove beta outliers by only taking up to the 95th percentile
-opt.useSmoothedData       = true;      % MRI prf model: Use smoothed surface data or not
-
-opt.useBensonMaps         = false;     % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt = getOpts;
 
 %% 1. MEG data preprocessing
 
@@ -99,10 +74,14 @@ else % If you want to skip preprocessing
     gainMtx    = loadGainMtx(subjID, dirPth, opt);
 end
 
-meg      = struct();
-meg.data = data.data.data;
-meg.stim = stim;
-meg.gain = gainMtx;
+meg = struct();
+meg.data            = data.data.data;
+meg.stim            = stim;
+meg.stim.conditions = conditions;
+meg.gain            = gainMtx;
+
+% Save some memory
+clear gainMtx data stim conditions
 
 
 %% 2 MRI data preprocessing
@@ -158,6 +137,13 @@ if ~opt.skipMRIPreproc
     % smoothed prf parameters + ROIs on BS (pial) surface saved
 
 end
+
+% If perturbing original pRF parameters on the cortical surface:
+if opt.perturbOrigPRFs  
+    mprf_perturbOrigPRFs(mri.prfSurfPath, opt) 
+end
+
+
 %% 3. Forward model
 
 % 3.1 Predict response for MEG stimulus at Surface level (could be BS or FS)
@@ -165,7 +151,7 @@ end
 %              (2) MEG stimulus (struct with x, y, images, etc)
 %       output - predicted responses on surface (epochs x vertices)
 
-predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, dirPth, opt);
+predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.stim, dirPth, opt);
 
 % 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
@@ -174,7 +160,7 @@ predSurfResponse = mprf_MEGPredictionFromSurface(mri.prfSurfPath, meg.stim, dirP
 %              (2) gain matrix (sensors x vertices)
 %       output - predicted MEG responses (epochs x sensors)
 
-predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain, dirPth, opt);
+predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, dirPth, opt);
 
 % 3.3 Computing phase referenced amplitude from preprocessed MEG data 
 % and predicted MEG responses from cortical surface
@@ -182,7 +168,7 @@ predMEGResponse = mprf_MEGPredictionSensors(predSurfResponse, meg.gain, dirPth, 
 %              (2) predicted MEG responses (epochs x sensors)
 %       output - Phase referenced MEG time series (sensors x epochs)
 
-phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, dirPth, opt);
+phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
 % 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       inputs (1) Phase referenced MEG time series (sensors x time)
@@ -190,7 +176,7 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceData(meg.data, predMEGResponse, dirP
 %       outputs(1) modelfit to mean phase-referenced MEG data,
 %              (2) variance explained per MEG sensor 
 
-[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phaseRefMEGResponse, predMEGResponse, dirPth, opt);
+[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, dirPth, opt);
 
 
 %% Figures
