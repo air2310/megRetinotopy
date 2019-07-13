@@ -1,4 +1,4 @@
-function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse)
+function [meanPredResponse,meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse)
 % Function to compare phase referenced steady-state data MEG data
 % to predicted MEG responses from MRI prfs
 %
@@ -9,8 +9,10 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRI
 %   predMEGResponse : predicted MEG responses (epochs x sensors)
 %
 % OUTPUTS:
-%   meanPredResponse : mean predicted response (sensors x epochs)
+%   meanPredResponse : mean predicted response (epochs x sensors)
 %   meanVarExpl      : variance explained of mean data by modelfit (1 x sensors)
+%   meanPhRefAmp10Hz : mean phase-referenced steady-state MEG sensors response
+%                        (epochs x sensors)
 %
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
@@ -20,7 +22,7 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPredictionFromMRI
 % Take mean across 19 runs
 meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));
 
-[nEpochs, ~, nSensors] = size(phRefAmp10Hz);
+[nEpochs, nSensors] = size(meanPhRefAmp10Hz);
 
 % Preallocate space
 meanPredResponse = NaN(nEpochs,nSensors);
