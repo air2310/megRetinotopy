@@ -59,11 +59,11 @@ for ii = 1:nIter
     if opt.verbose
         
         % Visualize the mean reference phase across sensors
-        fH1 = figure; clf;
+        fH1 = figure(1); clf;
         megPlotMap(circularavg(squeeze(bestRefPhase),[],1), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
         
         % Visualize the variance explained for every run across sensors
-        fH2 = figure; set(fH2, 'Position', [17,578,1543,760]);
+        fH2 = figure(2); set(fH2, 'Position', [17,578,1543,760]);
         for r = 1:nRuns
             subplot(3,7,r);
             dataToPlot = squeeze(maxVarExplVal(:,r,:));
@@ -83,7 +83,7 @@ for ii = 1:nIter
         end
         
         % Visualize the reference phase for every run across sensors
-        fH3 = figure;
+        fH3 = figure(3);
         for s = 1:nSensors
             clf;
             mprf_polarplot(ones(size(bestRefPhase,2),1),bestRefPhase(1,:,s));
@@ -101,6 +101,12 @@ for ii = 1:nIter
 end
 
 % Remove last dimension out, if not used
-phRefAmp10Hz = squeeze(predMEGResponse);
+phRefAmp10Hz = squeeze(phRefAmp10Hz);
+
+if opt.doSaveData
+    if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder), 'dir')
+        mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder)); end
+    save(fullfile(dirPth.model.saveDataPth,'phaseReferencesMEGData'),'phRefAmp10Hz','-v7.3');
+end
 
 return

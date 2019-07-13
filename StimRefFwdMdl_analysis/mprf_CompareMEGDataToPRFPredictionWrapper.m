@@ -128,4 +128,16 @@ for ii = 1:nIter
             end
         end
     end
+    
+
 end
+
+% Remove last dimension out, if not used
+meanPredResponse = squeeze(meanPredResponse);
+meanVarExpl      = squeeze(meanVarExpl);
+
+if opt.doSaveData
+    save(fullfile(dirPth.model.saveDataPth,'modelPredictions'), 'meanVarExpl','meanPredResponse','-v7.3');
+end
+
+return
