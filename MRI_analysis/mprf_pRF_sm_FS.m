@@ -1,25 +1,25 @@
 function mprf_pRF_sm_FS(dirPth)
 
+
+
+%% ----------
 % File paths
 % ----------
-rootDir = dirPth.rootPth;
+anat_dir = fullfile(dirPth.fmri.mrvPth, '3DAnatomy'); 
+anat_file = fullfile(anat_dir,'t1.nii.gz');
+roi_dir  = strcat(anat_dir,'/ROIs/');
 
-anat_dir = dirPth.mri.anatPth; 
-anat_file = strcat(rootDir,anat_dir(2:end),'/t1.nii.gz');
-roi_dir = strcat(rootDir,anat_dir(2:end),'/ROIs/');
-
-freesurfer_surface = strcat(rootDir,dirPth.freesurfer.surfPth(2:end));
+freesurfer_surface = dirPth.fs.surfPth;
 
 mrSession_dir = dirPth.fmri.mrvPth; 
 
-prf_dir_mrv = dirPth.fmri.saveDataPth_prfMrv;
-prf_data_mrVmat = strcat(rootDir,prf_dir_mrv(2:end),'/mat');
+prf_data_mrVmat = strcat(dirPth.fmri.saveDataPth_prfMrv,'/mat');
 
 % directories to save results
 % original and smoothed pRF parameters in mrVista space in .nii 
-prf_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_prfFS(2:end));
-roi_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_roiFS(2:end));
-roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
+prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
+roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
+roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 % ----------
 
 
@@ -31,12 +31,9 @@ setVAnatomyPath(anat_file);
 hvol = initHiddenGray;
 % Set the volume view to the current data type and add the RM model
 hvol = viewSet(hvol,'curdt',data_type);
-% from mrVista session directory
-if strcmpi(dirPth.subjID,'wlsubj004')
-    rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_retModel-20170519-155117-fFit.mat');
-else
-    rm_model = strcat(mrSession_dir,'/Gray/Averages/rm_Averages-fFit.mat');
-end
+
+% Load mrVista retinotopy Gray file 
+rm_model = dirPth.fmri.vistaGrayFitFile;
 hvol = rmSelect(hvol,1,rm_model);
 
 mmPerVox = viewGet(hvol,'mmpervox');
@@ -82,7 +79,7 @@ for n = 1:length(surfaces_to_load)
     
     % compute mapping using mrmMapVerticesToGray (mrmMapGrayToVertices):
     cur_v2gmap = mrmMapVerticesToGray(mrv_msh.vertices, viewGet(hvol,'nodes'),...
-        mmPerVox);
+        mmPerVox,[],5);
     
     % Add the vertexGrayMap field to mesh properties
     mrv_msh = meshSet(mrv_msh,'vertexGrayMap',cur_v2gmap);
@@ -105,19 +102,19 @@ for n = 1:length(surfaces_to_load)
         end
         
         % Check if we have x, y, x_smoothed or y_smoothed:
-        if regexp(cur_par_name,'x\>');
+        if strcmpi(cur_par_name,'x')
             has_x = true;
             x_pos = tmp;
             disp(cur_par_name)
-        elseif regexp(cur_par_name,'y\>');
+        elseif strcmpi(cur_par_name,'y')
             has_y = true;
             y_pos = tmp;
             disp(cur_par_name)
-        elseif regexp(cur_par_name,'x_smoothed\>');
+        elseif strcmpi(cur_par_name,'x_smoothed')
             has_x_sm = true;
             x_pos_sm = tmp;
             disp(cur_par_name)
-        elseif regexp(cur_par_name,'y_smoothed\>');
+        elseif strcmpi(cur_par_name,'y_smoothed')
             has_y_sm = true;
             y_pos_sm = tmp;
             disp(cur_par_name)
