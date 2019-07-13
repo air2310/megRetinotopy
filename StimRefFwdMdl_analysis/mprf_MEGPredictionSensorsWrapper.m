@@ -75,4 +75,10 @@ end
 % Remove last dimension out, if not used
 predMEGResponse = squeeze(predMEGResponse);
 
+if opt.doSaveData
+    if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder), 'dir')
+        mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder)); end
+    save(fullfile(dirPth.model.saveDataPth,'predMEGResponsesFromPRFs'),'predMEGResponse');
+end
+
 return

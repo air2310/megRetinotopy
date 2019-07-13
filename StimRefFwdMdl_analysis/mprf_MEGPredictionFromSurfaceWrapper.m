@@ -106,7 +106,7 @@ predSurfResponse = squeeze(predSurfResponse);
 if opt.doSaveData
     if ~exist(fullfile(prfSurfPath,'pred_resp', opt.subfolder), 'dir')
         mkdir(fullfile(prfSurfPath,'pred_resp', opt.subfolder)); end
-    save(fullfile(prfSurfPath,'pred_resp',opt.subfolder,'predSurfResponse'));
+    save(fullfile(prfSurfPath,'pred_resp',opt.subfolder,'predSurfResponse'), 'predSurfResponse');
 end
 
 
