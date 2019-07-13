@@ -20,6 +20,12 @@ function phRefAmp10Hz = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGRespon
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
+% check for folders in case we save figures
+if opt.saveFig
+     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
+                    mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
+end
+
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')
@@ -90,10 +96,8 @@ for ii = 1:nIter
             title(sprintf('Best xval reference phases for 19 runs, sensor %d - mean r^2: %1.2f',s,nanmean(maxVarExplVal(1,:,s),2)));
             drawnow;
             if opt.saveFig
-                if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
-                    mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
                 print(fH3,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-                    sprintf('sensor%d_xvalRefPhase%s_%d', opt.fNamePostFix, ii)), '-dpng')
+                    sprintf('sensor%d_xvalRefPhase%s_%d', s, opt.fNamePostFix, ii)), '-dpng')
             end
         end
     end % opt.verbose
