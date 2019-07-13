@@ -1,4 +1,26 @@
 function [prfData, prfDataPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt)
+% Function to get pRF data from Benson V1-V3 atlas (by Benson et al. (2014)
+% This script relies on steps subject having Benson atlas in autosegmented
+% FreeSurfer surf dir. This function will downsample Benson maps to nr of
+% vertices in downsampled Brainstorm mesh (1x15002) if maps are not defined
+% in subject's brainstorm_db anat folder. 
+%
+%   [prfData, prfDataPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt)
+%
+% INPUTS:
+%   subjID          : subject name (string)
+%   dirPth          : paths to files for given subject (struct)
+%   opt             : pipeline options (struct with boolean flags).
+%
+% OUTPUTS:
+%   prfData         : prf data from Benson maps (struct)
+%   prfDataPath     : path where prfData are saved (string)
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
+
 
 % Check if freesurfer matlab toolbox is added
 if ~exist('MRIread', 'file')
@@ -62,13 +84,16 @@ areas.all = areas.sub_bs_areas>0;
 
 % note, RH hemi should have negative polar angle values when converting to
 % x, y coordinates
-theta = pi/180 * (90 - polarang.sub_bs_angle);
-x_tmp = eccen.sub_bs_eccen .* cos(polarang.sub_bs_angle);
-y_tmp = eccen.sub_bs_eccen .* sin(polarang.sub_bs_angle);
+% theta = pi/180 * (90 - polarang.sub_bs_angle);
+eccenThresh = ((eccen.sub_bs_eccen > 0.5) & (eccen.sub_bs_eccen < opt.eccThresh(2)));
+eccentricity =  eccen.sub_bs_eccen .* eccenThresh;
+
+x_tmp = eccentricity .* cos(polarang.sub_bs_angle);
+y_tmp = eccentricity .* sin(polarang.sub_bs_angle);
 
 prfData.y            = y_tmp;
 prfData.x            = x_tmp;
-prfData.eccentricity = eccen.sub_bs_eccen;
+prfData.eccentricity = eccentricity;
 prfData.polar_angle  = polarang.sub_bs_angle;
 prfData.sigma        = sigma.sub_bs_sigma;
 prfData.beta         = 1./sqrt(2*pi*prfData.sigma.^2);

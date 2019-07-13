@@ -22,7 +22,10 @@
 % 5. Compute predicted BOLD response for every vertex in V1-V3, where pRF has unit volume
 % 6. Load Gain matrix and set dipole perpendicular to surface
 % 7. Compute predicted MEG sensor responses and plot against data
-
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 %% 0. Set up
 
 % Check if freesurfer matlab toolbox is added

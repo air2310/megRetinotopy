@@ -1,45 +1,31 @@
-function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain, dirPth, opt)
+function predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain)
 % Function to compute predicted response at MEG sensors from predicted
 % surface response (using MEG stimulus), by multiplying responses with gain
 % matrix
 % 
-%   predMEGResponse = mprf_MEGPredictionSensors(predResponse, gain, subjID) 
+%   predMEGResponse = mprf_MEGPredictionSensors(predSurfaceResponse, gain) 
 %
 % INPUTS:
-%   predSurfaceResponse :  predicted responses from surface (epochs x vertices)
-%   gain                :  gain matrix, weighted sum of vertices contributing 
-%                           to each individual MEG sensor (sensors x vertices)
-%   dirPth              : paths to files for given subject
-%   opt                 :  struct with boolean flag options
+%   predSurfaceResponse : predicted responses from surface
+%                           (epochs x vertices)
+%   gain                : gain matrix, weighted sum of vertices contributing 
+%                           to each individual MEG sensor
+%                           (sensors x vertices)
 %
-% OUTPUTS:
-%   predicted response time series for every MEG sensor (epochs x sensors)
+% OUTPUT:
+%   predMEGResponse     : predicted MEG sensor responses
+%                           (epochs x sensors)
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
-% Get nans in matrix
+% Locate nans in matrix
 nanMask = isnan(predSurfaceResponse);
-
-% Create output matrix
-% predMEGResponse = NaN(size(nanMask,1), size(gain,1));
 
 % Replace NaNs with zero's output matrix
 predSurfaceResponse(nanMask)=0;
 
+% Get predict MEG response by multiplying response with gain matrix 
 predMEGResponse = predSurfaceResponse * gain';
-
-if opt.verbose
-    figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
-    plot(predMEGResponse); hold on;
-    plot(zeros(1,size(predMEGResponse,1)),'k')
-    title('Predicted MEG response from MRI prfs')
-    xlabel('time points (epochs)');
-    ylabel('MEG response (T??)');
-    ylim([-1,1]*max(abs(predMEGResponse(:))))
-    set(gca, 'FontSize', 14, 'TickDir', 'out'); box off;
-    if opt.saveFig; print(fullfile(dirPth.model.saveFigPth, ...
-            sprintf('predMEGResponseFromPRF_benson%d_highres%d_smoothed%d', ...
-            opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData)), '-dpng')
-    end
-end
-
 
 return

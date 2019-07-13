@@ -1,6 +1,22 @@
 function G_constrained = loadGainMtx(subjID, dirPth, opt)
-%
 % Function to load gain matrix produced by Brainstorm
+%
+%   G_constrained = loadGainMtx(subjID, dirPth, opt)
+%
+% INPUTS:
+%   subjID          : subject name (string)
+%   dirPth          : paths to files for given subject (struct)
+%   opt             : pipeline options (struct with boolean flags).
+%
+% OUTPUT:
+%   G_constrained   : constrained Gain matrix, i.e. only dipoles with
+%                       perpendicular dipoles (relative to vertex)
+%                       (sensors x vertices)
+%
+%
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+
 
 if opt.verbose; sprintf('(%s) Load MEG Gain matrix for subject %s...\n', mfilename, subjID); end
 

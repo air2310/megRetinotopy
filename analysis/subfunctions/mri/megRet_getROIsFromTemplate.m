@@ -19,6 +19,8 @@ function [] = megRet_getROIsFromTemplate(subject, sessionDir)
 % - Create and visualize V1-V3 ROIs from Benson atlas
 % - Load and visualize eccentricity and polar angle maps from Benson atlas
 %
+%
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 %% Run Noah Benson's docker on subject's freesurfer directory
 %
