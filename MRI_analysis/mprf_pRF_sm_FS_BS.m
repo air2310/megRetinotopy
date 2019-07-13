@@ -1,24 +1,18 @@
 function mprf_pRF_sm_FS_BS(dirPth)
 
-
 % File paths
 % ----------
-rootDir = dirPth.rootPth;
+freesurfer_surface = dirPth.fs.surfPth;
+prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
+roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
+prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
+roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 
-freesurfer_surface = strcat(rootDir,dirPth.freesurfer.surfPth(2:end));
-prf_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_prfFS(2:end));
-roi_dir_FS = strcat(rootDir,dirPth.fmri.saveDataPth_roiFS(2:end));
-
-prf_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_prfBS(2:end));
-roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
-
-
-bs_model_path = strcat(rootDir,dirPth.brainstorm.dataPth(2:end));
+bs_model_path = dirPth.bs.dataPth;
 bs_model_file = strcat(bs_model_path,'/headmodel_surf_os_meg.mat');
         
-bs_anat_path = strcat(rootDir,dirPth.brainstorm.anatPth(2:end));
+bs_anat_path = dirPth.bs.anatPth;
 bs_anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
-
 % ----------
 
 load(bs_model_file);
@@ -37,9 +31,9 @@ if any(strcmpi('pial',strsplit(bs_head_model_surf,'_')))
 
     % (EK): Don't load white surface, since order of vertices is different
     % and will not match the downsampled prf data or rois
-% elseif any(strcmpi('white',strsplit(bs_head_model_surf,'_')))
-%     surfaces_to_load = {'white'};
-%     
+    % elseif any(strcmpi('white',strsplit(bs_head_model_surf,'_')))
+    %     surfaces_to_load = {'white'};
+    %
 else
     error('Could not determine the surface to load');
     
@@ -70,7 +64,7 @@ for n=1:length(surfaces_to_load)
         
         
         % combine left and right hemi
-        verts = [fs_vertices; tmp_verts];  
+        fs_vertices = [fs_vertices; tmp_verts];  
     end
      
     % Get brainstorm mesh
@@ -81,7 +75,7 @@ for n=1:length(surfaces_to_load)
     
     load(fullfile(surf_path,bs_surf_files.name),'Vertices', 'Faces');
         
-    bs_vert_idx = dsearchn(verts, Vertices);
+    bs_vert_idx = dsearchn(fs_vertices, Vertices);
     
     %%%%%%%%%%%%%%%%%%
     % Export prfs    %
@@ -137,10 +131,8 @@ for n=1:length(surfaces_to_load)
     end    
     
     
-    
-    %%%%%%%%%%%%%%%%%%
-    % Export rois    %
-    %%%%%%%%%%%%%%%%%%
+%% Export rois  
+%--------------------------------------------------------------------------
     
     pname = roi_dir_FS;
     w_export = 'roi';
@@ -148,7 +140,7 @@ for n=1:length(surfaces_to_load)
     % ROIs 
     lh_files = dir(fullfile(pname,'lh.*'));    
         
-    % Loop over the LHs files (i.e. all the parameters on the lh surfaces):
+    % Loop over the LHS files (i.e. all the parameters on the lh surfaces):
     for nn = 1:length(lh_files)
         
         cur_lh_file = lh_files(nn).name;

@@ -1,4 +1,4 @@
-function mprf_pRF_sm_FS_BS_fig(dirPth)
+function mprf_pRF_sm_FS_BS_fig(dirPth,opt)
 % plots after mprf_pRF_sm
 % 1) distribution of variance explained values for all voxels
 % 2) prf size vs eccentricity (different rois)
@@ -7,10 +7,16 @@ function mprf_pRF_sm_FS_BS_fig(dirPth)
 
 % File paths
 % ----------
-rootDir = dirPth.rootPth;
-prf_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_prfBS(2:end));
-roi_dir_BS = strcat(rootDir,dirPth.fmri.saveDataPth_roiBS(2:end));
+prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
+roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 % ----------
+
+% Get directory to save images
+saveDir = fullfile(dirPth.fmri.saveDataPth_prfBS, 'figs');
+if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+
+% variance explained threshold for selecting voxels 
+Var_Exp_Thr = opt.varExplThresh(1);
 
 % ROIs
 surfaces_to_load = {'pial'};
@@ -35,25 +41,26 @@ end
 
 % histogram of variance explained 
 %--------------------------------
-figure(201); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
+fH1 = figure(201); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
 hist(bs_prf.varexplained{1},100);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
 h.EdgeColor = 'w';
 title('variance explained of prf fits');
 xlabel('variance explained');
+print(fH1, fullfile(saveDir,'variance_explained'), '-dpng');
 
 % prf size vs eccentricity
 %-------------------------
 % All voxels
-figure(202),set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2])
+fH2 = figure(202); set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2])
 sm_mask = bs_prf.varexplained{1} > 0;
 scatter(bs_prf.eccentricity{1},bs_prf.sigma{1},[],[0.5 0.5 0.5]); hold on;
 scatter(bs_prf.eccentricity{1}(sm_mask),bs_prf.sigma{1}(sm_mask),[],[0.5 1 0.5]); hold on;
 title('voxels used for smoothing (ve>0)');
 xlabel('eccentricity');
 ylabel('prf size');
-
+print(fH2, fullfile(saveDir,'voxels used for smoothing'), '-dpng');
 
 % Check how ROIs are loaded
 pname = roi_dir_BS;
@@ -77,9 +84,7 @@ end
         
 
 % fits for different visual areas
-Var_Exp_Thr = 0.4;
-Ecc_Thr = [0 10];
-idx_thr = bs_prf.varexplained{1} > Var_Exp_Thr & bs_prf.eccentricity{1} < Ecc_Thr(2);
+idx_thr = bs_prf.varexplained{1} > Var_Exp_Thr;% & bs_prf.eccentricity{1} < Ecc_Thr(2);
 
 
 bs_prf_roi = table(bs_roi.Properties.VariableNames(2:end)','VariableNames',{'ROIs'});
@@ -108,10 +113,10 @@ num_col = 3;
 
 % pRF size vs eccentricity
 %----------------------
-figure(203),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+fH3 = figure(203); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
 c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-suptitle('pRF size vs ecc')
+title('pRF size vs ecc')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
   
@@ -122,11 +127,12 @@ for roi_idx = 1:num_roi
     legend([{tmp} {strcat(tmp,'sm')}],'Location','NorthWestOutside')
     ylim([0 15]);
 end
+print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 
 % Sigma histogram
 %-----------------------
-figure(204),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Sigma')
+fH4 = figure(204); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+title('Sigma')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(bs_prf_roi.sigma{roi_idx},100)
@@ -136,11 +142,12 @@ for roi_idx = 1:num_roi
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
 end
+print(fH4, fullfile(saveDir,'sigma'), '-dpng');
 
 % Smoothed sigma histogram
 %-----------------------
-figure(205),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Sigma smoothed')
+fH5 = figure(205); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+title('Sigma smoothed')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(bs_prf_roi.sigma_smoothed{roi_idx},100)
@@ -150,12 +157,12 @@ for roi_idx = 1:num_roi
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
 end
-
+print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 
 % Beta histogram
 %-----------------------
-figure(206),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Beta')
+fH6 = figure(206); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+title('Beta')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(bs_prf_roi.beta{roi_idx},100)
@@ -165,11 +172,12 @@ for roi_idx = 1:num_roi
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
 end
+print(fH6, fullfile(saveDir,'beta'), '-dpng');
 
 % recomputed beta histogram
 %-----------------------
-figure(207),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-suptitle('Recomputed beta')
+fH7 = figure(207); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+title('Recomputed beta')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(bs_prf_roi.recomp_beta{roi_idx},100)
@@ -179,11 +187,12 @@ for roi_idx = 1:num_roi
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
 end
+print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
 
-figure(208),set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-c = [0.5 1 0]; %[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 0.5 0.5];[1 0.5 0.5];[0.5 1 0.5];[0.5 0.5 1]];
-suptitle('pRF center distribution')
+fH8 = figure(208); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+c = [0.5 1 0];
+c_sm = [0 0.5 1];
+title('pRF center distribution')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     scatter(bs_prf_roi.x{roi_idx},bs_prf_roi.y{roi_idx},[],c,'.');  hold on;
@@ -194,36 +203,50 @@ for roi_idx = 1:num_roi
     
     tmp = bs_prf_roi.ROIs{roi_idx};
     legend([{tmp} {strcat(tmp,'sm')}],'Location','northeastoutside')
-    legend('Location','NorthWestoutside')
-    
-
+    legend('Location','NorthWestoutside');
 end
+print(fH8, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
 %% 3) building mrMesh and displaying parameters on the mesh
 
-
-surf_visualize = 0;
-if surf_visualize ==1
-    % prf parameters on mrVista surface
-    hvol = meshBuild(hvol,'left'); MSH = meshVisualize(viewGet(hvol,'Mesh')); hvol = viewSet(hvol, 'Mesh', MSH); clear MSH;
-    % Smooth the mesh
-    hvol = viewSet(hvol, 'Mesh', meshSmooth( viewGet(hvol, 'Mesh'), 1));
+if opt.surfVisualize ==1
+    close all;
+   
+    % Get directory to save images
+    saveDir = fullfile(dirPth.fmri.saveDataPth_prfBS, 'figs');
+    if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+   
+    %-----------------------------------------------
+    % Visualize pRF parameters on brainstorm surface
+    %-----------------------------------------------
+    % Load rh and lh freesurfer surface files
+    surfaces_to_load = {'pial'};
+          
+    for idx_surf = 1:length(surfaces_to_load)
+        % left hemisphere
+        cur_surf = surfaces_to_load{idx_surf};
+        mprf_VisualizeDataOnBrainstormSurface(dirPth,cur_surf,saveDir);
+        
+        vis_roi=0;
+        if vis_roi==1
+            % Hide rois in gray view when loading
+            vw = viewSet(vw, 'hide gray rois', true);
+            
+            % Load and draw Wang ROIs
+            for idx = 1:num_roi
+                roiFile = sprintf('%s',rois{idx});
+                vw = loadROI(vw, roiFile);
+                fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
+            end
+            
+            vw = viewSet(vw, 'ROI draw method', 'perimeter');
+            vw = refreshScreen(vw);
+            vw = meshUpdateAll(vw);
+        end
+        
+    end
     
-    % update map values
-    prf_param = ecc;
-    thr = sm_mask & ecc<20;
     
-    map_val = nan(size(prf_param));
-    map_val(thr) = prf_param(thr);
-    
-    hvol = viewSet(hvol,'displaymode','map');
-    hvol = viewSet(hvol,'map',{map_val});
-    hvol.ui.mapMode = setColormap(hvol.ui.mapMode,'hsvCmap');
-    
-    % different colormaps for phase values
-    
-    % Update mesh
-    hvol = meshColorOverlay(hvol,1);
 end
 
 
