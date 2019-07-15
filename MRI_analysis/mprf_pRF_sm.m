@@ -67,7 +67,9 @@ if opt.verbose
    for idx_stim_frame = 1:size(rm_stim.im,2)
        cur_window = rm_stim.window;
        cur_window(cur_window==1)=rm_stim.im(:,idx_stim_frame);
-       imagesc(reshape(cur_window,[101,101])); colormap gray; axis square;
+       imagesc(reshape(cur_window,[101,101])); 
+       title(sprintf('Frame %d', idx_stim_frame)); 
+       colormap gray; axis square; drawnow;
        pause(0.05);
    end    
 end
