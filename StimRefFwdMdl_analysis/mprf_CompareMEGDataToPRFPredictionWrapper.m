@@ -43,10 +43,9 @@ elseif ~opt.perturbOrigPRFs
 end
 
 % Keep a copy of all responses
-if opt.perturbOrigPRFs
-    predMEGResponseAll = predMEGResponse;
-    phRefAmp10HzAll    = phRefAmp10Hz;
-end
+predMEGResponseAll = predMEGResponse;
+phRefAmp10HzAll    = phRefAmp10Hz;
+
 
 % Allocate space
 [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
@@ -78,12 +77,14 @@ for ii = 1:nIter
         ve = val(~isnan(val));
         
         ttlPostFix = strsplit(sprintf('%s',opt.fNamePostFix), '_');
-        ttl = sprintf('Var expl of mean phase-ref MEG data by modelfit %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4});
+        ttl = sprintf('Var expl of modelfit predicting mean phase-ref MEG data: %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4});
         
         % Plot var expl mesh
         fH1 = figure(1); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
+        fH12 = figure(12); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
         if opt.saveFig
-            print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d',opt.fNamePostFix, ii)), '-dpng');
+            print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_nearest',opt.fNamePostFix, ii)), '-dpng');
+            print(fH12,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_interpolated',opt.fNamePostFix, ii)), '-dpng');
         end
         
         % Plot Mean phase-referenced steady-state response and predicted response to
