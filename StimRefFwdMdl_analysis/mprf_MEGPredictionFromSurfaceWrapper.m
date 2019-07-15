@@ -116,9 +116,9 @@ predSurfResponse = squeeze(predSurfResponse);
 
 % Save predicted response to MEG stimuli for every vertex
 if opt.doSaveData
-    if ~exist(fullfile(prfSurfPath,'pred_resp', opt.subfolder), 'dir')
-        mkdir(fullfile(prfSurfPath,'pred_resp', opt.subfolder)); end
-    save(fullfile(prfSurfPath,'pred_resp',opt.subfolder,'predSurfResponse'), 'predSurfResponse', '-v7.3');
+    if ~exist(fullfile(prfSurfPath,opt.subfolder, 'pred_resp'), 'dir')
+        mkdir(fullfile(prfSurfPath,opt.subfolder, 'pred_resp')); end
+    save(fullfile(prfSurfPath,opt.subfolder,'pred_resp','predSurfResponse'), 'predSurfResponse', '-v7.3');
 end
 
 
