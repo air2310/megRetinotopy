@@ -37,8 +37,8 @@ elseif strcmp(opt.perturbOrigPRFs, 'size')
     nIter = length(opt.varySize);
     predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(predMEGResponse,3)==length(opt.nScrambles))
-    nIter = length(opt.nScrambles);
+    assert(size(predMEGResponse,3)==opt.nScrambles)
+    nIter = opt.nScrambles;
     predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
@@ -62,7 +62,7 @@ for ii = 1:nIter
     
     
     %% Debug figures
-    if opt.verbose
+    if opt.verbose       
         
         % Visualize the mean reference phase across sensors
         fH1 = figure(1); clf;

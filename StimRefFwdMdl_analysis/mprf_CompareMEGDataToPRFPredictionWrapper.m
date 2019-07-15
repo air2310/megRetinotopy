@@ -35,9 +35,9 @@ elseif strcmp(opt.perturbOrigPRFs, 'size')
     assert(size(predMEGResponse,3)==length(opt.varySize))
     nIter = length(opt.varySize);
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(phRefAmp10Hz,4)==length(opt.nScrambles))
-    assert(size(predMEGResponse,3)==length(opt.nScrambles))
-    nIter = length(opt.nScrambles);
+    assert(size(phRefAmp10Hz,4)==opt.nScrambles)
+    assert(size(predMEGResponse,3)==opt.nScrambles)
+    nIter = opt.nScrambles;
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
 end

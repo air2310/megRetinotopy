@@ -32,8 +32,8 @@ elseif strcmp(opt.perturbOrigPRFs, 'size')
     nIter = length(opt.varySize);
     predSurfaceResponseAll = predSurfaceResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(predSurfaceResponse,3)==length(opt.nScrambles))
-    nIter = length(opt.nScrambles);
+    assert(size(predSurfaceResponse,3)==opt.nScrambles)
+    nIter = opt.nScrambles;
     predSurfaceResponseAll = predSurfaceResponse; % Keep a copy of all responses
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
@@ -55,6 +55,12 @@ end
 
 %% Debug figures
 if opt.verbose
+    if opt.saveFig 
+        if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'), 'dir');
+            mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'));
+        end
+    end
+    
     figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
     for ii = 1:nIter
         clf;
@@ -66,7 +72,7 @@ if opt.verbose
         set(gca, 'FontSize', 14, 'TickDir', 'out'); box off;
         
         if opt.saveFig
-            print(fullfile(dirPth.model.saveFigPth, opt.subfolder, ...
+            print(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse', ...
                 sprintf('predMEGResponseFromPRF%s_%d', opt.fNamePostFix, ii)), '-dpng')
         end
     end
@@ -78,7 +84,7 @@ predMEGResponse = squeeze(predMEGResponse);
 if opt.doSaveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder)); end
-    save(fullfile(dirPth.model.saveDataPth,'predMEGResponsesFromPRFs'),'predMEGResponse');
+    save(fullfile(dirPth.model.saveDataPth,'predMEGResponsesFromPRFs'),'predMEGResponse', '-v7.3');
 end
 
 return

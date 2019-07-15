@@ -30,6 +30,8 @@ if strcmp(opt.perturbOrigPRFs, 'position')
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_vary.mgz', 'y_vary.mgz', 'sigma_smoothed'};
 elseif strcmp(opt.perturbOrigPRFs, 'size')
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_vary.mgz'};
+elseif strcmp(opt.perturbOrigPRFs, 'scramble')
+    prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz'};
 elseif (~opt.useBensonMaps && opt.useSmoothedData)
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
 elseif opt.useBensonMaps
@@ -52,8 +54,8 @@ elseif strcmp(opt.perturbOrigPRFs, 'size')
     nIter = length(opt.varySize);
     prfAll = prf; % Keep a copy of all parameters
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(prf.sigma_vary,2)==length(opt.nScrambles))
-    nIter = length(opt.nScrambles);
+    assert(size(prf.sigma_scramble,2)==opt.nScrambles)
+    nIter = opt.nScrambles;
     prfAll = prf; % Keep a copy of all parameters
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
@@ -75,8 +77,13 @@ for ii = 1:nIter
     if strcmp(opt.perturbOrigPRFs,'position')
         prf.x_vary = prfAll.x_vary(:,ii);
         prf.y_vary = prfAll.y_vary(:,ii);
-    else (strcmp(opt.perturbOrigPRFs,'size') || strcmp(opt.perturbOrigPRFs,'scramble')); %#ok<SEPEX,VUNUS>
+    elseif strcmp(opt.perturbOrigPRFs,'size')
         prf.sigma_vary = prfAll.sigma_vary(:,ii);
+    elseif strcmp(opt.perturbOrigPRFs,'scramble')
+        prf.x_scramble = prfAll.x_scramble(:,ii);
+        prf.y_scramble = prfAll.y_scramble(:,ii);
+        prf.sigma_scramble = prfAll.sigma_scramble(:,ii);
+        prf.recomp_beta_scramble = prfAll.recomp_beta_scramble(:,ii);    
     end
     
     % Get predicted response from prf data
@@ -85,6 +92,10 @@ end
 
 % Plot predicted response BS surface
 if opt.verbose
+    if opt.saveFig && ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'),'dir')
+         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse')); 
+    end
+    
     figure(1), set(gcf, 'Position', [652   784   908   554], 'Color', 'w'); 
     for ii = 1:nIter
         clf;
@@ -94,7 +105,8 @@ if opt.verbose
         set(gca, 'FontSize', 14, 'TickDir','out'); box off
     
         if opt.saveFig
-            print(fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('predPRFResponseFromSurface%s_%d', opt.fNamePostFix, ii)), '-dpng')
+            print(fullfile(dirPth.model.saveFigPth, opt.subfolder, ...
+             'predSurfResponse', sprintf('predPRFResponseFromSurface%s_%d', opt.fNamePostFix, ii)), '-dpng')
         end
     end
 end
@@ -106,7 +118,7 @@ predSurfResponse = squeeze(predSurfResponse);
 if opt.doSaveData
     if ~exist(fullfile(prfSurfPath,'pred_resp', opt.subfolder), 'dir')
         mkdir(fullfile(prfSurfPath,'pred_resp', opt.subfolder)); end
-    save(fullfile(prfSurfPath,'pred_resp',opt.subfolder,'predSurfResponse'), 'predSurfResponse');
+    save(fullfile(prfSurfPath,'pred_resp',opt.subfolder,'predSurfResponse'), 'predSurfResponse', '-v7.3');
 end
 
 

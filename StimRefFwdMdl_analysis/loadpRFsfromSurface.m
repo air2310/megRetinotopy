@@ -31,7 +31,7 @@ end
 d(find(emptyFile)) = []; %#ok<FNDSB>
 
 % Display prf parameters
-if opt.verbose;
+if opt.verbose
     fprintf('(%s): Found the following prf parameters on the surface: \n',  mfilename)
     fprintf('\t %s \n', d.name)
 end
@@ -84,7 +84,8 @@ for idx = 1:length(prfParams)
         case {'x_smoothed', 'x', 'y_smoothed', 'y', 'sigma_smoothed', 'sigma'}
             prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
             
-        case {'x_vary.mgz', 'y_vary.mgz', 'sigma_vary.mgz'}
+        case {'x_vary.mgz', 'y_vary.mgz', 'sigma_vary.mgz', ...
+                'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz', 'recomp_beta_scramble.mgz'}
             fn = strsplit(prfParams{idx}, '.');
             prf.(fn{1}) = theseData;
     end
