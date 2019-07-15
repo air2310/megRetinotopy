@@ -23,7 +23,7 @@ function phRefAmp10Hz = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGRespon
 % check for folders in case we save figures
 if opt.saveFig
      if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
-                    mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
+         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
 end
 
 
@@ -31,19 +31,18 @@ end
 if strcmp(opt.perturbOrigPRFs, 'position')
     assert(size(predMEGResponse,3)==length(opt.varyPosition))
     nIter = length(opt.varyPosition);
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'size')
     assert(size(predMEGResponse,3)==length(opt.varySize))
     nIter = length(opt.varySize);
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
     assert(size(predMEGResponse,3)==opt.nScrambles)
     nIter = opt.nScrambles;
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
 end
 
+% Keep a copy of all responses
+predMEGResponseAll = predMEGResponse; 
 
 % Allocate space
 [~, nEpochs, nRuns, nSensors] = size(megData);
