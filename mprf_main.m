@@ -54,8 +54,6 @@ cd(mprf_rootPath)
 % Set options
 opt = getOpts;
 
-opt.surfVisualize = 0;
-
 %% 1. MEG data preprocessing
 
 if ~opt.skipMEGPreproc
