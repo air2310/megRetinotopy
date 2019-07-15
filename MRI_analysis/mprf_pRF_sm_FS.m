@@ -20,6 +20,12 @@ prf_data_mrVmat = strcat(dirPth.fmri.saveDataPth_prfMrv,'/mat');
 prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
 roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
+
+if ~exist(prf_dir_FS, 'dir')
+    mkdir(prf_dir_FS); 
+    mkdir(roi_dir_FS);
+    mkdir(roi_dir_BS);
+end
 % ----------
 
 
@@ -92,7 +98,7 @@ for n = 1:length(surfaces_to_load)
         tmp = nan(size(cur_v2gmap));
         
         
-        if sum(double(cur_par_name)) == sum(double('beta'))
+        if strcmp(cur_par_name,'beta')
             tmp_data = squeeze(prf_par_exp.(cur_par_name)(:,:,1));
             tmp(good_mapping) = tmp_data(cur_v2gmap(good_mapping));
             
