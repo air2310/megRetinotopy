@@ -56,7 +56,7 @@ end
 %% Debug figures
 if opt.verbose
     if opt.saveFig 
-        if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'), 'dir');
+        if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'), 'dir')
             mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'));
         end
     end
@@ -84,7 +84,7 @@ predMEGResponse = squeeze(predMEGResponse);
 if opt.doSaveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder)); end
-    save(fullfile(dirPth.model.saveDataPth,'predMEGResponsesFromPRFs'),'predMEGResponse', '-v7.3');
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder, 'predMEGResponsesFromPRFs'),'predMEGResponse', '-v7.3');
 end
 
 return
