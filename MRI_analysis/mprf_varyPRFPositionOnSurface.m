@@ -8,8 +8,10 @@ function prf = mprf_varyPRFPositionOnSurface(prfSurfPath, opt)
 % INPUTS:
 %   prfSurfPath     : path to surface files containing prf parameters (string)
 %   opt             : struct with boolean flags. Should contain the field 
-%                     'perturbOrigPRFs' with one of the following definitions:
-%                     'position', 'size', 'scramble', or false to exit
+%                     'perturbOrigPRFs' defined as 'position' and a field
+%                     valled 'varPostion' with a vector that contains the
+%                     shift you want the position to rotate along its polar
+%                     angle (radians).
 %
 % OUTPUT:
 %   prf             : struct with prf data, separate for every parameter
