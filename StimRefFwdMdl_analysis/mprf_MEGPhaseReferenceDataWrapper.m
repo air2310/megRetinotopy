@@ -20,24 +20,29 @@ function phRefAmp10Hz = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGRespon
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
+% check for folders in case we save figures
+if opt.saveFig
+     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
+         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
+end
+
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')
     assert(size(predMEGResponse,3)==length(opt.varyPosition))
     nIter = length(opt.varyPosition);
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'size')
     assert(size(predMEGResponse,3)==length(opt.varySize))
     nIter = length(opt.varySize);
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(predMEGResponse,3)==length(opt.nScrambles))
-    nIter = length(opt.nScrambles);
-    predMEGResponseAll = predMEGResponse; % Keep a copy of all responses
+    assert(size(predMEGResponse,3)==opt.nScrambles)
+    nIter = opt.nScrambles;
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
 end
 
+% Keep a copy of all responses
+predMEGResponseAll = predMEGResponse; 
 
 % Allocate space
 [~, nEpochs, nRuns, nSensors] = size(megData);
@@ -56,7 +61,7 @@ for ii = 1:nIter
     
     
     %% Debug figures
-    if opt.verbose
+    if opt.verbose       
         
         % Visualize the mean reference phase across sensors
         fH1 = figure(1); clf;
@@ -90,10 +95,8 @@ for ii = 1:nIter
             title(sprintf('Best xval reference phases for 19 runs, sensor %d - mean r^2: %1.2f',s,nanmean(maxVarExplVal(1,:,s),2)));
             drawnow;
             if opt.saveFig
-                if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
-                    mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
                 print(fH3,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-                    sprintf('sensor%d_xvalRefPhase%s_%d', opt.fNamePostFix, ii)), '-dpng')
+                    sprintf('sensor%d_xvalRefPhase%s_%d', s, opt.fNamePostFix, ii)), '-dpng')
             end
         end
     end % opt.verbose
@@ -106,7 +109,7 @@ phRefAmp10Hz = squeeze(phRefAmp10Hz);
 if opt.doSaveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder)); end
-    save(fullfile(dirPth.model.saveDataPth,'phaseReferencesMEGData'),'phRefAmp10Hz','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'phaseReferencesMEGData'),'phRefAmp10Hz','-v7.3');
 end
 
 return

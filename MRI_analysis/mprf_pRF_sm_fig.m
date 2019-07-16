@@ -269,7 +269,7 @@ end
 %   Load mrMesh and display Wang Rois and prf parameters on the mesh
 %  --------------------------------------------------------------------
 
-if surf_visualize
+if opt.surfVisualize
     
     close all;
     

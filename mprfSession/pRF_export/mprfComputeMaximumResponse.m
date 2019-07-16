@@ -9,7 +9,10 @@ mresp = nan(size(sigma));
 sigma(~mask) = nan;
 
 fprintf('Computing maximum responses:\n')
-figure;
+figure; title('Max response pRFs');
+xlabel('time points (frames)');
+ylabel('Response (a.u.)')
+
 % Loop over pRF in chunks of 1000 voxels:
 for n = 1:1000:length(sigma)
     
@@ -41,6 +44,7 @@ for n = 1:1000:length(sigma)
     
     
 end
+
 
 % Done:
 fprintf('Done\n');

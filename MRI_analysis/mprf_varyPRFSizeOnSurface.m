@@ -7,8 +7,9 @@ function prf = mprf_varyPRFSizeOnSurface(prfSurfPath, opt)
 % INPUTS:
 %   prfSurfPath     : path to surface files containing prf parameters (string)
 %   opt             : struct with boolean flags. Should contain the field 
-%                     'perturbOrigPRFs' with one of the following definitions:
-%                     'position', 'size', 'scramble', or false to exit
+%                     'perturbOrigPRFs' defined as 'size' and have
+%                     a field called 'varySize' with a vector of scale 
+%                     factors to use.
 %
 % OUTPUT:
 %   prf             : struct with prf data, separate for every parameter

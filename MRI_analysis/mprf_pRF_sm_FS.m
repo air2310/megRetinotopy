@@ -20,6 +20,12 @@ prf_data_mrVmat = strcat(dirPth.fmri.saveDataPth_prfMrv,'/mat');
 prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
 roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
+
+if ~exist(prf_dir_FS, 'dir')
+    mkdir(prf_dir_FS); 
+    mkdir(roi_dir_FS);
+    mkdir(roi_dir_BS);
+end
 % ----------
 
 
@@ -73,7 +79,7 @@ for n_surf = 1:length(surfaces_to_load)
         
         cur_hs = hs_to_load{1};
         fprintf('Exporting parameters for %s hemisphere:\n',cur_hs);
-        
+      
         % Load mesh using fs_meshFromSurface, this creates a mrVista compatible
         % mesh. Using 'my own' function that skips the smoothing:
         mrv_msh = mprf_fs_meshFromSurface(cur_surf);

@@ -51,12 +51,12 @@ end
 
 % Define and create 'processed' folder to save time series
 if opt.removeStartOfRunEpoch
-    savePth = fullfile(dirPth.meg.processedDataPth, 'firstEpochRemoved');
+    saveDataPth = fullfile(dirPth.meg.processedDataPth, 'firstEpochRemoved');
 else
-    savePth = fullfile(dirPth.meg.processedDataPth, 'allEpochs');
+    saveDataPth = fullfile(dirPth.meg.processedDataPth, 'allEpochs');
 end
 
-if ~exist(savePth, 'dir'); mkdir(savePth); end
+if ~exist(saveDataPth, 'dir'); mkdir(saveDataPth); end
 
 % Go to dataPth
 curDir = pwd;
@@ -132,7 +132,7 @@ triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
 
 % Save stimulus conditions (if requested)
-if opt.doSaveData; save(fullfile(savePth, 'megStimConditions.mat'), 'triggers'); end
+if opt.doSaveData; save(fullfile(saveDataPth, 'megStimConditions.mat'), 'triggers'); end
 
 % Epoch information about stimulus (bar sweep) epochs
 triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
@@ -210,8 +210,11 @@ if opt.verbose
         drawnow; pause(0.1);
         
         if opt.saveFig
-            if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), mkdir(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'));end
-            print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries',sprintf('%s_singleSensor%d_timeseries', subjID, chan)))
+            if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), 'dir') 
+                mkdir(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'));
+            end
+            print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries', ...
+                sprintf('%s_singleSensor%d_timeseries', subjID, chan)))
         end
         
     end
@@ -309,8 +312,11 @@ if opt.doDenoise
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
             if opt.saveFig
-                if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));end
-                print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra',sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
+                if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), 'dir')
+                    mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));
+                end
+                print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra', ...
+                    sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
             end
             drawnow; pause(0.1)
         end
@@ -357,7 +363,7 @@ if opt.verbose
     plot(triggers.stimConditions, 'LineWidth', 2);
     xlabel('Time (timepoints)'); ylabel('Trigger num'); hold all;
     if opt.saveFig
-        print(gcf, '-dpng', fullfile(saveFigPth,sprintf('%s_triggers_stimCondition', subjID)))
+        print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_triggers_stimCondition', subjID)))
     end
 end
 
@@ -390,7 +396,7 @@ data.data = permute(preprocDataBlocked, [2, 3, 4, 1]); % channels x time x epoch
 
 % Save if requested
 if opt.doSaveData
-    save(fullfile(savePth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3');
+    save(fullfile(saveDataPth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3');
 end
 
 
