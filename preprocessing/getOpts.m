@@ -44,6 +44,9 @@ opt.varyPosition          = -pi:(pi/4):pi;  % PERTUBATION of MRI prf model: Vary
 opt.varySize              = unique(round(logspace(log10(0.2),log10(10),20),1)); % PERTUBATION of MRI prf model: Vary the prf size (scale sigma)
 opt.nScrambles            = 1000;
 
+% --- ROI (either draw manually on mrMesh and export to FS (FreeSurfer) and BS (BrainStorm) or Use wang et al atlas)
+opt.roimrvToFS = 0; % set to 0 if rois drawn on FS surface are used
+
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
                             opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData);

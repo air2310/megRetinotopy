@@ -246,21 +246,9 @@ if opt.surfVisualize ==1
         cur_surf = surfaces_to_load{cur_hs};
         mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf,saveDir);
         
-        vis_roi=0;
+        vis_roi=1;
         if vis_roi==1
-            % Hide rois in gray view when loading
-            vw = viewSet(vw, 'hide gray rois', true);
-            
-            % Load and draw Wang ROIs
-            for idx = 1:num_roi
-                roiFile = sprintf('%s',rois{idx});
-                vw = loadROI(vw, roiFile);
-                fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
-            end
-            
-            vw = viewSet(vw, 'ROI draw method', 'perimeter');
-            vw = refreshScreen(vw);
-            vw = meshUpdateAll(vw);
+           mprf_VisualizeRoiOnFreesurferSurface(dirPth,cur_surf,saveDir);
         end
         
     end
