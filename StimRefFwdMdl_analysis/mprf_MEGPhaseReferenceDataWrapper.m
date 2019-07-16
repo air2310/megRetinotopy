@@ -109,7 +109,7 @@ phRefAmp10Hz = squeeze(phRefAmp10Hz);
 if opt.doSaveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
-    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');
 end
 
 return
