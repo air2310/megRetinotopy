@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj058';
+subjID = 'wlsubj040';
 
 %%
 % Load paths with data files for this subject
@@ -60,9 +60,11 @@ if ~opt.skipMEGPreproc
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
     [data, conditions, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
+    data = data.data;
     
     % 1.2 Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
     stim  = loadStim(subjID, dirPth, opt);
+    stim  = stim.MEG;
     
     % 1.3 Get Gain matrix (produced via brainstorm)
     gainMtx             = loadGainMtx(subjID, dirPth, opt);
@@ -72,10 +74,14 @@ else % If you want to skip preprocessing
     conditions = load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'megStimConditions.mat'));
     stim       = load(fullfile(dirPth.meg.processedDataPth, 'meg_stimulus.mat'));
     gainMtx    = loadGainMtx(subjID, dirPth, opt);
+    
+    % remove similar-named fields
+    data       = data.data.data;
+    stim       = stim.meg_stim;
 end
 
 meg = struct();
-meg.data            = data.data.data;
+meg.data            = data;
 meg.stim            = stim;
 meg.stim.conditions = conditions;
 meg.gain            = gainMtx;
@@ -124,7 +130,7 @@ end
 if ~opt.skipMRIPreproc
 
     %mprf_ROI % ROIs on mrVista space
-    mprf_pRF_sm(dirPth,opt.verbose); % pRF params from mrV >> smoothed pRF params on mrV (flag)
+    mprf_pRF_sm(dirPth, opt); % pRF params from mrV >> smoothed pRF params on mrV (flag)
 
     mprf_pRF_sm_fig(subjID, dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
 
