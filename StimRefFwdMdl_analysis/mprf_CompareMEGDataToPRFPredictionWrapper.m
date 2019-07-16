@@ -82,9 +82,14 @@ for ii = 1:nIter
         % Plot var expl mesh
         fH1 = figure(1); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
         fH12 = figure(12); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
+        fH13 = figure(13); megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH13, 'parula', ttl, [],[], 'interpmethod', 'nearest');
+        fH14 = figure(14); megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH14, 'parula', ttl, [],[]);
+
         if opt.saveFig
             print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_nearest',opt.fNamePostFix, ii)), '-dpng');
             print(fH12,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_interpolated',opt.fNamePostFix, ii)), '-dpng');
+            print(fH13,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_nearest_maxCLim',opt.fNamePostFix, ii)), '-dpng');
+            print(fH14,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_interpolated_maxCLim',opt.fNamePostFix, ii)), '-dpng');
         end
         
         % Plot Mean phase-referenced steady-state response and predicted response to
@@ -101,7 +106,9 @@ for ii = 1:nIter
             title(sprintf('Sensor %d, var expl: %1.2f',top10(tt), ve(tt)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
-            ylim([-6,6].*10^-14); xlim([0, max(t)])
+            tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,top10(tt),ii)), max(meanPhRefAmp10Hz(:,top10(tt),ii))])).*10^14;
+            if (tmp_yl > 6), yl = [-1*tmp_yl, tmp_yl].*10^-14; else yl = [-6,6].*10^-14; end
+            ylim(yl); xlim([0, max(t)])
             legend({'Data', 'Prediction'}, 'Location', 'SouthWest'); legend boxoff
         end
         
@@ -121,7 +128,9 @@ for ii = 1:nIter
             title(sprintf('Sensor %d, var expl: %1.2f',s, meanVarExpl(ii, s)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
-            ylim([-6,6].*10^-14); xlim([0, max(t)])
+            tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,s,ii)), max(meanPhRefAmp10Hz(:,s,ii))])).*10^14;
+            if tmp_yl>6, yl = [-1*tmp_yl, tmp_yl].*10^-14; else yl = [-6,6].*10^-14; end
+            ylim(yl); xlim([0, max(t)])
             legend({'Data', 'Prediction'}, 'Location', 'SouthWest'); legend boxoff
             if opt.saveFig
                 if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries'), 'dir') 
