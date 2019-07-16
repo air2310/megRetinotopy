@@ -139,7 +139,9 @@ meanPredResponse = squeeze(meanPredResponse);
 meanVarExpl      = squeeze(meanVarExpl);
 
 if opt.doSaveData
-    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'modelPredictions'), 'meanVarExpl','meanPredResponse','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPredResponse'), 'meanPredResponse','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPhRefAmp10Hz'), 'meanPhRefAmp10Hz','-v7.3');
 end
 
 return

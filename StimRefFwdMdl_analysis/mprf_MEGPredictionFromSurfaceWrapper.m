@@ -118,9 +118,9 @@ predSurfResponse = squeeze(predSurfResponse);
 
 % Save predicted response to MEG stimuli for every vertex
 if opt.doSaveData
-    if ~exist(fullfile(prfSurfPath,opt.subfolder, 'pred_resp'), 'dir')
-        mkdir(fullfile(prfSurfPath,opt.subfolder, 'pred_resp')); end
-    save(fullfile(prfSurfPath,opt.subfolder,'pred_resp','predSurfResponse'), 'predSurfResponse', '-v7.3');
+    if ~exist(fullfile(dirPth.model.saveDataPth,opt.subfolder, 'pred_resp'), 'dir')
+        mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','predSurfResponseFromPRFs'), 'predSurfResponse', '-v7.3');
 end
 
 
