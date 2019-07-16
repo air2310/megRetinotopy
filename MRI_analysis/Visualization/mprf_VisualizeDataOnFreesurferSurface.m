@@ -11,9 +11,6 @@ fs_msh.smooth_relaxation = 1;
 fs_msh = meshSmooth(fs_msh);
 fs_msh = meshColor(fs_msh);
 
-%cmap_names = {'parula','jet','hsv','hot','colorcube','phase_left_prf','phase_right_prf'};
-%cur_cmap = listdlg('ListString',cmap_names,'PromptString','Please select colormap to use','SelectionMode','single');
-
 % Get prf parameters saved as nifti's
 prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
   'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
@@ -71,8 +68,11 @@ for ii = 1:length(prfParams)
     fs_msh = mprfSessionColorMesh(fs_msh,data_in,cmap,drange,mask);
     
     % Get list of viewpoints and meshes when saving different images
-    viewList={'back','left','right','bottom','top'};
-    viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
+    % viewList={'back','left','right','bottom','top'};
+    % viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
+    
+    viewList={'back','left'};%
+    viewVectors={[pi -pi/2 0],[pi 0 0]};
     
     for thisView=1:length(viewList)
         cam.actor=0;

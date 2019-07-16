@@ -1,4 +1,4 @@
-function mprf_pRF_sm_FS_BS(dirPth)
+function mprf_pRF_sm_FS_BS(dirPth,opt)
 
 % File paths
 % ----------
@@ -10,7 +10,7 @@ roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 
 bs_model_path = dirPth.bs.dataPth;
 bs_model_file = strcat(bs_model_path,'/headmodel_surf_os_meg.mat');
-        
+
 bs_anat_path = dirPth.bs.anatPth;
 bs_anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
 % ----------
@@ -28,7 +28,7 @@ hs_to_load = {'lh','rh'};        % In this order as BS concatenates the hemisphe
 % Check surface:
 if any(strcmpi('pial',strsplit(bs_head_model_surf,'_')))
     surfaces_to_load = {'pial'};
-
+    
     % (EK): Don't load white surface, since order of vertices is different
     % and will not match the downsampled prf data or rois
     % elseif any(strcmpi('white',strsplit(bs_head_model_surf,'_')))
@@ -42,7 +42,7 @@ end
 fprintf('Exporting surface data:\n');
 
 for n=1:length(surfaces_to_load)
-
+    
     % Get brainstorm mesh
     fs_vertices = [];
     % Loop over all (2, left and right) surfaces:
@@ -50,31 +50,31 @@ for n=1:length(surfaces_to_load)
         cur_surf = [hs_to_load{nn} '.' surfaces_to_load{n}];
         surf_file = fullfile(freesurfer_surface,cur_surf);
         
-        % Use the same routine as Brainstorm uses, otherwise the vertices 
-        % are slightly off and intersectCols does not find all the matching 
+        % Use the same routine as Brainstorm uses, otherwise the vertices
+        % are slightly off and intersectCols does not find all the matching
         % vertices.
         
         [tmp_verts, ~] = mne_read_surface(surf_file);
         
         % Transformations applied by brainstorm:
-        tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);  
+        tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);
         tmp_verts = [tmp_verts'; ones(1,size(tmp_verts,1))]; %% Actually verts)
         tmp_verts = [bs_mri.SCS.R, bs_mri.SCS.T./1000; 0 0 0 1] * tmp_verts;
         tmp_verts = tmp_verts(1:3,:)';
         
         
         % combine left and right hemi
-        fs_vertices = [fs_vertices; tmp_verts];  
+        fs_vertices = [fs_vertices; tmp_verts];
     end
-     
+    
     % Get brainstorm mesh
     surf_path = fullfile(bs_anat_path);
-   
+    
     % Load the brainstorm surface file:
     bs_surf_files = dir(fullfile(surf_path,'*tess_cortex_pial_low.mat'));
     
     load(fullfile(surf_path,bs_surf_files.name),'Vertices', 'Faces');
-        
+    
     bs_vert_idx = dsearchn(fs_vertices, Vertices);
     
     %%%%%%%%%%%%%%%%%%
@@ -84,9 +84,9 @@ for n=1:length(surfaces_to_load)
     pname = prf_dir_FS;
     w_export = 'prf';
     
-    % ROIs 
-    lh_files = dir(fullfile(pname,'lh.*'));    
-        
+    % ROIs
+    lh_files = dir(fullfile(pname,'lh.*'));
+    
     % Loop over the LHs files (i.e. all the parameters on the lh surfaces):
     for nn = 1:length(lh_files)
         
@@ -105,50 +105,66 @@ for n=1:length(surfaces_to_load)
                 read_curv(fullfile(pname,cur_rh_file))];
             
             % preallocate the output variable:
-%             both_bs_data_out = nan(size(bs_vert_idx));
-%             both_bs_data_out = nan(size(bs_vert_idx));
+            %             both_bs_data_out = nan(size(bs_vert_idx));
+            %             both_bs_data_out = nan(size(bs_vert_idx));
             
             % Select to correct parameters:
-%             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
+            %             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
             both_bs_data_out = both_data(bs_vert_idx);
-
+            
             
             % Store the results:
             cur_out_file = [surfaces_to_load{n} '.' par_name];
             
-            if strcmpi(w_export,'prf')
-                fname = fullfile(prf_dir_BS,cur_out_file);
-                
-            elseif strcmpi(w_export,'roi')
-                fname = fullfile(roi_dir_BS,cur_out_file);
-                
-            end
-            
+            fname = fullfile(prf_dir_BS,cur_out_file);
+
             write_curv(fname,both_bs_data_out,1);
             fprintf('%s\n',cur_out_file);
         end
         
-    end    
+    end
     
     
-%% Export rois  
-%--------------------------------------------------------------------------
+    %% Export rois
+    %--------------------------------------------------------------------------
+    if opt.roimrvToFS == 1
+        pname = roi_dir_FS;
+        lh_files = dir(fullfile(pname,'lh.*')); % ROIs
+    else
+        pname = dirPth.fs.surfPth;
+        lh_files = dir(fullfile(pname,'lh.wang2015_atlas.mgz')); % ROIs
+    end
     
-    pname = roi_dir_FS;
-    w_export = 'roi';
-    
-    % ROIs 
-    lh_files = dir(fullfile(pname,'lh.*'));    
-        
     % Loop over the LHS files (i.e. all the parameters on the lh surfaces):
     for nn = 1:length(lh_files)
         
         cur_lh_file = lh_files(nn).name;
-        [~,~,par_name] = fileparts(cur_lh_file);
-        if strcmpi(par_name,'.mgz')
+        [~,r,par_name] = fileparts(cur_lh_file);
+        
+        if strcmpi(par_name,'.mgz') % To load Wang et al rois 
+            
+            r = r(4:end);
+            
+            % Find the corresponding rh file:
+            cur_rh_file = ['rh.',r, par_name];
+            
+            cur_lh_rois = MRIread(fullfile(pname,cur_lh_file));
+            cur_rh_rois = MRIread(fullfile(pname,cur_rh_file));
+            
+            both_data = [squeeze(cur_lh_rois.vol);squeeze(cur_rh_rois.vol)];
+            
+            both_bs_data_out = both_data(bs_vert_idx);
             
             
-        else
+            % Store the results:
+            cur_out_file = [surfaces_to_load{n} '.' r];
+            
+            fname = fullfile(roi_dir_BS,cur_out_file);
+            
+            write_curv(fname,both_bs_data_out,1);
+            fprintf('%s\n',cur_out_file);
+            
+        else % Load ROIs drawn in mrVista surface and exported to freesurfer space
             par_name = par_name(2:end);
             % Find the corresponding rh file:
             cur_rh_file = ['rh.' par_name];
@@ -158,30 +174,23 @@ for n=1:length(surfaces_to_load)
                 read_curv(fullfile(pname,cur_rh_file))];
             
             % preallocate the output variable:
-%             both_bs_data_out = nan(size(bs_vert_idx));
-%             both_bs_data_out = nan(size(bs_vert_idx));
+            %             both_bs_data_out = nan(size(bs_vert_idx));
+            %             both_bs_data_out = nan(size(bs_vert_idx));
             
             % Select to correct parameters:
-%             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
+            %             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
             both_bs_data_out = both_data(bs_vert_idx);
-
             
             % Store the results:
             cur_out_file = [surfaces_to_load{n} '.' par_name];
             
-            if strcmpi(w_export,'prf')
-                fname = fullfile(prf_dir_BS,cur_out_file);
-                
-            elseif strcmpi(w_export,'roi')
-                fname = fullfile(roi_dir_BS,cur_out_file);
-                
-            end
+            fname = fullfile(roi_dir_BS,cur_out_file);
             
             write_curv(fname,both_bs_data_out,1);
             fprintf('%s\n',cur_out_file);
         end
         
-    end    
-
-        
+    end
+    
+    
 end

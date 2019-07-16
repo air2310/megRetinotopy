@@ -53,6 +53,9 @@ else
     opt.subfolder             = 'original'; 
 end
 
+% --- ROI (either draw manually on mrMesh and export to FS (FreeSurfer) and BS (BrainStorm) or Use wang et al atlas)
+opt.roimrvToFS = 0; % set to 0 if rois drawn on FS surface are used
+
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
     opt.useBensonMaps, opt.fullSizeGainMtx, opt.useSmoothedData);
