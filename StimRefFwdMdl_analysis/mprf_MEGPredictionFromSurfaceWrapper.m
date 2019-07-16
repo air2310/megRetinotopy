@@ -48,24 +48,26 @@ prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);
 if strcmp(opt.perturbOrigPRFs, 'position')
     assert(size(prf.x_vary,2)==length(opt.varyPosition))
     nIter = length(opt.varyPosition);
-    prfAll = prf; % Keep a copy of all parameters
 elseif strcmp(opt.perturbOrigPRFs, 'size')
     assert(size(prf.sigma_vary,2)==length(opt.varySize))
     nIter = length(opt.varySize);
-    prfAll = prf; % Keep a copy of all parameters
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
     assert(size(prf.sigma_scramble,2)==opt.nScrambles)
     nIter = opt.nScrambles;
-    prfAll = prf; % Keep a copy of all parameters
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
 end
 
-% Remove blink periods from stim, define time/epoch dimension
-conditions = stim.conditions; stim = stim.meg_stim;
+% Keep a copy of all parameters
+prfAll = prf; 
+
+% Remove blink periods from stim,
+conditions = stim.conditions;
 blinkIm    = conditions.triggers.stimConditions(1:size(stim.im,2))==20;
 stim.im(:,blinkIm) = NaN;
-t          = (0:size(stim.im,2)-1) .* diff(opt.epochStartEnd);
+
+% Define time/epoch dimension for allocating space and plotting
+t = (0:size(stim.im,2)-1) .* diff(opt.epochStartEnd);
 
 % Allocate space
 predSurfResponse = NaN(length(t),size(prf.roimask,1),nIter);
@@ -83,7 +85,7 @@ for ii = 1:nIter
         prf.x_scramble = prfAll.x_scramble(:,ii);
         prf.y_scramble = prfAll.y_scramble(:,ii);
         prf.sigma_scramble = prfAll.sigma_scramble(:,ii);
-        prf.recomp_beta_scramble = prfAll.recomp_beta_scramble(:,ii);    
+        prf.recomp_beta_scramble = prfAll.recomp_beta_scramble(:,ii); 
     end
     
     % Get predicted response from prf data
