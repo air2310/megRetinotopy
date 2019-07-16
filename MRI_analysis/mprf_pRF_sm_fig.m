@@ -296,7 +296,7 @@ if opt.surfVisualize
     
     % Load and draw Wang ROIs
     for idx = 1:numRois
-        roiFile = sprintf('%s',rois{idx});
+        roiFile = sprintf('%s',roiName{idx});
         vw = loadROI(vw, roiFile);
         fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
     end
@@ -317,7 +317,7 @@ if opt.surfVisualize
         
         fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
-        prfParamNifti =  fullfile(prf_data_mrVNif, sprintf('%s.nii.gz', prfParams{ii}));
+        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv, sprintf('%s.nii.gz', prfParams{ii}));
         
         vw = viewSet(vw,'displaymode','map');
         vw = loadParameterMap(vw,prfParamNifti);
