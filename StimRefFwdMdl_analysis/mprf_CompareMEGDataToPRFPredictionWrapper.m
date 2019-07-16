@@ -101,7 +101,7 @@ for ii = 1:nIter
             title(sprintf('Sensor %d, var expl: %1.2f',top10(tt), ve(tt)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
-            ylim([-6,6].*10^-14); xlim([0, length(t)])
+            ylim([-6,6].*10^-14); xlim([0, max(t)])
             legend({'Data', 'Prediction'}, 'Location', 'SouthWest'); legend boxoff
         end
         
@@ -121,7 +121,7 @@ for ii = 1:nIter
             title(sprintf('Sensor %d, var expl: %1.2f',s, meanVarExpl(ii, s)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
-            ylim([-6,6].*10^-14); xlim([0, length(t)])
+            ylim([-6,6].*10^-14); xlim([0, max(t)])
             legend({'Data', 'Prediction'}, 'Location', 'SouthWest'); legend boxoff
             if opt.saveFig
                 if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries'), 'dir') 
