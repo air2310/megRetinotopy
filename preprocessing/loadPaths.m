@@ -61,6 +61,6 @@ dirPth.bs.anatPth = fullfile(dirPth.bsPth,'anat',subjID);
 %% ----- Modelfitting ----
 
 dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit'); % should be sym link in git folder
-dirPth.model.saveDataPth  = fullfile(dirPth.model.saveFigPth, 'pred_resp');
+dirPth.model.saveDataPth  = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit');
 
 end
