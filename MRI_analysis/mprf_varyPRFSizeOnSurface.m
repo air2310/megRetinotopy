@@ -34,7 +34,7 @@ if opt.verbose; fprintf('(%s): Scale pRF sizes with factors: %s\n', mfilename, s
 if opt.useBensonMaps
     prfParams = {'mask', 'beta','x','y','sigma'};
 else
-    prfParams = {'varexplained', 'mask','recomp_beta','x','y','sigma'};
+    prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed','y_smoothed','sigma_smoothed'};
 end
 
 prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);

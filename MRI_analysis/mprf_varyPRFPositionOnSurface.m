@@ -36,7 +36,7 @@ if opt.verbose; fprintf('(%s): Rotate pRF position along polar angles: %s\n', mf
 if opt.useBensonMaps
     prfParams = {'mask', 'beta','x', 'y'};
 else
-    prfParams = {'varexplained', 'mask','recomp_beta','x', 'y'};
+    prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed', 'y_smoothed'};
 end
 
 prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);

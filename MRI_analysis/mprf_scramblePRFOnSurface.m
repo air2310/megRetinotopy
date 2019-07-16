@@ -36,7 +36,7 @@ if opt.verbose; fprintf('(%s): Scramble pRFs  %dx\n', mfilename, opt.nScrambles)
 if opt.useBensonMaps
     prfParams = {'mask', 'beta','x','y','sigma'};
 else
-    prfParams = {'varexplained', 'mask','recomp_beta','x','y','sigma'};
+    prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed','y_smoothed','sigma_smoothed'};
 end
 
 prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);
