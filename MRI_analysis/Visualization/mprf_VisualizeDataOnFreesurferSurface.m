@@ -82,7 +82,7 @@ for ii = 1:length(prfParams)
         fH = figure('Color', 'w'); clf;
         imagesc(mrmGet(fs_msh, 'screenshot')/255); axis image; axis off;
         %print(fH, fullfile(saveDir,sprintf('%s_%s',prfParams{ii},viewList{thisView})), '-dpng');
-        saveas(fH, fullfile(saveDir,sprintf('%s_%s',prfParams{ii},viewList{thisView})), 'png');
+        saveas(fH, fullfile(saveDir,sprintf('%%s_s_%s',cur_hs, prfParams{ii},viewList{thisView})), 'png');
     end
     
     
