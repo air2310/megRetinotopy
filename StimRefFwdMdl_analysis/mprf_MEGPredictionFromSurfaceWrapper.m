@@ -19,8 +19,8 @@ function predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(prfSurfPath, st
 
 % Create folders if figures are saved
 if opt.saveFig
-    if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder),'dir')
-        mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder));
+    if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder,'predSurfResponse'),'dir')
+        mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder,'predSurfResponse'));
     end
 end
 
