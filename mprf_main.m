@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj040';
+subjID = 'wlsubj068';
 
 %%
 % Load paths with data files for this subject
@@ -53,6 +53,10 @@ cd(mprf_rootPath)
 
 % Set options
 opt = getOpts;
+
+if strcmp(subjID, 'wlsubj068')
+    opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
+end
 
 %% 1. MEG data preprocessing
 
@@ -78,6 +82,7 @@ else % If you want to skip preprocessing
     % remove similar-named fields
     data       = data.data.data;
     stim       = stim.meg_stim;
+    conditions = conditions.triggers;
 end
 
 meg = struct();
@@ -132,7 +137,7 @@ if ~opt.skipMRIPreproc
     %mprf_ROI % ROIs on mrVista space
     mprf_pRF_sm(dirPth, opt); % pRF params from mrV >> smoothed pRF params on mrV (flag)
 
-    mprf_pRF_sm_fig(subjID, dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
+    mprf_pRF_sm_fig(subjID, dirPth, opt); % Generates summary figures for pRF parameters before and after smoothing
 
     mprf_pRF_sm_FS(dirPth,opt); % smoothed pRF params on mrV >> smoothed pRF params on FS
     mprf_pRF_sm_FS_fig(dirPth,opt);
