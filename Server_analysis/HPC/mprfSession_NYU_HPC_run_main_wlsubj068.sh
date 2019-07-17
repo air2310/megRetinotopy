@@ -17,7 +17,7 @@ cd /scratch/ek99
 # If the files you are running are not in the same folder as this script,
 # you can insert "addpath(genpath('/PATH/TO/FILES/'));" before the command
 # you want to run.
-matlab -nodisplay -r "addpath(genpath(brainstorm3)); addpath(genpath(meg_utils)); addpath(genpath(noisepoolPCADenoise)); addpath(genpath(vistasoft)); addpath(fieldtrip); ft_defaults; cd('megRetinotopy'); mprf_addPaths; subjID='wlsubj068'; run('runModelMain$SLURM_ARRAY_TASK_ID(subjID)); exit()"
+matlab -nodisplay -r "addpath(genpath(brainstorm3)); addpath(genpath(meg_utils)); addpath(genpath(noisepoolPCADenoise)); addpath(genpath(vistasoft)); addpath(fieldtrip); ft_defaults; cd('megRetinotopy'); mprf_addPaths; subjID='wlsubj068'; run('runModelMain$SLURM_ARRAY_TASK_ID(subjID).m'); exit()"
 
 exit
 
