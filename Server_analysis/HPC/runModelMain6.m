@@ -14,7 +14,7 @@ cd(mprf_rootPath)
 opt = getOpts('verbose',false, 'skipMRIPreproc', false);
 
 if strcmp(subjID, 'wlsubj068')
-    opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
+    opt = getOpts('verbose',false, 'skipMRIPreproc', false, 'verbose',false, 'skipMRIPreproc', false, 'betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
 end
 
 %% 1. MEG data preprocessing
