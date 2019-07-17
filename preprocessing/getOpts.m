@@ -54,7 +54,8 @@ else
 end
 
 % --- ROI (either draw manually on mrMesh and export to FS (FreeSurfer) and BS (BrainStorm) or Use wang et al atlas)
-opt.roimrvToFS = 0; % set to 0 if rois drawn on FS surface are used
+opt.roimrvToFS                = false; % set to false, use wang atlas, otherwise rois drawn on mrVista surface are used
+opt.onlyV123WangAtlas         = false; % set to true in case you want to only use V1-V3 ROIs (for comparing against benson atlas results)
 
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
