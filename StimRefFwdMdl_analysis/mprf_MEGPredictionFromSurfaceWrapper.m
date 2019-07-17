@@ -34,8 +34,12 @@ elseif strcmp(opt.perturbOrigPRFs, 'scramble')
     prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz'};
 elseif (~opt.useBensonMaps && opt.useSmoothedData)
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
+elseif (~opt.useBensonMaps && opt.useSmoothedData && opt.onlyV123WangAtlas)
+    prfParams = {'varexplained', 'V123mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
 elseif opt.useBensonMaps
     prfParams = {'mask', 'beta', 'x', 'y', 'sigma'};
+elseif opt.onlyV123WangAtlas
+    prfParams = {'varexplained', 'V123mask', 'x', 'y', 'sigma', 'beta'};
 else
     prfParams = {'varexplained', 'mask', 'x', 'y', 'sigma', 'beta'};
 end
@@ -63,7 +67,7 @@ prfAll = prf;
 
 % Remove blink periods from stim,
 conditions = stim.conditions;
-blinkIm    = conditions.triggers.stimConditions(1:size(stim.im,2))==20;
+blinkIm    = conditions.stimConditions(1:size(stim.im,2))==20;
 stim.im(:,blinkIm) = NaN;
 
 % Define time/epoch dimension for allocating space and plotting
