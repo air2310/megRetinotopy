@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj058';
+subjID = 'wlsubj040';
 
 %%
 % Load paths with data files for this subject
@@ -60,9 +60,11 @@ if ~opt.skipMEGPreproc
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
     [data, conditions, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
+    data = data.data;
     
     % 1.2 Get MEG stimulus (binarized and reduced to epochs x 10201 pixels)
     stim  = loadStim(subjID, dirPth, opt);
+    stim  = stim.MEG;
     
     % 1.3 Get Gain matrix (produced via brainstorm)
     gainMtx             = loadGainMtx(subjID, dirPth, opt);
@@ -72,10 +74,14 @@ else % If you want to skip preprocessing
     conditions = load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'megStimConditions.mat'));
     stim       = load(fullfile(dirPth.meg.processedDataPth, 'meg_stimulus.mat'));
     gainMtx    = loadGainMtx(subjID, dirPth, opt);
+    
+    % remove similar-named fields
+    data       = data.data.data;
+    stim       = stim.meg_stim;
 end
 
 meg = struct();
-meg.data            = data.data.data;
+meg.data            = data;
 meg.stim            = stim;
 meg.stim.conditions = conditions;
 meg.gain            = gainMtx;
@@ -190,8 +196,6 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 
 % Figure 1. Time series (1a)
 %           MEG head plot (1b)
-
-fH1 = figure; megPlotMap(meanVarExpl,[0 0.6],fH1, 'parula', 'mean variance explained', [],[], 'interpmethod', 'nearest');
 
 %Figure 2. Position range line plot
 %          headplots for every position range
