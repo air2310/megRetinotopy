@@ -104,13 +104,13 @@ for n_surf=1:length(surfaces_to_load)
         both_bs_data_out = both_fs_data(bs_vert_idx);
         
         % Store the BS results:
-        cur_out_file = [surfaces_to_load{n} '.' par_name]; 
+        cur_out_file = [surfaces_to_load{n_surf} '.' par_name]; 
         fname = fullfile(prf_dir_BS,cur_out_file);
         write_curv(fname,both_bs_data_out,1);
         fprintf('(%s): Brainstorm combined hemi files: %s\n',mfilename, cur_out_file);
         
         % Store the FS results:
-        cur_out_file = [surfaces_to_load{n} '.' par_name]; 
+        cur_out_file = [surfaces_to_load{n_surf} '.' par_name]; 
         fname = fullfile(prf_dir_FS,cur_out_file);
         write_curv(fname,both_fs_data,1);
         fprintf('(%s): Freesurfer combined hemi files: %s\n',mfilename, cur_out_file);
