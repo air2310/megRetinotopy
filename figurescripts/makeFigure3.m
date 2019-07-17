@@ -3,6 +3,7 @@ function makeFigure3(subjID, dirPth, opt)
 % sizes (sigma).
 
 varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size', 'pred_resp', 'meanVarExpl'));
+varexpl = varexpl.meanVarExpl;
 
 range   = opt.varySize;
 
@@ -12,7 +13,7 @@ load(which('meg160_example_hdr.mat'))
 layout = ft_prepare_layout([],hdr);
 xpos = layout.pos(1:157,1);
 ypos = layout.pos(1:157,2);
-sensorLocBack = find(ypos<0 & xpos<1);
+sensorLocBack = (ypos<0 & xpos<1);
 
 % Plot data for sensors over the back of the head
 dataToPlot = varexpl(:,sensorLocBack);
@@ -22,7 +23,7 @@ mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-fH1 = figure; set(fh1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
 
 % Plot mean with shaded error bar using 'patch' function
 lo = mean_varexpl - ci_varexpl;
@@ -45,8 +46,9 @@ ylabel('Variance explained (%)');
 %% Plot meshes
 cols = 2;
 rows = round(length(range)/cols);
-fH2 = figure; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754]); hold all;
+fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754]); hold all;
 
+clim = max(varexpl(range==1,:));
 interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
 
 for ii = 1:length(range)
