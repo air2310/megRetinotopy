@@ -213,12 +213,7 @@ for n_surf=1:length(surfaces_to_load)
             both_fs_data = [read_curv(fullfile(pname,cur_lh_file));...
                 read_curv(fullfile(pname,cur_rh_file))];
             
-            % preallocate the output variable:
-            %             both_bs_data_out = nan(size(bs_vert_idx));
-            %             both_bs_data_out = nan(size(bs_vert_idx));
-            
             % Select to correct parameters:
-            %             both_bs_data_out(bs_vert_idx) = both_data(bs_vert_idx);
             both_bs_data_out = both_fs_data(bs_vert_idx);
             
             % Store the results:
