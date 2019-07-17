@@ -1,7 +1,7 @@
 function mprf_pRF_sm_fig(subjID, dirPth, opt)
 % Function to visualize prf parameters as histograms and on mrVista surface
 % after completing the function mprf_pRF_sm().
-%   1) distribution of variance explained, beta, prf size, prf position 
+%   1) distribution of variance explained, beta, prf size, prf position
 %       values for all voxels in visual ROIs and across all ROIs
 % 	2) prf size vs eccentricity (different rois)
 %                               (original and smoothed)
@@ -37,7 +37,7 @@ load(fullfile(grayCoordsDir,'coords.mat'), 'coords');
 % Load Wang Atlas ROIs compatible with mrVista, combine
 % dorsal/ventral/etc rois
 roisToCombine = {'V1','V2','V3',...
-                'IPS','LO','TO','VO', 'PHC'};
+    'IPS','LO','TO','VO', 'PHC'};
 
 d = dir(fullfile(roiDir, 'WangAtlas_*'));
 t = struct2table(d);
@@ -54,26 +54,26 @@ for rc = 1:length(roisToCombine)
         [~, indices] = intersect(coords', ROI.coords', 'rows' );
         tmpData = [tmpData; indices];
     end
-        
+    
     roiName(rc) = roisToCombine(rc);
     roiLoc{rc} = unique(tmpData, 'rows');
     
 end
-    
+
 singleRois = ~contains(t.name,roisToCombine);
 for sr = find(singleRois)'
     
     % Remove irrelevant parts of filename
     tmp = strsplit(t.name{sr}, {'.','_'});
-        
+    
     % Add ROI name and location to list
     roiName(end+1) = tmp(2);
-
+    
     load(fullfile(roiDir, t.name{sr}));
     [~, indices] = intersect(coords', ROI.coords', 'rows');
     roiLoc{end+1} = indices;
-end    
- 
+end
+
 % Apply roi masks to pRF parameters
 numRoi = length(roiName);
 prfROIData = struct();
@@ -86,28 +86,28 @@ for p = 1:length(fn)
     
     allroitmp = [];
     for roiIdx = 1:numRoi
-
-       thisFieldName = fn{p};
-       data = prf.(fn{p});
-       
-       if strcmp(thisFieldName,'varexplained')
-           data = data(roiLoc{roiIdx});
-           prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));          
-       
-       elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
-           data = data(roiLoc{roiIdx});
-           thresh = prctile(data, opt.betaPrctileThresh);
-           betamask = ((data > thresh(1)) & (data < thresh(2)));
-           prfROIData.(roiName{roiIdx}).(fn{p}) = data(betamask);
-       else
-           
-           % Mask
-           data = data(roiLoc{roiIdx});
-           data = data((vemask(roiLoc{roiIdx}) & eccenmask(roiLoc{roiIdx})));
-           
-           prfROIData.(roiName{roiIdx}).(fn{p}) = data;
-       end
-       allroitmp  = [allroitmp, prfROIData.(roiName{roiIdx}).(fn{p})];
+        
+        thisFieldName = fn{p};
+        data = prf.(fn{p});
+        
+        if strcmp(thisFieldName,'varexplained')
+            data = data(roiLoc{roiIdx});
+            prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));
+            
+        elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
+            data = data(roiLoc{roiIdx});
+            thresh = prctile(data, opt.betaPrctileThresh);
+            betamask = ((data > thresh(1)) & (data < thresh(2)));
+            prfROIData.(roiName{roiIdx}).(fn{p}) = data(betamask);
+        else
+            
+            % Mask
+            data = data(roiLoc{roiIdx});
+            data = data((vemask(roiLoc{roiIdx}) & eccenmask(roiLoc{roiIdx})));
+            
+            prfROIData.(roiName{roiIdx}).(fn{p}) = data;
+        end
+        allroitmp  = [allroitmp, prfROIData.(roiName{roiIdx}).(fn{p})];
     end
     prfROIData.allROI.(thisFieldName) = allroitmp;
 end
@@ -152,8 +152,8 @@ nbins = 50;
 % Plot pRF size vs ecc
 %-----------------------
 figure(3), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'pRF size vs ecc');
-c_orig 	 = [0.5 1 0]; 
-c_smooth = [0 0.5 1]; 
+c_orig 	 = [0.5 1 0];
+c_smooth = [0 0.5 1];
 
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
@@ -163,7 +163,7 @@ for roi_idx = 1:numRois
     title(roiName{roi_idx}, 'FontSize', 15)
     legend('original','smoothed','Location','NorthWest')
     legend('Location','NorthWest')
-    ylim([0 10]); xlim([0 10]); axis square
+    ylim([0 opt.eccThresh(2)]); xlim([0 opt.eccThresh(2)]); axis square
     ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -175,12 +175,12 @@ figure(4), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Nam
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
     hist(prfROIData.(roiName{roi_idx}).sigma,nbins)
-
+    
     title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    xlim([0 10]); box off; 
+    xlim([0 opt.eccThresh(2)]); box off;
     ylabel('Frequency'); xlabel('PRF size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -196,7 +196,7 @@ for roi_idx = 1:numRois
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    xlim([0 10]); box off; 
+    xlim([0 opt.eccThresh(2)]); box off;
     ylabel('Frequency'); xlabel('PRF smoothed size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -205,15 +205,18 @@ end
 % Beta histogram
 %-----------------------
 figure(6), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
+maxBeta = prctile(prfROIData.allROI.beta,[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
+
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(prfROIData.(roiName{roi_idx}).beta,nbins)
-
+    dataToPlot = prfROIData.(roiName{roi_idx}).beta;
+    betaMask = dataToPlot<maxBeta(2);
+    hist(dataToPlot(betaMask),nbins)
     title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    box off; 
+    box off;
     ylabel('Frequency'); xlabel('PRF beta (a.u.)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -221,15 +224,17 @@ end
 % recomputed beta histogram
 %-----------------------
 figure(7), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Recomputed beta')
+maxBeta = prctile(prfROIData.allROI.recomp_beta,[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
-    hist(prfROIData.(roiName{roi_idx}).recomp_beta,nbins)
-   
+    dataToPlot = prfROIData.(roiName{roi_idx}).recomp_beta;
+    betaMask = dataToPlot<maxBeta(2);
+    hist(dataToPlot(betaMask),nbins)
     title(roiName{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    box off; 
+    box off;
     ylabel('Frequency'); xlabel('PRF beta (a.u.)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -260,10 +265,10 @@ for roi_idx = 1:numRois
     y = prfROIData.(roiName{roi_idx}).y;
     x_smoothed = prfROIData.(roiName{roi_idx}).x_smoothed;
     y_smoothed  = prfROIData.(roiName{roi_idx}).y_smoothed;
-
+    
     plot(x,y,'o','MarkerFaceColor',c_orig,'MarkerSize',2); hold all;
     plot(x_smoothed,y_smoothed,'o','MarkerFaceColor',c_smooth,'MarkerSize',2);
-
+    
 end
 %% --------------------------------------------------------------------
 %   Load mrMesh and display Wang Rois and prf parameters on the mesh
@@ -271,7 +276,7 @@ end
 
 if opt.surfVisualize
     
-    close all;
+    %     close all;
     
     % Get directory to save images
     saveDir = fullfile(dirPth.fmri.saveDataPth_prfMrv, 'figs');
@@ -295,8 +300,8 @@ if opt.surfVisualize
     vw = viewSet(vw, 'hide gray rois', true);
     
     % Load and draw Wang ROIs
-    for idx = 1:numRois
-        roiFile = sprintf('%s',roiName{idx});
+    for idx = 1:length(t.name)
+        roiFile = sprintf('%s',t.name{idx});
         vw = loadROI(vw, roiFile);
         fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
     end
@@ -313,11 +318,13 @@ if opt.surfVisualize
     idName = {mshToPrint{1}.name, mshToPrint{2}.name};
     
     % Load and draw prf parameters
+    fH = figure('Color', 'w');
+    
     for ii = 1:length(prfParams)
         
         fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
-        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv, sprintf('%s.nii.gz', prfParams{ii}));
+        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv, 'nifti', sprintf('%s.nii.gz', prfParams{ii}));
         
         vw = viewSet(vw,'displaymode','map');
         vw = loadParameterMap(vw,prfParamNifti);
@@ -334,15 +341,15 @@ if opt.surfVisualize
             case {'eccentricity', 'eccentricity_smoothed'}
                 % Set colormap and limits
                 vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
-                vw = viewSet(vw, 'mapwin', [eps Ecc_Thr(2)]);
-                vw = viewSet(vw, 'mapclip', [eps Ecc_Thr(2)]);
+                vw = viewSet(vw, 'mapwin', [eps opt.eccThresh(2)]);
+                vw = viewSet(vw, 'mapclip', [eps opt.eccThresh(2)]);
                 
-            case {'beta', 'recomp_beta', 'varexplained'}
+            case {'beta', 'recomp_beta'}
                 if opt.betaPrctileThresh
                     maxBetaCmap = prctile(vw.map{1},[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
                     vw = viewSet(vw, 'mapwin', [eps maxBetaCmap]);
                     vw = viewSet(vw, 'mapclip', [eps maxBetaCmap]);
-                end                
+                end
         end
         
         % Update views
@@ -356,13 +363,12 @@ if opt.surfVisualize
                 cam.rotation = rotationMatrix3d(viewVectors{thisView});
                 mrMesh('localhost',idList(thisID),'set',cam);
                 
-                fH = figure('Color', 'w'); clf;
+                clf;
                 imagesc(mrmGet(viewGet(vw, 'Mesh'), 'screenshot')/255); axis image; axis off;
-                print(fH, fullfile(saveDir,sprintf('%s_%s_%s',idName{thisID}, prfParams{ii},viewList{thisView})), '-dpng');
-                
+                if opt.saveFig print(fH, fullfile(saveDir,sprintf('%s_%s_%s',idName{thisID}, prfParams{ii},viewList{thisView})), '-dpng'); end
+               
             end
         end
-        
     end
 end
 
