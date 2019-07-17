@@ -21,14 +21,15 @@ function prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt)
 
 % Check files in folder and remove empty files
 d = dir(fullfile(prfSurfPath, '*'));
-for ii = 1:length(d)
-    if d(ii).bytes<1
-        emptyFile(ii) = 1; %#ok<AGROW>
-    else
-        emptyFile(ii) = 0; %#ok<AGROW>
-    end
-end
-d(find(emptyFile)) = []; %#ok<FNDSB>
+% for ii = 1:length(d)
+%     if d(ii).bytes<1
+%         emptyFile(ii) = 1; %#ok<AGROW>
+%     else
+%         emptyFile(ii) = 0; %#ok<AGROW>
+%     end
+% end
+% 
+% d(find(emptyFile)) = []; %#ok<FNDSB>
 
 % Display prf parameters
 if opt.verbose
