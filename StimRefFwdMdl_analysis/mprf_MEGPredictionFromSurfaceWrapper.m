@@ -27,11 +27,11 @@ end
 
 % Define pRF parameters to read from surface
 if strcmp(opt.perturbOrigPRFs, 'position')
-    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_vary.mgz', 'y_vary.mgz', 'sigma_smoothed'};
+    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed_vary.mgz', 'y_smoothed_vary.mgz', 'sigma_smoothed'};
 elseif strcmp(opt.perturbOrigPRFs, 'size')
-    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_vary.mgz'};
+    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed_vary.mgz'};
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz'};
+    prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_smoothed_scramble.mgz', 'y_smoothed_scramble.mgz', 'sigma_smoothed_scramble.mgz'};
 elseif (~opt.useBensonMaps && opt.useSmoothedData)
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
 elseif (~opt.useBensonMaps && opt.useSmoothedData && opt.onlyV123WangAtlas)
@@ -50,13 +50,13 @@ prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);
 
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.perturbOrigPRFs, 'position')
-    assert(size(prf.x_vary,2)==length(opt.varyPosition))
+    assert(size(prf.x_smoothed_vary,2)==length(opt.varyPosition))
     nIter = length(opt.varyPosition);
 elseif strcmp(opt.perturbOrigPRFs, 'size')
-    assert(size(prf.sigma_vary,2)==length(opt.varySize))
+    assert(size(prf.sigma_smoothed_vary,2)==length(opt.varySize))
     nIter = length(opt.varySize);
 elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(prf.sigma_scramble,2)==opt.nScrambles)
+    assert(size(prf.sigma_smoothed_scramble,2)==opt.nScrambles)
     nIter = opt.nScrambles;
 elseif ~opt.perturbOrigPRFs
     nIter = 1;
@@ -81,14 +81,14 @@ for ii = 1:nIter
     
     % Select new prf parameters, if they vary in size or position
     if strcmp(opt.perturbOrigPRFs,'position')
-        prf.x_vary = prfAll.x_vary(:,ii);
-        prf.y_vary = prfAll.y_vary(:,ii);
+        prf.x_smoothed_vary = prfAll.x_smoothed_vary(:,ii);
+        prf.y_smoothed_vary = prfAll.y_smoothed_vary(:,ii);
     elseif strcmp(opt.perturbOrigPRFs,'size')
-        prf.sigma_vary = prfAll.sigma_vary(:,ii);
+        prf.sigma_smoothed_vary = prfAll.sigma_smoothed_vary(:,ii);
     elseif strcmp(opt.perturbOrigPRFs,'scramble')
-        prf.x_scramble = prfAll.x_scramble(:,ii);
-        prf.y_scramble = prfAll.y_scramble(:,ii);
-        prf.sigma_scramble = prfAll.sigma_scramble(:,ii);
+        prf.x_smoothed_scramble = prfAll.x_smoothed_scramble(:,ii);
+        prf.y_smoothed_scramble = prfAll.y_smoothed_scramble(:,ii);
+        prf.sigma_smoothed_scramble = prfAll.sigma_smoothed_scramble(:,ii);
         prf.recomp_beta_scramble = prfAll.recomp_beta_scramble(:,ii); 
     end
     
