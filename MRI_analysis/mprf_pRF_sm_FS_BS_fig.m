@@ -109,7 +109,7 @@ end
 
 num_roi = length(bs_prf_roi.ROIs);
 num_row = 5;
-num_col = 3;
+num_col = 4;
 
 % pRF size vs eccentricity
 %----------------------
@@ -189,21 +189,24 @@ for roi_idx = 1:num_roi
 end
 print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
 
+
 fH8 = figure(208); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 c = [0.5 1 0];
 c_sm = [0 0.5 1];
 title('pRF center distribution')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
+
+    tmp = bs_prf_roi.ROIs{roi_idx};
     scatter(bs_prf_roi.x{roi_idx},bs_prf_roi.y{roi_idx},[],c,'.');  hold on;
     scatter(bs_prf_roi.x_smoothed{roi_idx},bs_prf_roi.y_smoothed{roi_idx},[],c_sm,'.');
     %axis image
     xlim([-10 10])
     ylim([-10 10])
     
-    tmp = bs_prf_roi.ROIs{roi_idx};
+
     legend([{tmp} {strcat(tmp,'sm')}],'Location','northeastoutside')
-    legend('Location','NorthWestoutside');
+    
 end
 print(fH8, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
@@ -226,23 +229,6 @@ if opt.surfVisualize ==1
         % left hemisphere
         cur_surf = surfaces_to_load{idx_surf};
         mprf_VisualizeDataOnBrainstormSurface(dirPth,cur_surf,saveDir);
-        
-        vis_roi=0;
-        if vis_roi==1
-            % Hide rois in gray view when loading
-            vw = viewSet(vw, 'hide gray rois', true);
-            
-            % Load and draw Wang ROIs
-            for idx = 1:num_roi
-                roiFile = sprintf('%s',rois{idx});
-                vw = loadROI(vw, roiFile);
-                fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
-            end
-            
-            vw = viewSet(vw, 'ROI draw method', 'perimeter');
-            vw = refreshScreen(vw);
-            vw = meshUpdateAll(vw);
-        end
         
     end
     

@@ -12,11 +12,11 @@ function opt = getOpts(varargin)
 % --- GENERAL ---
 opt.skipMEGPreproc        = true;           % General
 opt.skipMRIPreproc        = true;           % General
-opt.verbose               = true;           % General
+opt.verbose               = false;           % General
 opt.doSaveData            = true;           % General
 opt.saveFig               = true;           % General
 opt.fullSizeGainMtx       = false;          % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
-opt.surfVisualize         = false;          % General: visualize surface meshes
+opt.surfVisualize         = true;          % General: visualize surface meshes
 
 % --- MEG Preproc ---
 opt.doFiltering           = true;           % MEG preprocessing

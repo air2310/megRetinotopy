@@ -1,4 +1,4 @@
-function mprf_pRF_sm_fig(subjID, dirPth, opt)
+function mprf_pRF_sm_fig(dirPth, opt)
 % Function to visualize prf parameters as histograms and on mrVista surface
 % after completing the function mprf_pRF_sm().
 %   1) distribution of variance explained, beta, prf size, prf position 
@@ -296,7 +296,7 @@ if opt.surfVisualize
     
     % Load and draw Wang ROIs
     for idx = 1:numRois
-        roiFile = sprintf('%s',rois{idx});
+        roiFile = sprintf('%s',roiName{idx});
         vw = loadROI(vw, roiFile);
         fprintf('(%s): Loaded ROI: %s \n', mfilename, roiFile)
     end
@@ -317,7 +317,7 @@ if opt.surfVisualize
         
         fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
-        prfParamNifti =  fullfile(prf_data_mrVNif, sprintf('%s.nii.gz', prfParams{ii}));
+        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv,'nifti', sprintf('%s.nii.gz', prfParams{ii}));
         
         vw = viewSet(vw,'displaymode','map');
         vw = loadParameterMap(vw,prfParamNifti);
