@@ -162,11 +162,11 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 
 %Figure 2. Position range line plot
 %          headplots for every position range
-makeFigure2(subjID, dirPth, opt);
+% makeFigure2(subjID, dirPth, opt);
 
 %Figure 3. Size range line plot
 %          headplots for every size range
-makeFigure3(subjID, dirPth, opt);
+% makeFigure3(subjID, dirPth, opt);
 
 
 
