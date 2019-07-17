@@ -84,4 +84,8 @@ if opt.perturbOrigPRFs
     opt.subfolder             = ['vary_' opt.perturbOrigPRFs]; % create subfolder in case of saving images / data
 end
 
+if opt.onlyV123WangAtlas
+    opt.subfolder = 'original/onlyV123WangAtlas';
+end
+
 return
