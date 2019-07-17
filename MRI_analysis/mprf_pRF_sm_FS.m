@@ -77,7 +77,7 @@ for n_surf = 1:length(surfaces_to_load)
         cur_surface_to_load = [hs_to_load{n_hs},'.',surfaces_to_load{n_surf}];
         cur_surf = fullfile(freesurfer_surface,cur_surface_to_load);
         
-        cur_hs = hs_to_load{1};
+        cur_hs = hs_to_load{n_hs};
         fprintf('Exporting parameters for %s hemisphere:\n',cur_hs);
       
         % Load mesh using fs_meshFromSurface, this creates a mrVista compatible
@@ -87,7 +87,7 @@ for n_surf = 1:length(surfaces_to_load)
         
         % compute mapping using mrmMapVerticesToGray (mrmMapGrayToVertices):
         cur_v2gmap = mrmMapVerticesToGray(mrv_msh.vertices, viewGet(hvol,'nodes'),...
-            mmPerVox,[],3);
+            mmPerVox,[],5);
         
         % Add the vertexGrayMap field to mesh properties
         mrv_msh = meshSet(mrv_msh,'vertexGrayMap',cur_v2gmap);
@@ -100,7 +100,7 @@ for n_surf = 1:length(surfaces_to_load)
             tmp = nan(size(cur_v2gmap));
             
             
-            if sum(double(cur_par_name)) == sum(double('beta'))
+            if strcmp(cur_par_name,'beta')
                 tmp_data = squeeze(prf_par_exp.(cur_par_name)(:,:,1));
                 tmp(good_mapping) = tmp_data(cur_v2gmap(good_mapping));
                 
