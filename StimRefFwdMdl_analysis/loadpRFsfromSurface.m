@@ -64,7 +64,7 @@ for idx = 1:length(prfParams)
                 prf.vemask = true(size(prf.varexplained));
             end
             
-        case 'mask' % Make roi mask (original file: NaN = outside mask, 0 = inside mask)
+        case {'mask', 'V123mask'} % Make roi mask (original file: NaN = outside mask, 0 = inside mask)
             prf.roimask = ~isnan(theseData);
             
             % Benson maps don't have variance explained map, so we just use the
