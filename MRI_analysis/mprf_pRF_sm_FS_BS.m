@@ -155,7 +155,7 @@ for n_surf=1:length(surfaces_to_load)
             
             
             % Store full Wang atlas as BS file
-            cur_out_file = [surfaces_to_load{n} '.' r];           
+            cur_out_file = [surfaces_to_load{n_surf} '.' r];           
             fname = fullfile(roi_dir_BS,cur_out_file); 
             write_curv(fname,both_bs_data_out,1);
             fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, cur_out_file);
@@ -167,7 +167,7 @@ for n_surf=1:length(surfaces_to_load)
             
             % Create roi mask BS pial file
             BS_mask = both_bs_data_out>0;
-            cur_out_file = [surfaces_to_load{n} '.mask'];
+            cur_out_file = [surfaces_to_load{n_surf} '.mask'];
             fname = fullfile(prf_dir_BS,cur_out_file);
             write_curv(fname,BS_mask,1);
             fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, cur_out_file);
@@ -183,7 +183,7 @@ for n_surf=1:length(surfaces_to_load)
             V123idx = 1:6; % first six rois are "V1v" "V1d" "V2v" "V2d" "V3v" "V3d"
             
             BS_V123mask = ismember(both_bs_data_out, V123idx);
-            cur_out_file = [surfaces_to_load{n} '.V123mask'];
+            cur_out_file = [surfaces_to_load{n_surf} '.V123mask'];
             fname = fullfile(prf_dir_BS,cur_out_file);
             write_curv(fname,BS_V123mask,1);
             fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, cur_out_file);
@@ -197,13 +197,11 @@ for n_surf=1:length(surfaces_to_load)
             
                 
             
-            % store the result for the mask
-            cur_out_file_mask = [surfaces_to_load{n_surf},'.','mask'];
-            
-            fname_mask = fullfile(prf_dir_BS,cur_out_file_mask); % save the mask in the pRF directory instead of the roi directory
-            
-            write_curv(fname_mask,both_bs_data_out_mask,1);
-            fprintf('%s\n',cur_out_file_mask);
+%             % store the result for the mask
+%             cur_out_file_mask = [surfaces_to_load{n_surf},'.','mask'];
+%             fname_mask = fullfile(prf_dir_BS,cur_out_file_mask); % save the mask in the pRF directory instead of the roi directory 
+%             write_curv(fname_mask,both_bs_data_out_mask,1);
+%             fprintf('%s\n',cur_out_file_mask);
             
             
         else % Load ROIs drawn in mrVista surface and exported to freesurfer space
