@@ -1,6 +1,13 @@
 function mprf_pRF_sm_FS(dirPth,opt)
-
-
+% mprf_pRF_sm_FS(dirPth,plot_stim)
+%
+% Function to export prf parameters (unsmooth/smooth) from mrVista Gray
+% Ribbon (volume) to freesurfer surface vertices
+%                  
+% INPUTS:
+%   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
+%   opt         :   struct with boolean flags, needed to request using rois
+%                   defined in mrVista space 
 
 %% ----------
 % File paths
@@ -28,6 +35,9 @@ if ~exist(prf_dir_FS, 'dir')
 end
 % ----------
 
+%% ------------------------------------------------------------------------
+% Exporting prf parameters to freesurfer vertices
+%--------------------------------------------------------------------------
 
 % step inside the vistasession directory contain mrSESSION.mat
 cd(mrSession_dir);
@@ -65,7 +75,7 @@ else
 end
 
 % Keep track of the X and Y variables, both smoothed and unsmoothed to
-% compute the eccenricity and polar angle maps as well:
+% compute the eccentricity and polar angle maps as well:
 has_x = false;
 has_y = false;
 has_x_sm = false;
@@ -74,10 +84,10 @@ has_y_sm = false;
 for n_surf = 1:length(surfaces_to_load)
     for n_hs = 1:length(hs_to_load)
         
-        cur_surface_to_load = [hs_to_load{n_hs},'.',surfaces_to_load{n_surf}];
+        cur_hs = hs_to_load{n_hs};
+        cur_surface_to_load = [cur_hs,'.',surfaces_to_load{n_surf}];
         cur_surf = fullfile(freesurfer_surface,cur_surface_to_load);
         
-        cur_hs = hs_to_load{n_hs};
         fprintf('Exporting parameters for %s hemisphere:\n',cur_hs);
       
         % Load mesh using fs_meshFromSurface, this creates a mrVista compatible
@@ -125,10 +135,9 @@ for n_surf = 1:length(surfaces_to_load)
             elseif strcmpi(cur_par_name,'y_smoothed')
                 has_y_sm = true;
                 y_pos_sm = tmp;
-                disp(cur_par_name)
-                
-                
+                disp(cur_par_name)   
             end
+            
             % If we have the necessary data to compute polar angle and
             % eccentricity, do that as well and store the results:
             if has_x && has_y
@@ -175,13 +184,16 @@ for n_surf = 1:length(surfaces_to_load)
     end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%.
+%% ------------------------------------------------------------------------
 % Exporting ROI
-%%%%%%%%%%%%%%%%%%%%%%%%%.
+%--------------------------------------------------------------------------
 
 % exports ROIs drawn on a Mesh surface to the Freesurfer
 % space. Dilates the ROIs a little bit (2 iterations), as they look very 'patchy'
-% after the initial mapping to the surface.
+% after the initial mapping to the surface. 
+% Only used if the ROIs are drawn on mrVista surface and has to be exported
+% to Freesurfer vertices. Otherwise wang et al rois can be directly
+% exported to brainstorm vertices.
 
 if opt.roimrvToFS == 1
     for n_surf = 1:length(surfaces_to_load)

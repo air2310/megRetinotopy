@@ -1,22 +1,35 @@
 function mprf_pRF_sm_FS_BS(dirPth,opt)
+% mprf_pRF_sm_FS_BS(dirPth,plot_stim)
+%
+% Function to export prf parameters (unsmooth/smooth) from mrVista Gray
+% Ribbon (volume) to freesurfer surface vertices
+%                  
+% INPUTS:
+%   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
+%   opt         :   struct with boolean flags, needed to request using rois
+%                   defined in mrVista space 
 
+%% ---------- 
 % File paths
-% ----------
+% -----------
 freesurfer_surface = dirPth.fs.surfPth;
 prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
 roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 
-% bs_anat_path = dirPth.bs.anatPth;
-% bs_model_file = strcat(bs_model_path,'/headmodel_surf_os_meg.mat');
-
 bs_anat_path = dirPth.bs.anatPth;
 bs_T1anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
+
+if ~exist(prf_dir_BS, 'dir')
+    mkdir(prf_dir_BS);
+    mkdir(roi_dir_BS);
+end
 % ----------
 
-% load(bs_model_file);
-% bs_head_model_surf = SurfaceFile;
+%% ------------------------------------------------------------------------
+% Exporting pRF parameters from freesurfer vertices to brainstorm vertices
+% -------------------------------------------------------------------------
 
 % Load the anatomy imported by brainstorm. This file has a transformation
 % maxtrix that is applied to the freesurfer surfaces when they are imported
@@ -30,13 +43,13 @@ surfaces_to_load = {'pial'};
 
 fprintf('Exporting surface data:\n');
 
-for n=1:length(surfaces_to_load)
+for n_surf=1:length(surfaces_to_load)
     
     % Get brainstorm mesh
     fs_vertices = [];
     % Loop over all (2, left and right) surfaces:
-    for nn = 1:length(hs_to_load)
-        cur_surf = [hs_to_load{nn} '.' surfaces_to_load{n}];
+    for n_hs = 1:length(hs_to_load)
+        cur_surf = [hs_to_load{n_hs} '.' surfaces_to_load{n_surf}];
         surf_file = fullfile(freesurfer_surface,cur_surf);
         
         % Use the same routine as Brainstorm uses, otherwise the vertices
@@ -63,9 +76,9 @@ for n=1:length(surfaces_to_load)
     
     bs_vert_idx = dsearchn(fs_vertices, Vertices);
     
-    %%%%%%%%%%%%%%%%%%
-    % Export prfs    %
-    %%%%%%%%%%%%%%%%%%
+    %% --------------------------------------------------------------------
+    % Export prfs    
+    % ---------------------------------------------------------------------
     
     pname = prf_dir_FS;
     
@@ -101,12 +114,14 @@ for n=1:length(surfaces_to_load)
         fname = fullfile(prf_dir_FS,cur_out_file);
         write_curv(fname,both_fs_data,1);
         fprintf('(%s): Freesurfer combined hemi files: %s\n',mfilename, cur_out_file);
+
         
     end
     
     
-    %% Export rois
-    %--------------------------------------------------------------------------
+    %% --------------------------------------------------------------------
+    % Export rois
+    %----------------------------------------------------------------------
     if opt.roimrvToFS == 1
         pname = roi_dir_FS;
         lh_files = dir(fullfile(pname,'lh.*')); % ROIs
@@ -116,9 +131,9 @@ for n=1:length(surfaces_to_load)
     end
     
     % Loop over the LHS files (i.e. all the parameters on the lh surfaces):
-    for nn = 1:length(lh_files)
+    for n_hs = 1:length(lh_files)
         
-        cur_lh_file = lh_files(nn).name;
+        cur_lh_file = lh_files(n_hs).name;
         [~,r,par_name] = fileparts(cur_lh_file);
         
         if strcmpi(par_name,'.mgz') % To load Wang et al rois
@@ -181,6 +196,15 @@ for n=1:length(surfaces_to_load)
 
             
                 
+            
+            % store the result for the mask
+            cur_out_file_mask = [surfaces_to_load{n_surf},'.','mask'];
+            
+            fname_mask = fullfile(prf_dir_BS,cur_out_file_mask); % save the mask in the pRF directory instead of the roi directory
+            
+            write_curv(fname_mask,both_bs_data_out_mask,1);
+            fprintf('%s\n',cur_out_file_mask);
+            
             
         else % Load ROIs drawn in mrVista surface and exported to freesurfer space
             par_name = par_name(2:end);

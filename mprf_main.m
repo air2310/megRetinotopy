@@ -137,14 +137,21 @@ if ~opt.skipMRIPreproc
     %mprf_ROI % ROIs on mrVista space
     mprf_pRF_sm(dirPth, opt); % pRF params from mrV >> smoothed pRF params on mrV (flag)
 
-    mprf_pRF_sm_fig(subjID, dirPth, opt); % Generates summary figures for pRF parameters before and after smoothing
-
+    if opt.verbose
+        mprf_pRF_sm_fig(dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
+    end
+    
     mprf_pRF_sm_FS(dirPth,opt); % smoothed pRF params on mrV >> smoothed pRF params on FS
-    mprf_pRF_sm_FS_fig(dirPth,opt);
-
+     
+    if opt.verbose
+        mprf_pRF_sm_FS_fig(dirPth,opt);
+    end
+    
     mprf_pRF_sm_FS_BS(dirPth,opt); % smoothed pRF params on FS >>  smoothed pRF params on BS
-    mprf_pRF_sm_FS_BS_fig(dirPth,opt);
-
+    
+    if opt.verbose
+        mprf_pRF_sm_FS_BS_fig(dirPth,opt);
+    end
     % smoothed prf parameters + ROIs on BS (pial) surface saved
 
 end

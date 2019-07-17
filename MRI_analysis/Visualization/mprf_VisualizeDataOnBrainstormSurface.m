@@ -12,7 +12,9 @@ bs_msh = mprfMeshFromBrainstorm(fullfile(bs_surf_files.folder,bs_surf_files.name
 
 % Get prf parameters saved as nifti's
 prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
-    'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
+   'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta','wang2015_atlas','mask'};
+
+%prfParams = {'polar_angle_smoothed'};
 
 hemispheres = {'lh','rh'};
 
@@ -25,9 +27,14 @@ for ii = 1:length(prfParams)
     surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_prfBS, cur_param));
     data_in = surf_data;
     
+    if strcmpi(prfParams{ii},'wang2015_atlas') || strcmpi(prfParams{ii},'mask')
+        data_in(data_in == 0) = nan;
+    end
+    
     % mask - usually all the vertices that has a value for the data point.
-    mask = true(size(surf_data));
-    mask(isnan(surf_data)) = 0;
+    mask = true(size(data_in));
+    mask(isnan(data_in)) = 0;
+    
     
     if any([regexp(prfParams{ii},'recomp_beta\>') ...
             regexp(prfParams{ii},'mresp_smoothed\>') ...
@@ -77,7 +84,7 @@ for ii = 1:length(prfParams)
                     
                     fH = figure('Color', 'w'); clf;
                     imagesc(mrmGet(bs_msh, 'screenshot')/255); axis image; axis off;
-                    print(fH, fullfile(saveDir,sprintf('%s_%s_%s',prfParams{ii},viewList{thisView})),cur_hs, '-dpng');
+                    print(fH, fullfile(saveDir,sprintf('%s_%s_%s',prfParams{ii},viewList{thisView},hemispheres{cur_hs})), '-dpng');
                 end
             end
             

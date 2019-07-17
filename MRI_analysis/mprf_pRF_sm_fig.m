@@ -1,4 +1,4 @@
-function mprf_pRF_sm_fig(subjID, dirPth, opt)
+function mprf_pRF_sm_fig(dirPth, opt)
 % Function to visualize prf parameters as histograms and on mrVista surface
 % after completing the function mprf_pRF_sm().
 %   1) distribution of variance explained, beta, prf size, prf position
@@ -324,7 +324,8 @@ if opt.surfVisualize
         
         fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
-        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv, 'nifti', sprintf('%s.nii.gz', prfParams{ii}));
+        prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv,'nifti', sprintf('%s.nii.gz', prfParams{ii}));
+
         
         vw = viewSet(vw,'displaymode','map');
         vw = loadParameterMap(vw,prfParamNifti);

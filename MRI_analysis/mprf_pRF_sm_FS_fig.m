@@ -239,18 +239,21 @@ if opt.surfVisualize ==1
     % Visualize pRF parameters on freesurfer surface
     %-----------------------------------------------
     % Load rh and lh freesurfer surface files
-    surfaces_to_load = {'lh.pial','rh.pial'};
-          
-    for cur_hs = 1:length(surfaces_to_load)
-        % left hemisphere
-        cur_surf = surfaces_to_load{cur_hs};
-        mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf,saveDir);
-        
-        vis_roi=1;
-        if vis_roi==1
-           mprf_VisualizeRoiOnFreesurferSurface(dirPth,cur_surf,saveDir);
+    hs_to_load = {'lh','rh'}; 
+    surfaces_to_load = {'pial'};
+    
+    
+    for cur_surf = 1:length(surfaces_to_load)
+        for cur_hs = 1:length(hs_to_load)
+            % left hemisphere
+            cur_surf_to_load = strcat(hs_to_load{cur_hs},'.',surfaces_to_load{cur_surf});
+            mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf_to_load,saveDir);
+            
+            vis_roi=0;
+            if vis_roi==1
+                mprf_VisualizeRoiOnFreesurferSurface(dirPth,cur_surf_to_load,saveDir);
+            end
         end
-        
     end
 end
 
