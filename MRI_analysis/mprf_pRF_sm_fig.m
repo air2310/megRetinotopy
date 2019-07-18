@@ -29,6 +29,9 @@ prf = prf_par_exp; clear prf_par_exp;
 
 load(fullfile(grayCoordsDir,'coords.mat'), 'coords');
 
+% Get directory to save images
+saveDir = fullfile(dirPth.fmri.saveDataPth_prfMrv, 'figs');
+if ~exist(saveDir, 'dir'); mkdir(saveDir); end
 
 %% ------------------------------------------------
 %   Separate prf params for different ROIs
@@ -235,7 +238,7 @@ for roi_idx = 1:numRois
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
     box off;
-    ylabel('Frequency'); xlabel('PRF beta (a.u.)')
+    ylabel('Frequency'); xlabel('PRF Recomp beta (a.u.)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
 
@@ -270,17 +273,19 @@ for roi_idx = 1:numRois
     plot(x_smoothed,y_smoothed,'o','MarkerFaceColor',c_smooth,'MarkerSize',2);
     
 end
+
+if opt.saveFig
+    for f = 1:8
+        print(f, fullfile(saveDir,sprintf('fig%d_prf_sm',f)), '-dpng');
+    end
+end
+
+    
 %% --------------------------------------------------------------------
 %   Load mrMesh and display Wang Rois and prf parameters on the mesh
 %  --------------------------------------------------------------------
 
 if opt.surfVisualize
-    
-    %     close all;
-    
-    % Get directory to save images
-    saveDir = fullfile(dirPth.fmri.saveDataPth_prfMrv, 'figs');
-    if ~exist(saveDir, 'dir'); mkdir(saveDir); end
     
     % Go to vista session and open a mrVista Gray window
     cd(dirPth.fmri.mrvPth)
@@ -325,7 +330,7 @@ if opt.surfVisualize
         fprintf('(%s):  Visualizing %s on mrVista surface \n', mfilename, prfParams{ii})
         
         prfParamNifti =  fullfile(dirPth.fmri.saveDataPth_prfMrv,'nifti', sprintf('%s.nii.gz', prfParams{ii}));
-
+        
         
         vw = viewSet(vw,'displaymode','map');
         vw = loadParameterMap(vw,prfParamNifti);
@@ -359,15 +364,17 @@ if opt.surfVisualize
         
         % Copy the mesh to a Matlab figure
         for thisID = 1:length(idList)
+            m=mrmSet(vw.mesh{thisID}, 'actor');
+            
             for thisView=1:length(viewList)
                 cam.actor=0;
                 cam.rotation = rotationMatrix3d(viewVectors{thisView});
-                mrMesh('localhost',idList(thisID),'set',cam);
+                mrMesh('localhost',m.id,'set',cam);
                 
-                clf;
-                imagesc(mrmGet(viewGet(vw, 'Mesh'), 'screenshot')/255); axis image; axis off;
+                figure(fH); clf;
+                imagesc(mrmGet(m, 'screenshot')/255); axis image; axis off;
                 if opt.saveFig print(fH, fullfile(saveDir,sprintf('%s_%s_%s',idName{thisID}, prfParams{ii},viewList{thisView})), '-dpng'); end
-               
+                
             end
         end
     end
