@@ -36,16 +36,16 @@ plot(range,mean_varexpl,'r','Linewidth',3);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', par_it,'XTickLabel',rad2deg(range), 'YLim', [0 0.25], 'XLim', [range(1),range(end)]);
-set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 0.25], 'XLim', [range(1),range(end)]);
+set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');
 
 
 
 %% Plot meshes
-cols = 2;
-rows = round(length(range)/cols);
+rows = 3;
+cols = round(length(range)/rows)+1;
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754]); hold all;
 
 clim = max(varexpl(range==1,:));
@@ -59,7 +59,7 @@ for ii = 1:length(range)
     subplot(rows, cols, ii);
     
     megPlotMap(meshDataToPlot,[0 0.6],fH2,'parula',...
-        sprintf('%dx',range(ii)),[],[],'interpmethod',interpmethod);
+        sprintf('%1.2fx',range(ii)),[],[],'interpmethod',interpmethod);
 end
 
 
@@ -67,8 +67,8 @@ if opt.saveFig
     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs'), 'dir')
         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs')); end
     
-    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2a_%s_varySizeSummary%s', subjID, opt.fNamePostFix)), '-dpng');
-    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2b_%s_varySizeMeshes%s', subjID, opt.fNamePostFix)), '-dpng');
+    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3a_%s_varySizeSummary%s', subjID, opt.fNamePostFix)), '-dpng');
+    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3b_%s_varySizeMeshes%s', subjID, opt.fNamePostFix)), '-dpng');
 
 end
 
