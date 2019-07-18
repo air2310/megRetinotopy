@@ -59,9 +59,9 @@ idx = find(roimask&vemask);
 scr = randi(length(idx), length(idx), opt.nScrambles);
 
 % Rearrange original prf parameters with new scrambling location
-prf.x_scramble            = x0(scr);
-prf.y_scramble            = y0(scr);
-prf.sigma_scramble        = sigma(scr);
+prf.x_smoothed_scramble            = x0(scr);
+prf.y_smoothed_scramble            = y0(scr);
+prf.sigma_smoothed_scramble        = sigma(scr);
 prf.recomp_beta_scramble  = beta(scr);
 
 if opt.doSaveData
