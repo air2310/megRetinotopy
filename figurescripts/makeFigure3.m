@@ -46,7 +46,7 @@ ylabel('Variance explained (%)');
 %% Plot meshes
 rows = 3;
 cols = round(length(range)/rows)+1;
-fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754]); hold all;
+fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138]); hold all;
 
 clim = max(varexpl(range==1,:));
 interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
