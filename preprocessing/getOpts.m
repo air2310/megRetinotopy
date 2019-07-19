@@ -12,7 +12,7 @@ function opt = getOpts(varargin)
 % --- GENERAL ---
 opt.skipMEGPreproc        = true;           % General
 opt.skipMRIPreproc        = true;           % General
-opt.verbose               = false;           % General
+opt.verbose               = true;          % General
 opt.doSaveData            = true;           % General
 opt.saveFig               = true;           % General
 opt.fullSizeGainMtx       = false;          % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
@@ -47,8 +47,8 @@ opt.nScrambles            = [];
 opt.subfolder             = 'original'; 
     
 % --- ROI (either draw manually on mrMesh and export to FS (FreeSurfer) and BS (BrainStorm) or Use wang et al atlas)
-opt.roimrvToFS                = false; % set to false, use wang atlas, otherwise rois drawn on mrVista surface are used
-opt.onlyV123WangAtlas         = false; % set to true in case you want to only use V1-V3 ROIs (for comparing against benson atlas results)
+opt.roimrvToFS            = false; % set to false, use wang atlas, otherwise rois manually drawn in mrVista
+opt.onlyV123WangAtlas     = false; % set to true in case you want to only use V1-V3 ROIs of the Wang atlas (for comparing against benson atlas results)
 
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
@@ -84,8 +84,11 @@ if opt.perturbOrigPRFs
     opt.subfolder             = ['vary_' opt.perturbOrigPRFs]; % create subfolder in case of saving images / data
 end
 
+% check in case additional original analyses are performed, we want to save those results separately
 if opt.onlyV123WangAtlas
-    opt.subfolder = 'original/onlyV123WangAtlas';
+    opt.subfolder             = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
+elseif opt.useBensonMaps
+    opt.subfolder             = 'original/BensonMaps'; % add results to extra folder to not override 
 end
 
 return
