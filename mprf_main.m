@@ -201,6 +201,7 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 
 % Figure 1. Time series (1a)
 %           MEG head plot (1b)
+makeFigure1(dirPth,opt);
 
 %Figure 2. Position range line plot
 %          headplots for every position range
