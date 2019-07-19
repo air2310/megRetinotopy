@@ -41,20 +41,14 @@ opt.useBensonMaps         = false;          % MRI prf model: Make prediction fro
 
 % --- PERTUBATION of pRF models ---
 opt.perturbOrigPRFs       = false;          % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
-if opt.perturbOrigPRFs
-    opt.varyPosition          = -pi:(pi/4):pi;  % PERTUBATION of MRI prf model: Vary the prf center (polar angle rotation)
-    opt.varySize              = unique(round(logspace(log10(0.2),log10(10),20),1)); % PERTUBATION of MRI prf model: Vary the prf size (scale sigma)
-    opt.nScrambles            = 1000;
-    opt.subfolder             = ['vary_' opt.perturbOrigPRFs]; % create subfolder in case of saving images / data
-else
-    opt.varyPosition          = [];
-    opt.varySize              = [];
-    opt.nScrambles            = [];
-    opt.subfolder             = 'original'; 
-end
-
+opt.varyPosition          = [];
+opt.varySize              = [];
+opt.nScrambles            = [];
+opt.subfolder             = 'original'; 
+    
 % --- ROI (either draw manually on mrMesh and export to FS (FreeSurfer) and BS (BrainStorm) or Use wang et al atlas)
-opt.roimrvToFS = 0; % set to 0 if rois drawn on FS surface are used
+opt.roimrvToFS                = false; % set to false, use wang atlas, otherwise rois drawn on mrVista surface are used
+opt.onlyV123WangAtlas         = false; % set to true in case you want to only use V1-V3 ROIs (for comparing against benson atlas results)
 
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
@@ -80,6 +74,18 @@ if exist('varargin', 'var')
         
         
     end
+end
+
+% check in case option to perturb original prfs was turned to true again
+if opt.perturbOrigPRFs
+    opt.varyPosition          = -pi:(pi/4):pi;  % PERTUBATION of MRI prf model: Vary the prf center (polar angle rotation)
+    opt.varySize              = unique(round(logspace(log10(0.2),log10(10),20),1)); % PERTUBATION of MRI prf model: Vary the prf size (scale sigma)
+    opt.nScrambles            = 1000;
+    opt.subfolder             = ['vary_' opt.perturbOrigPRFs]; % create subfolder in case of saving images / data
+end
+
+if opt.onlyV123WangAtlas
+    opt.subfolder = 'original/onlyV123WangAtlas';
 end
 
 return

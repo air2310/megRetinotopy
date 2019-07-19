@@ -110,7 +110,7 @@ for n_surf = 1:length(surfaces_to_load)
             tmp = nan(size(cur_v2gmap));
             
             
-            if sum(double(cur_par_name)) == sum(double('beta'))
+            if strcmp(cur_par_name,'beta')
                 tmp_data = squeeze(prf_par_exp.(cur_par_name)(:,:,1));
                 tmp(good_mapping) = tmp_data(cur_v2gmap(good_mapping));
                 

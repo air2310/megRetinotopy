@@ -1,48 +1,5 @@
-%% mprf_main
-%
-% Wrapper script containing MEG and MRI preprocessing and analyses subfunctions
-% involved in the MEG Retinotopy project.
-%
-% WORKFLOW:
-% 0. Load paths and define parameters
-%
-% 1. MEG data preprocessing:
-%   1.0 Define preprocessing options
-%   1.1 Preprocess MEG data from raw
-%   1.2 Load MEG stim
-%   1.3 Load MEG Gain matrix
-%
-% 2. MRI data preprocessing
-%   2.1: xx
-%
-% 3. Forward model
-%   3.1: Predict response for MEG stimulus at Surface level (could be BS or FS)
-%   3.2: Predict response for MEG stimulus at MEG sensor level (multiply
-%           with gain matrix)
-%   3.3: Computing phase referenced amplitude from preprocessed MEG data 
-%           and predicted MEG responses from cortical surface
-%
-% DEPENDENCIES:
-% 1. Preprocessing steps:
-% - FreeSurfer's auto-segmentation (v6???)
-% - MRI distortion correction w/ top-up??
-%
-% 2. Toolboxes:
-% - Brainstorm (v??)
-% - FieldTrip (v??)
-% - VistaSoft (v??)
-% - meg_utils (v??)
-%
-% Add all with the ToolboxToolbox:
-%   tbUse('retmeg')
-%
-% 
-% By Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
-%
-%% 0. Load paths
-
-% Define subject ID
-subjID = 'wlsubj068';
+function runModelMain7(subjID)
+%% ORIGINAL ANALYSIS ONLY WANG V1-V3 ROIs
 
 %%
 % Load paths with data files for this subject
@@ -52,10 +9,12 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts;
+% opt = getOpts;
+
+opt = getOpts('verbose',true, 'onlyV123WangAtlas', true);
 
 if strcmp(subjID, 'wlsubj068')
-    opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
+    opt = getOpts('verbose',true, 'onlyV123WangAtlas', true, 'betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
 end
 
 %% 1. MEG data preprocessing
@@ -201,12 +160,15 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 
 % Figure 1. Time series (1a)
 %           MEG head plot (1b)
-makeFigure1(dirPth,opt);
 
 %Figure 2. Position range line plot
 %          headplots for every position range
+% makeFigure2(subjID, dirPth, opt);
 
-%Figure 2. Size range line plot
+%Figure 3. Size range line plot
 %          headplots for every size range
+% makeFigure3(subjID, dirPth, opt);
 
 
+
+end
