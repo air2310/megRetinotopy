@@ -20,34 +20,48 @@ pname = prf_dir_FS;
 saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs');
 if ~exist(saveDir, 'dir'); mkdir(saveDir); end
 
-% variance explained threshold for selecting voxels 
+% variance explained threshold for selecting voxels
 Var_Exp_Thr = opt.varExplThresh(1);
 
 surfaces_to_load = {'pial'};
 hs_to_load = {'lh','rh'};
 
-lh_files = dir(fullfile(pname,strcat(hs_to_load{1},'.*')));
-both_data = cell(length(lh_files),1);
-fs_prf = table(surfaces_to_load);
-for nn = 1:length(lh_files)
-    cur_lh_file = lh_files(nn).name;
-    [~,~,par_name] = fileparts(cur_lh_file);
+if opt.roimrvToFS
     
-    par_name = par_name(2:end);
-    % Find the corresponding rh file:
-    cur_rh_file = ['rh.' par_name];
+    lh_files = dir(fullfile(pname,strcat(hs_to_load{1},'.*')));
+    both_data = cell(length(lh_files),1);
+    fs_prf = table(surfaces_to_load);
+    for nn = 1:length(lh_files)
+        cur_lh_file = lh_files(nn).name;
+        [~,~,par_name] = fileparts(cur_lh_file);
+        
+        par_name = par_name(2:end);
+        % Find the corresponding rh file:
+        cur_rh_file = ['rh.' par_name];
+        
+        % load and concatenate:
+        both_data = [read_curv(fullfile(pname,cur_lh_file));...
+            read_curv(fullfile(pname,cur_rh_file))];
+        
+        add_t_1 = table({both_data},'variableNames',{par_name});
+        
+        fs_prf = [fs_prf add_t_1];
+    end
     
-    % load and concatenate:
-    both_data = [read_curv(fullfile(pname,cur_lh_file));...
-        read_curv(fullfile(pname,cur_rh_file))];
+else
     
-    add_t_1 = table({both_data},'variableNames',{par_name});
+    prfParamfname = @(hem, type)(sprintf('%s/%s.wang2015_atlas.mgz', dirPth.fs.surfPth, hem));
+    surfdat       = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
+
+    subFSWang     = surfdat(MRIread(prfParamfname('lh')), MRIread(prfParamfname('rh')), 1);
     
-    fs_prf = [fs_prf add_t_1];   
+    
 end
 
 
-% histogram of variance explained 
+
+
+% histogram of variance explained
 %--------------------------------
 fH1 = figure(101); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
 hist(fs_prf.varexplained{1},100);
@@ -94,7 +108,7 @@ for nn = 1:length(lh_files)
     
     fs_roi = [fs_roi add_t_1];
 end
-        
+
 
 % fits for different visual areas
 
@@ -106,14 +120,14 @@ fs_prf_roi = table(fs_roi.Properties.VariableNames(2:end)','VariableNames',{'ROI
 for idx_param = 1:(size(fs_prf,2)-1)
     cur_param = nan(size(fs_prf{1,idx_param+1}{1}));
     cur_param(idx_thr) = fs_prf{1,idx_param+1}{1}(idx_thr);
-    cur_param_name = fs_prf(1,idx_param+1); 
-    clear add_t_2       
+    cur_param_name = fs_prf(1,idx_param+1);
+    clear add_t_2
     for idx_roi = 1:(size(fs_roi,2)-1)
- 
-        cur_roi = find(~isnan(fs_roi{1,idx_roi+1}{1}));    
-        cur_roi_name = fs_roi(1,idx_roi+1); 
         
-        cur_param_val_thr(idx_roi,1) = {cur_param(cur_roi)}; 
+        cur_roi = find(~isnan(fs_roi{1,idx_roi+1}{1}));
+        cur_roi_name = fs_roi(1,idx_roi+1);
+        
+        cur_param_val_thr(idx_roi,1) = {cur_param(cur_roi)};
         
         
     end
@@ -134,7 +148,7 @@ c_sm = [0 0.5 1]; % ;[0.5 0 0];[1 0 0];[0 0.5 0];[0 1 0];[0 0 0.5];[0 0 1];[0.5 
 title('pRF size vs ecc')
 for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
-  
+    
     scatter(fs_prf_roi.eccentricity{roi_idx},fs_prf_roi.sigma{roi_idx},[],c,'*');  hold on;
     scatter(fs_prf_roi.eccentricity_smoothed{roi_idx},fs_prf_roi.sigma_smoothed{roi_idx},[],c_sm,'*');
     
@@ -152,7 +166,7 @@ for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(fs_prf_roi.sigma{roi_idx},100)
     tmp = fs_prf_roi.ROIs{roi_idx};
-    title(tmp)   
+    title(tmp)
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -167,7 +181,7 @@ for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(fs_prf_roi.sigma_smoothed{roi_idx},100)
     tmp = fs_prf_roi.ROIs{roi_idx};
-    title(tmp)   
+    title(tmp)
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -197,7 +211,7 @@ for roi_idx = 1:num_roi
     subplot(num_row,num_col,roi_idx);
     hist(fs_prf_roi.recomp_beta{roi_idx},100)
     tmp = fs_prf_roi.ROIs{roi_idx};
-    title(tmp)  
+    title(tmp)
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
@@ -220,7 +234,7 @@ for roi_idx = 1:num_roi
     legend([{tmp} {strcat(tmp,'sm')}],'Location','northeastoutside')
     legend('Location','NorthWestoutside')
     
-
+    
 end
 print(fH8, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
@@ -230,29 +244,33 @@ print(fH8, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
 if opt.surfVisualize ==1
     close all;
-   
+    
     % Get directory to save images
     saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs');
+    saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs','rh');
     if ~exist(saveDir, 'dir'); mkdir(saveDir); end
-   
+    
     %-----------------------------------------------
     % Visualize pRF parameters on freesurfer surface
     %-----------------------------------------------
     % Load rh and lh freesurfer surface files
-    hs_to_load = {'lh','rh'}; 
+    hs_to_load = {'lh','rh'};
     surfaces_to_load = {'pial'};
     
+%     prfParamfname = @(hem, type)(sprintf('%s/%s.wang2015_atlas.mgz', dirPth.fs.surfPth, hem));
+%     surfdat       = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
+% 
+%     subFSWang     = surfdat(MRIread(prfParamfname('lh')), MRIread(prfParamfname('rh')), 1);
     
     for cur_surf = 1:length(surfaces_to_load)
         for cur_hs = 1:length(hs_to_load)
-            % left hemisphere
-            cur_surf_to_load = strcat(hs_to_load{cur_hs},'.',surfaces_to_load{cur_surf});
-            mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf_to_load,saveDir);
             
-            vis_roi=0;
-            if vis_roi==1
-                mprf_VisualizeRoiOnFreesurferSurface(dirPth,cur_surf_to_load,saveDir);
-            end
+            cur_surf_to_load = strcat(hs_to_load{cur_hs},'.',surfaces_to_load{cur_surf});
+            cur_roi_to_load = strcat(hs_to_load{cur_hs},'.',surfaces_to_load{cur_surf});
+
+            mprf_VisualizeDataOnFreesurferSurface(dirPth, cur_surf_to_load, saveDir);
+            
+%             mprf_VisualizeRoiOnFreesurferSurface(dirPth, cur_surf_to_load,saveDir);
         end
     end
 end
