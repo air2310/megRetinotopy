@@ -1,6 +1,5 @@
 function fs_msh = mprf_VisualizeRoiOnFreesurferSurface(dirPth,cur_surf,saveDir)
 % load mesh using fs_meshFromSurface and t_meshFromFreesurfer
-% surfaces_to_load = {'lh.pial','lh.white','rh.pial','rh.white'};
     
 freesurfer_surface = dirPth.fs.surfPth;
 fs_msh = fs_meshFromSurface(fullfile(freesurfer_surface,cur_surf)); 
@@ -11,29 +10,32 @@ fs_msh.smooth_relaxation = 1;
 fs_msh = meshSmooth(fs_msh);
 fs_msh = meshColor(fs_msh);
 
-% Get prf parameters saved as nifti's
-% prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
-%     'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
-
-prfParams = {'V1','V2d','V2v'};
-
-for ii = 1:length(prfParams)
+lhROIFiles = dir(fullfile(dirPth.fmri.saveDataPth_roiFS,'lh.*'));
+for nn = 1:length(lhROIFiles)
     
-    fprintf('(%s):  Visualizing %s on freesurfer surface \n', mfilename, prfParams{ii})
+    curLHFile = lhROIFiles(nn).name;
+    tmp = str_split(curLHFile, '.');
+    roiName{nn} = tmp{2};
+end
+
+for ii = 1:length(roiName)
+    
+    fprintf('(%s):  Visualizing %s on freesurfer surface \n', mfilename, roiName{ii})
     
     cmap = hsv(256);
     
     cur_hs_tmp = strsplit(cur_surf,'.');
     cur_hs = cur_hs_tmp{1};
-    cur_param = strcat(cur_hs,'.',prfParams{ii});
+    cur_eoi = strcat(cur_hs,'.',roiName{ii});
     
-    surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_roiFS, cur_param));
+    surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_roiFS, cur_eoi));
     data_in = surf_data;
     
     
     % mask - usually all the vertices that has a value for the data point.
     mask = true(size(surf_data));
     mask(isnan(surf_data)) = 0;
+    mask(surf_data==0) = 0;
     
     drange = [min(data_in) max(data_in)];
     
@@ -55,7 +57,7 @@ for ii = 1:length(prfParams)
         
         fH = figure('Color', 'w'); clf;
         imagesc(mrmGet(fs_msh, 'screenshot')/255); axis image; axis off;
-        print(fH, fullfile(saveDir,sprintf('%s_%s',prfParams{ii},viewList{thisView})), '-dpng');
+        print(fH, fullfile(saveDir,sprintf('%s_%s',roiName{ii},viewList{thisView})), '-dpng');
         
     end
     
