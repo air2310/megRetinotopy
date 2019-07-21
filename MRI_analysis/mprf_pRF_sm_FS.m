@@ -128,7 +128,22 @@ end
 % which can be set by opt.roimrvToFS = true
 % Otherwise locate probabilistic atlas from Wang et al (2015)
 
-if opt.roimrvToFS
+if ~opt.roimrvToFS
+    fprintf('(%s): Saving a copy of Wang et al. 2015 probabilistic atlas on FreeSurfer surface in roi dir: %s\n', mfilename, roiNames{rr})
+
+    roifname      = @(hem)(sprintf('%s/surf/%s.wang2015_atlas.mgz', dirPth.fs.segPth, hem));
+    surfdat       = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
+    roiFSWang     = surfdat(MRIread(roifname('lh')), MRIread(roifname('rh')), 1);
+    
+    for h = 1:length(hemis)
+        curHemi = hemis{h};
+        outFileName = [curHemi '.wang2015_atlas'];
+        fname = fullfile(roiFSDir,outFileName);
+        write_curv(fname, roiFSWang.(curHemi),1);
+    end
+    
+    
+elseif opt.roimrvToFS
     
     for h = 1:length(hemis)
         curHemi = hemis{h};
@@ -176,14 +191,14 @@ if opt.roimrvToFS
             % Load mesh using fs_meshFromSurface, this creates a mrVista compatible
             % mesh. Using 'my own' function that skips the smoothing:
             mrVistaMeshPial = mprf_fs_meshFromSurface(pialSurfFname);
-            mrVistaMeshWhite = mprf_fs_meshFromSurface(whiteSurfFname); 
+            mrVistaMeshWhite = mprf_fs_meshFromSurface(whiteSurfFname);
             mrVistaMeshMidGray_vertices = mean(cat(3, mrVistaMeshPial.vertices, mrVistaMeshWhite.vertices),3);
-           
+            
             mrVistaMeshMidGray = mrVistaMeshWhite;
             mrVistaMeshMidGray.vertices = mrVistaMeshMidGray_vertices;
             
             hvol = viewSet(hvol,'add and select mesh',mrVistaMeshMidGray);
-
+            
             
             % Map the gray nodes to the surface vertices, the results are
             % much cleaner than when mapping the other way around.
@@ -222,9 +237,9 @@ if opt.roimrvToFS
         
         % Now, store the pruned ROI indices, both as a separate file
         for rr = 1:length(roiNames)
-          
+            
             [~,roiName] = fileparts(roiNames{rr});
-           
+            
             if ~isempty(prunedROIIdx{rr})
                 
                 allROIs(rr,prunedROIIdx{rr}) = rr;
@@ -232,12 +247,12 @@ if opt.roimrvToFS
                 outFileName = [curHemi '.' roiName(2:end)];
                 fname = fullfile(roiFSDir,outFileName);
                 
-%                 write_curv(fname, prunedROIIdx{rr},1);
+                write_curv(fname, prunedROIIdx{rr},1);
                 
             else
                 warning('No indices found for %s, SKIPPING', roiName);
             end
-
+            
         end
         
         fprintf('(%s): Done.\n', mfilename)
@@ -260,5 +275,5 @@ if opt.roimrvToFS
         write_curv(fname, mask,1);
         
     end
-
+    
 end
