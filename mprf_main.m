@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj068';
+subjID = 'wlsubj004';
 
 %%
 % Load paths with data files for this subject
@@ -197,16 +197,6 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, dirPth, opt);
 
 
-%% Figures
-
-% Figure 1. Time series (1a)
-%           MEG head plot (1b)
-makeFigure1(dirPth,opt);
-
-%Figure 2. Position range line plot
-%          headplots for every position range
-
-%Figure 2. Size range line plot
-%          headplots for every size range
+fprintf('(%s) Done!', mfilename)
 
 
