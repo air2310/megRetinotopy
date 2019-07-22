@@ -67,53 +67,33 @@ print(fH2, fullfile(saveDir,'voxels_vethresh'), '-dpng');
 
 %% Load FS ROIs
 
-lhROIFiles = dir(fullfile(roiFSDir,'lh.*'));
-roiDataFS = struct();
-
-% Loop over the LH roi files
-for nn = 1:length(lhROIFiles)
+if opt.roimrvToFS
+    lhROIFiles = dir(fullfile(roiFSDir,'lh.*'));
     
-    curLHFile = lhROIFiles(nn).name;
-    tmp = str_split(curLHFile, '.');
-    roiName = tmp{2};
+    roiDataFS = struct();
     
-    % Find the corresponding rh file:
-    curRHFile = ['rh.' roiName];
-    
-    % load and concatenate:
-    bothHemiROI = [read_curv(fullfile(roiFSDir,curLHFile)); ...
-        read_curv(fullfile(roiFSDir,curRHFile))];
-    
-    if strcmp(roiName,'wang2015_atlas')
-        wangROINames = {'V1v', 'V1d', 'V2v', 'V2d', 'V3v', 'V3d', 'hV4', 'VO1', 'VO2', 'PHC1', 'PHC2', ...
-            'TO2', 'TO1', 'LO2', 'LO1', 'V3B', 'V3A', 'IPS0', 'IPS1', 'IPS2', 'IPS3', 'IPS4', ...
-            'IPS5', 'SPL1', 'FEF'};
+    % Loop over the LH roi files
+    for nn = 1:length(lhROIFiles)
         
-        roisToCombine = {'V1','V2','V3','IPS','LO','TO','VO', 'PHC'};
-        roisIndiv     = find(~contains(wangROINames,roisToCombine));
+        curLHFile = lhROIFiles(nn).name;
+        tmp = str_split(curLHFile, '.');
+        roiName = tmp{2};
         
-        % Combine data of ROIs
-        for rc = 1:length(roisToCombine)
-            match = find(contains(wangROINames,roisToCombine(rc)));
-            
-            tmpData = [];
-            for ii = 1:length(match)
-                indices = find(bothHemiROI==match(ii));
-                tmpData = [tmpData; indices];
-            end
-            
-            roiDataFS.(roisToCombine{rc}) = unique(tmpData, 'rows');
-        end
-        % Add ROIs that do not need to be combined
-        for rc = roisIndiv
-            roiDataFS.(wangROINames{rc}) =  bothHemiROI(bothHemiROI==rc);
-        end 
-    else
+        % Find the corresponding rh file:
+        curRHFile = ['rh.' roiName];
+        
+        % load and concatenate:
+        bothHemiROI = [read_curv(fullfile(roiFSDir,curLHFile)); ...
+            read_curv(fullfile(roiFSDir,curRHFile))];
+  
         roiDataFS.(roiName) = find(bothHemiROI);
     end
+ 
+else
+    combineHemi = true;
+    combineRois = true;
+    roiDataFS = loadWangROIs(dirPth.fs.surfPth, '*.wang2015_atlas.mgz', combineHemi, combineRois);
 end
-
-
 
 % Sample prf data for different visual areas
 vemask     = (prfDataFS.varexplained > opt.varExplThresh(1) & prfDataFS.varexplained < opt.varExplThresh(2));
@@ -123,34 +103,36 @@ fnData     = fieldnames(prfDataFS);
 fnRoi      = fieldnames(roiDataFS);
 
 for p = 1:length(fnData)
-    
-    allroitmp = [];
-    
+
     for r = 1:length(fnRoi)
-        
+              
+        allroitmp = [];
+    
         thisFieldName = fnData{p};
         data = prfDataFS.(fnData{p});
-        
+        roimask = roiDataFS.(fnRoi{r});
         if strcmp(thisFieldName,'varexplained')
-            data = data(roiDataFS.(fnRoi{r}));
             prfROIData.(fnRoi{r}).(fnData{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
-            data = data(roiDataFS.(fnRoi{r}));
+            data = data(roimask>0);
             thresh = prctile(data, opt.betaPrctileThresh);
             betamask = ((data > thresh(1)) & (data < thresh(2)));
             prfROIData.(fnRoi{r}).(fnData{p}) = data(betamask);
         else
             
             % Mask
-            data = data(roiDataFS.(fnRoi{r}));
-            data = data((vemask(roiDataFS.(fnRoi{r})) & eccenmask(roiDataFS.(fnRoi{r}))));
+            data = data(roimask>0);
+            data = data((vemask(roimask>0)) & eccenmask(roimask>0));
             
             prfROIData.(fnRoi{r}).(fnData{p}) = data;
         end
+        
         allroitmp  = [allroitmp; data];
     end
+    
     prfROIData.allROI.(thisFieldName) = allroitmp;
+    
 end
 
 fnRoi(end+1) = {'allROI'};
@@ -158,7 +140,7 @@ numRois = length(fnRoi);
 
 
 nRow = 5;
-nCol = 3;
+nCol = ceil(numRois/nRow);
 
 % pRF size vs eccentricity
 %----------------------
@@ -244,8 +226,8 @@ end
 print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
 
 fH8 = figure(108); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-c = [0.5 1 0]; 
-c_sm = [0 0.5 1]; 
+c = [0.5 1 0];
+c_sm = [0 0.5 1];
 title('pRF center distribution')
 for roi_idx = 1:numRois
     subplot(nRow,nCol,roi_idx);
@@ -281,7 +263,7 @@ if opt.surfVisualize
     hs_to_load = {'lh','rh'};
     surfaces_to_load = {'pial'};
     
-     for cur_surf = 1:length(surfaces_to_load)
+    for cur_surf = 1:length(surfaces_to_load)
         for cur_hs = 1:length(hs_to_load)
             
             cur_surf_to_load = strcat(hs_to_load{cur_hs},'.',surfaces_to_load{cur_surf});
