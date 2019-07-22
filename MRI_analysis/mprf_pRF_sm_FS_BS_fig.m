@@ -24,17 +24,19 @@ for nn = 1:length(prfFiles)
     cur_prf_file = prfFiles(nn).name;
     paramName = strsplit(cur_prf_file,'.');
     
-    if ~strcmp(paramName, 'mask')
+    if sum(cellfun(@isempty, (regexp(paramName{2}, {'mask', 'V123mask', 'wang2015_atlas'}, 'match'))))==3
         % load and concatenate:
         prfData.(paramName{2}) = read_curv(fullfile(prfBSDir,cur_prf_file));
     end
 end
 
+% Number of bins for histograms
+nbins = 50;
 
 % histogram of variance explained
 %--------------------------------
-fH1 = figure(201); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400])
-hist(prfData.varexplained,100);
+fH1 = figure(201); set(gcf, 'Color', 'w', 'Position', [102   999   1920   400], 'Name', 'Variance explained of all BS vertices')
+hist(prfData.varexplained,nbins);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
 h.EdgeColor = 'w';
@@ -45,7 +47,7 @@ print(fH1, fullfile(saveDir,'variance_explained'), '-dpng');
 % prf size vs eccentricity
 %-------------------------
 % All voxels
-fH2 = figure(202); set(gcf, 'Color', 'w', 'Position', [10, 10, 1920/3, 1080/2])
+fH2 = figure(202); set(gcf, 'Color', 'w', 'Position', [10, 10, 1920/3, 1080/2], 'Name', 'BS vertices with ve>0')
 sm_mask = prfData.varexplained > 0;
 scatter(prfData.eccentricity, prfData.sigma,[],[0.5 0.5 0.5]); hold on;
 scatter(prfData.eccentricity_smoothed(sm_mask), prfData.sigma_smoothed(sm_mask),[],[0.5 1 0.5]); hold on;
@@ -109,7 +111,7 @@ numCol = ceil(numRoi/numRow);
 
 % pRF size vs eccentricity
 %----------------------
-fH3 = figure(203); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+fH3 = figure(203); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080],  'Name', 'BS vertices: eccen vs sigma');
 c = [0.5 1 0];
 c_sm = [0 0.5 1];
 for roi_idx = 1:numRoi
@@ -126,11 +128,10 @@ print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 
 % Sigma histogram
 %-----------------------
-fH4 = figure(204); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Sigma')
+fH4 = figure(204); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'BS vertices: sigma');
 for roi_idx = 1:numRoi
     subplot(numRow,numCol,roi_idx);
-    hist(prfROIData.(fnRoi{roi_idx}).sigma,100)
+    hist(prfROIData.(fnRoi{roi_idx}).sigma,nbins)
     title(fnRoi{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -140,11 +141,10 @@ print(fH4, fullfile(saveDir,'sigma'), '-dpng');
 
 % Smoothed sigma histogram
 %-----------------------
-fH5 = figure(205); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Sigma smoothed')
+fH5 = figure(205); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'BS vertices: sigma smoothed');
 for roi_idx = 1:numRoi
     subplot(numRow,numCol,roi_idx);
-    hist(prfROIData.(fnRoi{roi_idx}).sigma_smoothed,100)
+    hist(prfROIData.(fnRoi{roi_idx}).sigma_smoothed,nbins)
     title(fnRoi{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -154,11 +154,10 @@ print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 
 % Beta histogram
 %-----------------------
-fH6 = figure(206); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Beta')
+fH6 = figure(206); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'BS vertices:  Beta');
 for roi_idx = 1:numRoi
     subplot(numRow,numCol,roi_idx);
-    hist(prfROIData.(fnRoi{roi_idx}).beta,100)
+    hist(prfROIData.(fnRoi{roi_idx}).beta,nbins)
     title(fnRoi{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -168,11 +167,10 @@ print(fH6, fullfile(saveDir,'beta'), '-dpng');
 
 % recomputed beta histogram
 %-----------------------
-fH7 = figure(207); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-title('Recomputed beta')
+fH7 = figure(207); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'BS vertices:  Beta Recomputed');
 for roi_idx = 1:numRoi
     subplot(numRow,numCol,roi_idx);
-    hist(prfROIData.(fnRoi{roi_idx}).recomp_beta,100)
+    hist(prfROIData.(fnRoi{roi_idx}).recomp_beta,nbins)
     title(fnRoi{roi_idx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -181,10 +179,9 @@ end
 print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
 
 
-fH8 = figure(208); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+fH8 = figure(208); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'BS vertices:  center (x,y)');
 c = [0.5 1 0];
 c_sm = [0 0.5 1];
-title('pRF center distribution')
 for roi_idx = 1:numRoi
     subplot(numRow,numCol,roi_idx);
     
