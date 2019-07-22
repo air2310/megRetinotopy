@@ -43,6 +43,20 @@ roisToCombine = {'V1','V2','V3',...
     'IPS','LO','TO','VO', 'PHC'};
 
 d = dir(fullfile(roiDir, 'WangAtlas_*'));
+
+% Get rid of combined files
+toRemove = zeros(1,length(d));
+for nn = 1:length(d)
+    
+    curMatFile = d(nn).name;
+    result = regexp(curMatFile, 'Combined', 'match');
+    if ~isempty(result)
+        toRemove(nn) = 1;
+    end
+end
+d(logical(toRemove)) = [];
+
+% Put struct in a table
 t = struct2table(d);
 
 clear roiName roiLoc
