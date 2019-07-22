@@ -12,14 +12,10 @@ function mprf_pRF_sm_FS_BS(subjID, dirPth,opt)
 %% ----------
 % File paths
 % -----------
-freesurfer_surface = dirPth.fs.surfPth;
 prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
 roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
-
-bs_anat_path = dirPth.bs.anatPth;
-% bs_T1anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
 
 if ~exist(prf_dir_BS, 'dir')
     mkdir(prf_dir_BS);
