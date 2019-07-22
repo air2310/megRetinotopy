@@ -20,7 +20,12 @@ roiData = struct();
 % Loop over the LH roi files
 curFile = roiFile.name;
 tmp = str_split(curFile, '.');
-roiName = tmp{2};
+
+if strcmp(tmp{2},'mat')
+    error('(%s): This function does not support mrVista matfiles yet', mfilename)
+else
+    roiName = tmp{2};
+end
 
 % Find the corresponding rh file:
 if combineHemi
