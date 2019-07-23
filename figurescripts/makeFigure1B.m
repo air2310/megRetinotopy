@@ -72,4 +72,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
     
 end
  
+fprintf('\n saving figure 1B in %s',saveDir);
+fprintf('\n');
+
 end

@@ -22,5 +22,7 @@ if ~isempty(varExpFile)
     print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
 end
 
+fprintf('\n saving figure 1A in %s',saveDir);
+fprintf('\n');
 
 end
