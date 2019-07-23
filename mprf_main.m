@@ -139,18 +139,21 @@ if ~opt.skipMRIPreproc
 
     if opt.verbose
         mprf_pRF_sm_fig(dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
+        close all;
     end
     
     mprf_pRF_sm_FS(dirPth,opt); % smoothed pRF params on mrV >> smoothed pRF params on FS
      
     if opt.verbose
         mprf_pRF_sm_FS_fig(dirPth,opt);
+        close all;
     end
     
     mprf_pRF_sm_FS_BS(subjID, dirPth,opt); % smoothed pRF params on FS >>  smoothed pRF params on BS
     
     if opt.verbose
         mprf_pRF_sm_FS_BS_fig(dirPth,opt);
+        close all;
     end
     % smoothed prf parameters + ROIs on BS (pial) surface saved
 

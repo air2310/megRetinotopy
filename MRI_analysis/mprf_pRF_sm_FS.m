@@ -91,7 +91,7 @@ for h = 1:length(hemis)
     
     % compute mapping using mrmMapVerticesToGray (mrmMapGrayToVertices):
     vertex2GrayMap = mrmMapVerticesToGray(mrVistaMeshMidGray_vertices, viewGet(hvol,'nodes'),...
-        mmPerVox,3);
+        mmPerVox);
     
     % Select the ones to map to mid gray
     verticesToMap = vertex2GrayMap > 0;
