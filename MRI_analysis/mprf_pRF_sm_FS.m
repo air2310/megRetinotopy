@@ -117,6 +117,9 @@ for h = 1:length(hemis)
         write_curv(fname,prfFS, 1);
         
     end
+    
+    
+    
 end
 
 
@@ -129,18 +132,18 @@ end
 % Otherwise locate probabilistic atlas from Wang et al (2015)
 
 if ~opt.roimrvToFS
-    fprintf('(%s): Saving a copy of Wang et al. 2015 probabilistic atlas on FreeSurfer surface in roi dir: %s\n', mfilename, roiNames{rr})
+    fprintf('(%s): Trying to load Wang et al. 2015 probabilistic atlas on FreeSurfer surface in roi dir\n', mfilename)
 
     roifname      = @(hem)(sprintf('%s/surf/%s.wang2015_atlas.mgz', dirPth.fs.segPth, hem));
     surfdat       = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
     roiFSWang     = surfdat(MRIread(roifname('lh')), MRIread(roifname('rh')), 1);
     
-    for h = 1:length(hemis)
-        curHemi = hemis{h};
-        outFileName = [curHemi '.wang2015_atlas'];
-        fname = fullfile(roiFSDir,outFileName);
-        write_curv(fname, roiFSWang.(curHemi),1);
-    end
+%     for h = 1:length(hemis)
+%         curHemi = hemis{h};
+%         outFileName = [curHemi '.wang2015_atlas'];
+%         fname = fullfile(roiFSDir,outFileName);
+%         write_curv(fname, roiFSWang.(curHemi), 1);
+%     end
     
     
 elseif opt.roimrvToFS

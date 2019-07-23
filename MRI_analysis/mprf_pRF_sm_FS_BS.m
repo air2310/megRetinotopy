@@ -1,4 +1,4 @@
-function mprf_pRF_sm_FS_BS(dirPth,opt)
+function mprf_pRF_sm_FS_BS(subjID, dirPth,opt)
 % mprf_pRF_sm_FS_BS(dirPth,plot_stim)
 %
 % Function to export prf parameters (unsmooth/smooth) from mrVista Gray
@@ -12,14 +12,10 @@ function mprf_pRF_sm_FS_BS(dirPth,opt)
 %% ----------
 % File paths
 % -----------
-freesurfer_surface = dirPth.fs.surfPth;
 prf_dir_FS = dirPth.fmri.saveDataPth_prfFS;
 roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
-
-bs_anat_path = dirPth.bs.anatPth;
-bs_T1anat_file = strcat(bs_anat_path,'/subjectimage_T1.mat');
 
 if ~exist(prf_dir_BS, 'dir')
     mkdir(prf_dir_BS);
@@ -31,89 +27,50 @@ end
 % Exporting pRF parameters from freesurfer vertices to brainstorm vertices
 % -------------------------------------------------------------------------
 
-% Load the anatomy imported by brainstorm. This file has a transformation
-% maxtrix that is applied to the freesurfer surfaces when they are imported
-% by brainstorm, so we need to apply the same transformation to the surface
-% data as well:
-bs_mri = load(bs_T1anat_file);
-
-hemiToLoad      = {'lh','rh'};        % In this order as BS concatenates the hemispheres like this
-surfaceToMap    = 'pial';
-
-fprintf('Exporting surface data:\n');
-
-
-
-% Get brainstorm mesh
-fs_vertices = [];
-% Loop over all (2, left and right) surfaces:
-for n = 1:length(hemiToLoad)
-    cur_surf = [hemiToLoad{n} '.' surfaceToMap];
-    surf_file = fullfile(freesurfer_surface,cur_surf);
-    
-    % Use the same routine as Brainstorm uses, otherwise the vertices
-    % are slightly off and intersectCols does not find all the matching
-    % vertices.
-    
-    [tmp_verts, ~] = mne_read_surface(surf_file);
-    
-    % Transformations applied by brainstorm:
-    tmp_verts = bsxfun(@plus, tmp_verts, [128 129 128] / 1000);
-    tmp_verts = [tmp_verts'; ones(1,size(tmp_verts,1))]; %% Actually verts)
-    tmp_verts = [bs_mri.SCS.R, bs_mri.SCS.T./1000; 0 0 0 1] * tmp_verts;
-    tmp_verts = tmp_verts(1:3,:)';
-    
-    
-    % combine left and right hemi
-    fs_vertices = [fs_vertices; tmp_verts];
+% Open up brainstorm if database can't be found
+if ~exist('GlobalData.DataBase.iProtocol', 'var')
+    brainstorm nogui;
 end
 
-% Load the brainstorm pial surface file:
-bs_pial_surf_file = dir(fullfile(bs_anat_path,'*tess_cortex_pial_low.mat'));
+% Parameters and ROIs will be mapped to a downsampled version of the
+% Freesurfer pial surface
+surfaceToMapTo    = 'pial';
 
-load(fullfile(bs_anat_path,bs_pial_surf_file.name),'Vertices', 'Faces');
+% Get left file names, do we can extract the prf parameter name (could also
+% be done with the right file names..)
+lhFiles = dir(fullfile(prf_dir_FS,'lh.*'));
 
-bs_vert_idx = dsearchn(fs_vertices, Vertices);
-
-%% --------------------------------------------------------------------
-% Export prfs
-% ---------------------------------------------------------------------
-
-pname = prf_dir_FS;
-
-lh_files = dir(fullfile(pname,'lh.*'));
-
-for nn = 1:length(lh_files)
+for nn = 1:length(lhFiles)
     
-    cur_lh_file = lh_files(nn).name;
-    [~,~,par_name] = fileparts(cur_lh_file);
-    par_name = strsplit(par_name, '.');
-    par_name = par_name{2};
+    % Get prf parameter name
+    curLHFile = lhFiles(nn).name;
+    [~,~,paramName] = fileparts(curLHFile);
+    paramName = strsplit(paramName, '.');
+    paramName = paramName{2};
     
-    prfParamfname = @(hem)(sprintf('%s/%s.%s', pname, hem, par_name));
+    prfParamfname = @(hem)(sprintf('%s/%s.%s', prf_dir_FS, hem, paramName));
     
+    % Load Freesurfer data
     surfdataFS.lh = read_curv(prfParamfname('lh'));
     surfdataFS.rh = read_curv(prfParamfname('rh'));
-    
-    
+        
     % load and concatenate:
-    both_fs_data = [surfdataFS.lh; surfdataFS.rh];
+    bothHemiFSData = [surfdataFS.lh; surfdataFS.rh];
     
     % Find corresponding BS vertices for FS surface data
-    both_bs_data_out = both_fs_data(bs_vert_idx);
+    bothHemiBSData = tess_fs2bst(subjID, dirPth.fs.segPth, surfdataFS.lh, surfdataFS.rh);
     
-    % Store the BS results:
-    cur_out_file = [surfaceToMap '.' par_name];
-    fname = fullfile(prf_dir_BS,cur_out_file);
-    write_curv(fname,both_bs_data_out,1);
-    fprintf('(%s): Brainstorm combined hemi files: %s\n',mfilename, cur_out_file);
+    % Save the BS results:
+    curFileToSave = [surfaceToMapTo '.' paramName];
+    fname = fullfile(prf_dir_BS,curFileToSave);
+    write_curv(fname,bothHemiBSData,1);
+    fprintf('(%s): Brainstorm combined hemi files: %s\n',mfilename, curFileToSave);
     
-    % Store the FS results:
-    cur_out_file = [surfaceToMap '.' par_name];
-    fname = fullfile(prf_dir_FS,cur_out_file);
-    write_curv(fname,both_fs_data,1);
-    fprintf('(%s): Freesurfer combined hemi files: %s\n',mfilename, cur_out_file);
-    
+    % Save the FS results:
+    curFileToSave = [surfaceToMapTo '.' paramName];
+    fname = fullfile(prf_dir_FS,curFileToSave);
+    write_curv(fname,bothHemiFSData,1);
+    fprintf('(%s): Freesurfer combined hemi files: %s\n',mfilename, curFileToSave);
     
 end
 
@@ -121,66 +78,104 @@ end
 %% --------------------------------------------------------------------
 % Export rois
 %----------------------------------------------------------------------
-if opt.roimrvToFS == 1
+if opt.roimrvToFS % in case you want to use the hand-drawn rois from mrVista
     
-    pname = roi_dir_FS;
-    lh_files = dir(fullfile(pname,'lh.*')); % ROIs
+    lhFiles = dir(fullfile(roi_dir_FS,'lh.*'));
     
     % Load ROIs drawn in mrVista surface and exported to freesurfer space
-    for ii  = 1:length(lh_files)
-        par_name = lh_files{ii};
+    for ii  = 1:length(lhFiles)
         
-        par_name = par_name(2:end);
+        paramName = lhFiles{ii};
+        paramName = paramName(2:end);
+        
         % Find the corresponding rh file:
-        cur_rh_file = ['rh.' par_name];
+        curLHFile = ['lh.' paramName];
+        curRHFile = ['rh.' paramName];
         
         % load and concatenate:
-        both_fs_data = [read_curv(fullfile(pname,cur_lh_file));...
-            read_curv(fullfile(pname,cur_rh_file))];
+        surfROIFS.lh = read_curv(fullfile(roi_dir_FS,curLHFile));
+        surfROIFS.rh = read_curv(fullfile(roi_dir_FS,curRHFile));
         
-        % Select to correct parameters:
-        both_bs_data_out = both_fs_data(bs_vert_idx);
-        
+        % load and concatenate:
+        bothHemiFSROI = [surfROIFS.lh; surfROIFS.rh];
+    
+        % Find BS vertices
+        bothHemiBSROI = tess_fs2bst(subjID, dirPth.fs.segPth, surfROIFS.lh, surfROIFS.rh);
+
         % Store the results:
-        cur_out_file = [surfaceToMap '.' par_name];
-        fname = fullfile(roi_dir_BS,cur_out_file);
-        write_curv(fname,both_bs_data_out,1);
-        fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, cur_out_file);
+        curFileToSave = [surfaceToMapTo '.' paramName];
+        fname = fullfile(roi_dir_BS,curFileToSave);
+        write_curv(fname,bothHemiBSROI,1);
+        fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, curFileToSave);
         
         
         % Create roi mask FS pial file
-        fname = fullfile(prf_dir_FS,cur_out_file);
-        write_curv(fname,both_fs_data,1);
-        fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, cur_out_file);
+        fname = fullfile(prf_dir_FS,curFileToSave);
+        write_curv(fname,bothHemiFSROI,1);
+        fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, curFileToSave);
     end
     
     
-else
+else  % in case you want to use Wang et al. (2015) atlas rois
     
-    % load wang rois
-    combineHemi = true;
-    combineRois = false;
-    roiData = loadWangROIs(dirPth.fs.surfPth, 'lh.wang2015_atlas*', combineHemi, combineRois);
+    paramName = 'wang2015_atlas.mgz';
     
-    % Loop over the rois to get separate prf data
-    fnROI = fieldnames(roiData);
-    for n = 1:length(fieldnames(roiData))
-        
-        both_fs_data = roiData.(fnROI{n});
-        
-        % Resample to nearest Brainstorm vertices
-        both_bs_data_out = both_fs_data(bs_vert_idx);
-        
-        % Store full Wang atlas as BS file
-        cur_out_file = [surfaceToMap '.' fnROI{n}];
-        fname = fullfile(roi_dir_BS,cur_out_file);
-        write_curv(fname,both_bs_data_out,1);
-        fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, cur_out_file);
-        
-        % Store combined Wang atlas as FS file
-        fname = fullfile(roi_dir_FS,cur_out_file);
-        write_curv(fname,both_fs_data,1);
-        fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, cur_out_file);
-    end
+    roifname = @(hem)(sprintf('%s/%s.%s', dirPth.fs.surfPth, hem, paramName));
+    
+    tmp = MRIread(roifname('lh'));
+    surfROIFS.lh = squeeze(tmp.vol);
+    tmp = MRIread(roifname('rh'));
+    surfROIFS.rh = squeeze(tmp.vol);
+    
+    % load and concatenate:
+    bothHemiFSROI = [surfROIFS.lh; surfROIFS.rh];
+    
+    % Find BS vertices
+    bothHemiBSROI = tess_fs2bst(subjID, dirPth.fs.segPth, surfROIFS.lh, surfROIFS.rh);
+    
+    % ---- Store full Wang atlas ----
+    % BRAINSTORM Pial file
+    curFileToSave = [surfaceToMapTo '.wang2015_atlas'];
+    write_curv(fullfile(roi_dir_BS,curFileToSave),bothHemiBSROI,1);
+    write_curv(fullfile(prf_dir_BS,curFileToSave),bothHemiBSROI,1);
+    fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, curFileToSave);
+    
+    % COMBINE HEMI FREESURFER file
+    write_curv(fullfile(roi_dir_FS,curFileToSave),bothHemiFSROI,1);
+    write_curv(fullfile(prf_dir_FS,curFileToSave),bothHemiFSROI,1);
+    fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, curFileToSave);
+    
+    
+    % ---- Store mask of Wang atlas ----
+    % BRAINSTORM Pial file
+    mask = bothHemiBSROI>0;
+    curFileToSave = [surfaceToMapTo '.mask'];
+    write_curv(fullfile(roi_dir_BS,curFileToSave),mask,1);
+    write_curv(fullfile(prf_dir_BS,curFileToSave),mask,1);
+    fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, curFileToSave);
+    
+    % COMBINE HEMI FREESURFER file
+    mask = bothHemiFSROI>0;
+    curFileToSave = [surfaceToMapTo '.mask'];
+    write_curv(fullfile(roi_dir_FS,curFileToSave),mask,1);
+    write_curv(fullfile(prf_dir_FS,curFileToSave),mask,1);
+    fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, curFileToSave);
+    
+    % ---- Store just an roi mask of V1-V3 areas in Wang atlas ----
+    V123idx = 1:6; % first six rois are "V1v" "V1d" "V2v" "V2d" "V3v" "V3d"
+    
+    % BRAINSTORM Pial file
+    BS_V123mask = ismember(bothHemiBSROI, V123idx);
+    curFileToSave = [surfaceToMapTo '.V123mask'];
+    write_curv(fullfile(roi_dir_BS,curFileToSave),BS_V123mask,1);
+    write_curv(fullfile(prf_dir_BS,curFileToSave),BS_V123mask,1);
+    fprintf('(%s): Brainstorm combined roi files: %s\n',mfilename, curFileToSave);
+    
+    % COMBINE HEMI FREESURFER file
+    FS_V123mask = ismember(bothHemiFSROI, V123idx);
+    write_curv(fullfile(prf_dir_FS,curFileToSave),FS_V123mask,1);
+    write_curv(fullfile(roi_dir_FS,curFileToSave),FS_V123mask,1);
+    fprintf('(%s): Freesurfer combined roi files: %s\n',mfilename, curFileToSave);
+    
 end
 

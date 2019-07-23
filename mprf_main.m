@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj004';
+subjID = 'wlsubj058';
 
 %%
 % Load paths with data files for this subject
@@ -149,7 +149,7 @@ if ~opt.skipMRIPreproc
         close all;
     end
     
-    mprf_pRF_sm_FS_BS(dirPth,opt); % smoothed pRF params on FS >>  smoothed pRF params on BS
+    mprf_pRF_sm_FS_BS(subjID, dirPth,opt); % smoothed pRF params on FS >>  smoothed pRF params on BS
     
     if opt.verbose
         mprf_pRF_sm_FS_BS_fig(dirPth,opt);
