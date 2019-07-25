@@ -104,6 +104,11 @@ switch subjID
     case 'wlsubj068'
         triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
         triggers.timing = find(triggers.ts);
+    case 'wlsubj039'
+        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
+        triggers.timing = find(triggers.ts);
+    otherwise
+        error('(%s) Can''t find subject ID', mfilename)
 end
 
 % Check the median trigger length (should be 1300 ms, note that after epoching this will be 1100 ms)
@@ -185,29 +190,53 @@ if opt.removeStartOfRunEpoch
 end
 
 % DEBUG: Plot a single channel to check data
-if opt.verbose
-    t = (1:size(data,1))./opt.fs;
+if opt.verbose        
+    t = (0:size(data,1)-1)./opt.fs;
     ft = (0:length(t)-1)/max(t);
-    
-    figure;
+    freqIdx = mprfFreq2Index(size(data,1), opt.flickerFreq, opt.fs);
+    stimBarOnly = triggers.stimConditions<10;
+    blankOnly = triggers.stimConditions==10;
+
+    figure; set(gcf, 'Position', [1000, 260, 887, 1078])
     for chan = 1:size(data,3)
         cla
-        subplot(211);
-        plot(t,nanmean(data(:,:,chan),2));
+        subplot(311);
+        plot(t,nanmean(data(:,stimBarOnly,chan),2));
         xlabel('Time (s)'); ylabel('Magnetic Flux (Tesla)');
         title(sprintf('Mean timeseries: Sensor %d', chan));
         set(gca, 'TickDir', 'out', 'FontSize', 14);
         drawnow;
         
-        subplot(212);
-        amps = abs(fft(data(:,:,chan)))/size(data,1)*2;
-        amps(1,:,:)=0; % Remove DC
-        plot(ft,nanmean(amps,2)); hold on;
-        plot([10 10], [0 max(nanmean(amps,2))])
-        xlim([1 150]); xlabel('Frequency (Hz)'); ylabel('FT Amplitudes (Tesla)');
-        title(sprintf('Mean FFT Amplitudes: Sensor %d', chan))
-        set(gca, 'TickDir', 'out', 'FontSize', 14);
-        drawnow; pause(0.1);
+        subplot(312);cla;
+        ampsStim = abs(fft(data(:,stimBarOnly,chan)))/size(data,1)*2;
+        ampsBlank = abs(fft(data(:,blankOnly,chan)))/size(data,1)*2;
+        plot(ft,nanmean(ampsStim,2)); hold on;
+        plot(ft,nanmean(ampsBlank,2)); legend({'Stim', 'Blank'});
+        plot([opt.flickerFreq opt.flickerFreq], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
+        plot([60 60], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
+        plot([120 120], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
+        xlim([1 150]); ylim([10^-15 10^-12]);
+        xlabel('Frequency (Hz)'); ylabel('FT Amplitudes (Tesla)');
+        title(sprintf('Mean amplitudes incoherent spectrum: Sensor %d', chan))
+        set(gca, 'TickDir', 'out', 'FontSize', 14, 'XScale', 'log', 'YScale', 'log');
+        drawnow;
+        
+        subplot(313);cla;
+        meanStim = nanmean(data(:,stimBarOnly,chan),2);
+        meanBlank = nanmean(data(:,blankOnly,chan),2);
+        
+        ampsStim = abs(fft(meanStim))/size(data,1)*2;
+        ampsBlank = abs(fft(meanBlank))/size(data,1)*2;
+        plot(ft,ampsStim); hold on;
+        plot(ft,ampsBlank); legend({'Stim', 'Blank'});
+        plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(ampsStim,2))])
+        plot([60 60], [min(ampsStim) max(ampsStim)])
+        plot([120 120], [min(ampsStim) max(ampsStim)])
+        xlim([1 150]); ylim([10^-16 10^-13]);
+        xlabel('Frequency (Hz)'); ylabel('FT Amplitudes (Tesla)');
+        title(sprintf('Mean amplitudes coherent spectrum: Sensor %d', chan))
+        set(gca, 'TickDir', 'out', 'FontSize', 14, 'XScale', 'linear', 'YScale', 'linear');
+        drawnow;
         
         if opt.saveFig
             if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), 'dir') 
@@ -263,8 +292,24 @@ if opt.doDenoise
     opt.pcchoose            = 1.05;  % initial threshold
     opt.npcs2try            = 10;    % max nr of PCs = 10
     
-    % Get 10 Hz evoked signal (fft power)
-    evokedfun        = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+    % Get 10 Hz evoked signal (fft power) to define noisepool and result
+    if ~strcmp(subjectID, 'wlsubj039') % evokedfun uses incoherent spectrum SSVEP
+        noisePoolFun        = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+    elseif strcmp(subjectID, 'wlsubj039') % or get noisepool from coherent spectrum
+        meanData = squeeze(nanmean(data(:,triggers.stimConditions<10,~badChannels),2));
+        cohSpectrum = abs(fft(meanData))/size(data,1)*2;
+        response10Hz = cohSpectrum(freqIdx,:);
+        [val, idx] = sort(response10Hz, 'ascend');
+        noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
+        if opt.verbose;
+            figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
+                [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
+        noisePoolFun = logical(noisePool);
+    end
+
+    % Define function to get results (or the same as noise pool fun for
+    % some subjects)
+    evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
     
     % Get design matrix
     designConditions = zeros(size(triggers.stimConditions));
@@ -280,7 +325,7 @@ if opt.doDenoise
     % Permute data and do denoising
     dataToDenoise = permute(data, [3,1,2]);
     [results, ~, ~, denoised_data] = ...
-        denoisedata(designMatrix(~badEpochs,:),dataToDenoise(~badChannels, :, ~badEpochs), evokedfun, evokedfun, opt);
+        denoisedata(designMatrix(~badEpochs,:),dataToDenoise(~badChannels, :, ~badEpochs), noisePoolFun, evokedfun, opt);
     
     % Add Nans back into denoised data
     dataDenoised = NaN(sz(3),sz(1),sz(2));
@@ -288,6 +333,10 @@ if opt.doDenoise
     
     % Plot figures
     if opt.verbose
+       if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), 'dir')
+            mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));
+       end
+        
         figure;
         plot(results.origmodel.r2,results.finalmodel.r2,'k.'); hold on;
         plot([0 max([results.origmodel.r2,results.finalmodel.r2])], ...
@@ -300,25 +349,39 @@ if opt.doDenoise
         end
         
         freqIdx = mprfFreq2Index(size(denoised_data{1},2), opt.flickerFreq, opt.fs);
-        t = (1:size(denoised_data{1},2))./opt.fs;
+        t = (0:size(denoised_data{1},2)-1)./opt.fs;
         ft = (0:length(t)-1)/max(t);
         
         figure;
         for chan = 1:size(denoised_data{1},1)
+            % Incoherent spectrum
+            subplot(211); cla
             amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(denoised_data{1},2)*2;
-            cla
+            
             plot(ft,nanmean(squeeze(amps),2)); hold on;
-            plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(squeeze(amps),2))]); title(chan);
+            plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(squeeze(amps),2))]);
+            title(sprintf('Incoherent spectrum: sensor %d', chan));
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
+            
+            drawnow; 
+            
+            % Coherent spectrum
+            subplot(212); cla
+            meanDenoisedData = squeeze(nanmean(denoised_data{1}(chan,:,:),3));
+            amps = abs(fft(meanDenoisedData,[],2))/size(meanDenoisedData,2)*2;
+            
+            plot(ft,amps); hold on;
+            plot([opt.flickerFreq opt.flickerFreq], [min(amps) max(amps)]); 
+            title(sprintf('Coherent spectrum: sensor %d', chan));
+            xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
+            set(gca, 'TickDir', 'out', 'FontSize', 14);
+            
             if opt.saveFig
-                if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), 'dir')
-                    mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));
-                end
                 print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra', ...
                     sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
             end
-            drawnow; pause(0.1)
+            drawnow; 
         end
         
         allAmps           = abs(fft(dataDenoised,[],2))/size(dataDenoised,2)*2;
