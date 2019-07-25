@@ -1,8 +1,11 @@
 function mprf_pRF_sm_FS_BS_fig(dirPth,opt)
-% plots after mprf_pRF_sm_FS_BS
-% 1) distribution of variance explained values for all Brainstorm vertices
-% 2) prf size vs eccentricity (different rois)
-%                             (original and smoothed)
+% Function to make a variety of figures after running the function:
+%       mprf_pRF_sm_FS_BS()
+% Figures include (for different rois and original vs smoothed data)
+% 1) distribution of variance explained, eccentricity, sigma, beta and
+% recomputed beta values for all Brainstorm vertices
+% 2) prf size vs eccentricity
+% 3) x vs y position
 % 3) surface plots (original and smoothed)
 
 % File paths
@@ -42,6 +45,8 @@ h.FaceColor = [0 0.5 0.5];
 h.EdgeColor = 'w';
 title('variance explained of prf fits');
 xlabel('variance explained');
+box off; axis square;
+set(gca, 'TickDir', 'out', 'FontSize', 14)
 print(fH1, fullfile(saveDir,'variance_explained'), '-dpng');
 
 % prf size vs eccentricity
@@ -54,6 +59,8 @@ scatter(prfData.eccentricity_smoothed(sm_mask), prfData.sigma_smoothed(sm_mask),
 title('voxels used for smoothing (ve>0)');
 xlabel('Eccentricity (deg)');
 ylabel('pRF size (deg)');
+box off; axis square;
+set(gca, 'TickDir', 'out', 'FontSize', 14)
 print(fH2, fullfile(saveDir,'voxels_used_for_smoothing'), '-dpng');
 
 
@@ -123,6 +130,8 @@ for roi_idx = 1:numRoi
     title(fnRoi{roi_idx});
     legend({'orig','smoothed'},'Location','NorthWestOutside')
     ylim([0 15]);
+    box off; axis square;
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 
@@ -136,6 +145,8 @@ for roi_idx = 1:numRoi
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; axis square;
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH4, fullfile(saveDir,'sigma'), '-dpng');
 
@@ -149,6 +160,8 @@ for roi_idx = 1:numRoi
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; axis square;
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 
@@ -162,6 +175,8 @@ for roi_idx = 1:numRoi
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; axis square;
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH6, fullfile(saveDir,'beta'), '-dpng');
 
@@ -175,6 +190,8 @@ for roi_idx = 1:numRoi
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
+    box off; axis square;
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
 
@@ -192,7 +209,7 @@ for roi_idx = 1:numRoi
     axis square
     xlim([-10 10])
     ylim([-10 10])
-    
+    set(gca, 'TickDir', 'out', 'FontSize', 14)
     
     legend({'orig', 'smoothed'},'Location','northeastoutside')
     
