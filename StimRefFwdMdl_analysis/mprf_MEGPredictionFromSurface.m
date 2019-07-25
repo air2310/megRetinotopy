@@ -31,7 +31,7 @@ RF = rfGaussian2d(stim.X, stim.Y, sigma, sigma, false, x0, y0);
 
 % Rescale beta's by prf size (sigma) -- since larger sizes will produce
 % larger responses
-beta = beta./sqrt(2*pi*sigma.^2);
+% beta = beta./sqrt(2*pi*sigma.^2);
     
 % Get predicted response from RFs given stimulus (epochs x vertices)
 predResponse = bsxfun(@times, stim.im' * RF, beta');
