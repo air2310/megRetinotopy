@@ -1,10 +1,16 @@
 function mprf_pRF_sm_FS_BS(subjID, dirPth,opt)
-% mprf_pRF_sm_FS_BS(dirPth,plot_stim)
+% mprf_pRF_sm_FS_BS(subjID, dirPth,plot_stim)
 %
-% Function to export prf parameters (unsmooth/smooth) from mrVista Gray
-% Ribbon (volume) to freesurfer surface vertices
+% Function to export prf parameters (unsmooth/smooth) and ROIs from
+% FreeSurfer (FS) left and right hemisphere surfaces to Brainstorm pial
+% surface. Currently, the Brainstorm surface is a downsampled FreeSurfer
+% pial surface, with 15002 vertices. It will also save a file where you
+% combine the left and hemisphere of the  FreeSurfer surface (note that
+% these data are on the midgray surface, not exported to the pial surface
+% -- ek: not sure if that matters?)
 %
 % INPUTS:
+%   subjID      :   name of subject, e.g. 'wlsubj004'. (string)
 %   dirPth      :   paths locating subject's data and files (struct, see loadPaths.m)
 %   opt         :   struct with boolean flags, needed to request using rois
 %                   defined in mrVista space
@@ -17,9 +23,10 @@ roi_dir_FS = dirPth.fmri.saveDataPth_roiFS;
 prf_dir_BS = dirPth.fmri.saveDataPth_prfBS;
 roi_dir_BS = dirPth.fmri.saveDataPth_roiBS;
 
-if ~exist(prf_dir_BS, 'dir')
+if (~exist(prf_dir_BS, 'dir') || ~exist(roi_dir_BS, 'dir') || ~exist(roi_dir_FS, 'dir'))
     mkdir(prf_dir_BS);
     mkdir(roi_dir_BS);
+    mkdir(roi_dir_FS);
 end
 % ----------
 
