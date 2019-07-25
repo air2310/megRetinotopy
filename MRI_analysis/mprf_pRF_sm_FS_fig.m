@@ -253,7 +253,6 @@ if opt.surfVisualize
     
     % Get directory to save images
     saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs');
-    saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs','rh');
     if ~exist(saveDir, 'dir'); mkdir(saveDir); end
     
     %-----------------------------------------------
@@ -271,7 +270,7 @@ if opt.surfVisualize
             
             mprf_VisualizeDataOnFreesurferSurface(dirPth, cur_surf_to_load, saveDir);
             
-            mprf_VisualizeRoiOnFreesurferSurface(dirPth, cur_surf_to_load,saveDir);
+            mprf_VisualizeRoiOnFreesurferSurface(dirPth, cur_surf_to_load,saveDir, opt);
         end
     end
 end
