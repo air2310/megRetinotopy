@@ -80,10 +80,10 @@ for ii = 1:nIter
         ttl = sprintf('Var expl of modelfit predicting mean phase-ref MEG data: %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4});
         
         % Plot var expl mesh
-        fH1 = figure(1); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
-        fH12 = figure(12); megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
-        fH13 = figure(13); megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH13, 'parula', ttl, [],[], 'interpmethod', 'nearest');
-        fH14 = figure(14); megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH14, 'parula', ttl, [],[]);
+        fH1 = figure(1); clf; megPlotMap(meanVarExpl(ii,:),[0 0.6],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
+        fH12 = figure(12); clf; megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
+        fH13 = figure(13); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH13, 'parula', ttl, [],[], 'interpmethod', 'nearest');
+        fH14 = figure(14); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH14, 'parula', ttl, [],[]);
 
         if opt.saveFig
             print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_nearest',opt.fNamePostFix, ii)), '-dpng');
