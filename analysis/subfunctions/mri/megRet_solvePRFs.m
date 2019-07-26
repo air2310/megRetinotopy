@@ -120,7 +120,7 @@ sParams.stimType   = 'StimFromScan'; % This means the stimulus images will
                                      % be read from a file.
 if strcmp(subject, 'wlsubj030')
     sParams.stimSize   = 11.1859;        % usually 12.4; but for experiment the stimsize is limited by MEG screen fov           % stimulus radius (deg visual angle)
-elseif (strcmp(subject, 'wlsubj058') || strcmp(subject, 'wlsubj068'))
+elseif (strcmp(subject, 'wlsubj058') || strcmp(subject, 'wlsubj068') || strcmp(subject, 'wlsubj039_wVitaminE'))
     sParams.stimSize   = 10;
 end
 
