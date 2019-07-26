@@ -28,7 +28,11 @@ dirPth.meg.stimGridFile = fullfile(dirPth.meg.stimFilePth, 'MEG_grid.mat');
 dirPth.fsPth            = fullfile(mprf_rootPath,'data','Freesurfer_subjects'); % should be sym link in git folder
 
 % Derive other file paths
-dirPth.fs.segPth        = fullfile(dirPth.fsPth, subjID);
+if strcmp(subjID, 'wlsubj039')
+    dirPth.fs.segPth        = fullfile(dirPth.fsPth, [subjID '_wVitaminE']);
+else
+    dirPth.fs.segPth        = fullfile(dirPth.fsPth, subjID);
+end
 dirPth.fs.surfPth       = fullfile(dirPth.fs.segPth, 'surf');
 
 
