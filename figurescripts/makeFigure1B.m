@@ -7,7 +7,7 @@ origMEGData = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','phas
 
 saveSubDir = 'figure1B';
 saveDir = fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir);
-if ~exist(saveSubDir,'dir')
+if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
 

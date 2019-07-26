@@ -15,6 +15,11 @@ end
 %% 
 makeFigure1A(dirPth);
 
+if opt.makeAverageFig
+    subjIDs = {'wlsubj004','wlsubj058','wlsubj068'};
+    makeFigure1C(subjIDs,opt); % Average MEG headplot for all subjects 
+end
+
 %%
 makeFigure1B(dirPth,opt);
 

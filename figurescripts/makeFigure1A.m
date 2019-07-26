@@ -1,12 +1,12 @@
 function makeFigure1A(dirPth)
 % Function to create figure 1A (MEG head plot showing the variance
-% explained values)
+% explained values for individual subjects). 
 
 varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','meanVarExpl.mat'));
 
 saveSubDir = 'figure1A';
 saveDir = fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir);
-if ~exist(saveSubDir,'dir')
+if ~exist(saveDir,'dir')
     mkdir(fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir));
 end
 
@@ -18,11 +18,16 @@ if ~isempty(varExpFile)
     
     fH1 = figure; megPlotMap(meanVarExpl,[0 0.6],fH1, 'parula', 'mean variance explained', [],[]);
     c = colorbar; c.Location='southoutside';    
-   
-    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
 end
 
-fprintf('\n saving figure 1A in %s',saveDir);
-fprintf('\n');
+if opt.saveFig
+    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
+    
+    
+    fprintf('\n saving figure 1A in %s',saveDir);
+   
+    
+    fprintf('\n');
+end
 
 end
