@@ -13,7 +13,7 @@ if ~exist(fullfile(dirPth.finalFig.savePth,saveSubDir),'dir')
 end
 
 %% 
-makeFigure1A(dirPth);
+makeFigure1A(dirPth,opt);
 
 if opt.makeAverageFig
     subjIDs = {'wlsubj004','wlsubj058','wlsubj068'};

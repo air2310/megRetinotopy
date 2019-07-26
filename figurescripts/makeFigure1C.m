@@ -42,6 +42,7 @@ if opt.saveFig
     end
     
     print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs',numSubjs)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs',numSubjs)), '-depsc');
     fprintf('\n saving figure 1A in %s',saveDir);
     
     
