@@ -1,4 +1,4 @@
-function makeFigure1A(dirPth)
+function makeFigure1A(dirPth,opt)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects). 
 
@@ -22,12 +22,7 @@ end
 
 if opt.saveFig
     print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
-    
-    
-    fprintf('\n saving figure 1A in %s',saveDir);
-   
-    
-    fprintf('\n');
+    fprintf('\n saving figure 1A in %s \n',saveDir);
 end
 
 end

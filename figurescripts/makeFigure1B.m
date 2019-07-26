@@ -45,6 +45,19 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         hold on;
         plot(t, meanPredResponse(:,topSensor(tt)), 'r', 'LineWidth',4);
         
+        
+        nanIdx = find(isnan(meanPredResponse(:,topSensor(tt))));
+        blinkIdx = nanIdx;
+        blinkIdx(3:2:end) = blinkIdx(3:2:end) - 1;
+        blinkIdx(2:2:end) = blinkIdx(2:2:end) + 1;
+        blankIdx = nanIdx;
+        blankIdx(1) = blinkIdx(1) + 2;
+        blankIdx(3:2:end) = blinkIdx(3:2:end) + 3;
+        blankIdx(2:2:end) = blinkIdx(2:2:end) + 2;
+        
+        blink_t = t(blinkIdx);
+        blank_t = t(blankIdx);
+        
         title(sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
         xlabel('Time (s)'); ylabel('MEG response (Tesla)');
         
@@ -58,15 +71,26 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         end
         ylim(yl); xlim([0, max(t)])
         
-        legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
+        color = [0.5 0.5 0.5];
 
+        hold on;
+        for tmpIdx = 1:2:length(blink_t)
+            patch([blink_t(tmpIdx),blink_t(tmpIdx+1) blink_t(tmpIdx+1) blink_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.2, 'LineStyle','none');
+            patch([blank_t(tmpIdx),blank_t(tmpIdx+1) blank_t(tmpIdx+1) blank_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.7, 'LineStyle','none');
+        end
+
+        legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
+        
         % create a inset plot showing the position of the meg sensor
-        axInset = axes('Position',[0.2 0.7 0.2 0.2]);
+        axInset = axes('Position',[0.12 0.7 0.2 0.2]);
         box on; axis off; axis image;
         holdFig.flag = 1; holdFig.figh = fH1; holdFig.c = 'r';
         mprfPlotHeadLayout(topSensor(tt), false, [], false,holdFig);
         
-        print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-dpng');
+        if opt.saveFig
+            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-dpng');
+            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-depsc');
+        end
     end
  
     
