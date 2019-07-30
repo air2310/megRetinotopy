@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj058';
+subjID = 'wlsubj004';
 
 %%
 % Load paths with data files for this subject

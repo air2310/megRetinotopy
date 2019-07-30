@@ -38,14 +38,26 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
     % Calculate mean measured MEG time series from 19 runs
     meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));
     for tt = 1:length(topSensor)
-        
-        fH1 = figure; set(gcf, 'Color', 'w', 'Position', [10 10 1920/2 1080/2], 'Name', 'MEG time series: Orig vs Pred');
 
-        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'ko-', 'LineWidth',2);
-        hold on;
-        plot(t, meanPredResponse(:,topSensor(tt)), 'r', 'LineWidth',4);
+        % Define figure properties
+        % figure 
+        figPos = [10 10 1920/2 1080/2]; 
+        figName = strcat('MEG time series: Orig vs Pred',sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
         
+        % plot
+        % time series
+        lW_orig = 2;        
+        lW_pred = 4;        
+        markerColor = [0.3010, 0.7450, 0.9330];
         
+        % axis properties
+        %ttl = sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt));
+        xLbl = 'Time (s)';
+        yLbl = 'MEG response (Tesla)';
+        fontSize = 20;
+               
+        % blink and blank blocks
+        color = [0.5 0.5 0.5];
         nanIdx = find(isnan(meanPredResponse(:,topSensor(tt))));
         blinkIdx = nanIdx;
         blinkIdx(3:2:end) = blinkIdx(3:2:end) - 1;
@@ -54,25 +66,28 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         blankIdx(1) = blinkIdx(1) + 2;
         blankIdx(3:2:end) = blinkIdx(3:2:end) + 3;
         blankIdx(2:2:end) = blinkIdx(2:2:end) + 2;
-        
         blink_t = t(blinkIdx);
         blank_t = t(blankIdx);
-        
-        title(sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
-        xlabel('Time (s)'); ylabel('MEG response (Tesla)');
-        
-        set(gca, 'FontSize', 14, 'TickDir','out'); box off
-        
+               
+        % Plot the figure
+        fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName);hold on;
+        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',[0.3010, 0.7450, 0.9330], 'MarkerSize',7,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
+        hold on;
+        plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.4 0.4], 'LineWidth',lW_pred);
+                
+        %title(ttl);
+        xlabel(xLbl); ylabel(yLbl);        
+        set(gca, 'FontSize', fontSize, 'TickDir','out','LineWidth',3); box off
+             
+        % set x and y axis limits
         tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,topSensor(tt))), max(meanPhRefAmp10Hz(:,topSensor(tt)))])).*10^14;
         if (tmp_yl > 6)
-            yl = [-1*tmp_yl, tmp_yl].*10^-14; 
+            yl = [-1*tmp_yl, tmp_yl].*10^-14;
         else
             yl = [-6,6].*10^-14;
         end
         ylim(yl); xlim([0, max(t)])
         
-        color = [0.5 0.5 0.5];
-
         hold on;
         for tmpIdx = 1:2:length(blink_t)
             patch([blink_t(tmpIdx),blink_t(tmpIdx+1) blink_t(tmpIdx+1) blink_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.2, 'LineStyle','none');
@@ -81,15 +96,9 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
 
         legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
         
-        % create a inset plot showing the position of the meg sensor
-        axInset = axes('Position',[0.12 0.7 0.2 0.2]);
-        box on; axis off; axis image;
-        holdFig.flag = 1; holdFig.figh = fH1; holdFig.c = 'r';
-        mprfPlotHeadLayout(topSensor(tt), false, [], false,holdFig);
-        
         if opt.saveFig
             print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-dpng');
-            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-depsc');
+            makeFigure1B_i(topSensor(tt),saveDir);
         end
     end
  
@@ -99,4 +108,13 @@ end
 fprintf('\n saving figure 1B in %s',saveDir);
 fprintf('\n');
 
+end
+
+
+function makeFigure1B_i(topSensor,saveDir)
+% creates and saves plot showing the position of the meg sensor
+% axes('Position',[0.12 0.7 0.2 0.2]);
+% box on; axis off; axis image;
+fH1_1 = mprfPlotHeadLayout(topSensor, false, [], false);
+saveas(fH1_1, fullfile(saveDir, sprintf('sensor_location_%d',topSensor)), 'eps');
 end
