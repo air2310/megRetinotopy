@@ -22,6 +22,7 @@ end
 
 if opt.saveFig
     print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
+    saveas(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), 'epsc');
     fprintf('\n saving figure 1A in %s \n',saveDir);
 end
 
