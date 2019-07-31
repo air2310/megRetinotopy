@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj058';
+subjID = 'wlsubj068';
 
 %%
 % Load paths with data files for this subject
@@ -56,6 +56,8 @@ opt = getOpts;
 
 if strcmp(subjID, 'wlsubj068')
     opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
+elseif strcmp(subjID, 'wlsubj039')
+    opt = getOpts('betaPrctileThresh',[0 90], 'useCoherentSpectrum', true);
 end
 
 %% 1. MEG data preprocessing
