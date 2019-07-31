@@ -72,7 +72,7 @@ if opt.verbose; sprintf('(%s) Load sqd data...\n', mfilename); end
 
 % Trigger number legend:
 % 20  = blink - every run starts with 2 blink TRs
-% 10  = blank - followed by 3 blank TRs, 
+% 10  = blank - followed by 3 blank TRs,
 % followed by stimulus:
 % 1-8 = barsweep orientations, there are only 5 orientations in the MEG
 % experiment with the following trigger nr's: 1, 3, 4, 6, 7.
@@ -172,11 +172,11 @@ sz = size(data);
 data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 
 % If requested: set the first epoch of the first bar sweep to NaN
-if opt.removeStartOfRunEpoch    
-    numBlinkBlanks = 5;    
+if opt.removeStartOfRunEpoch
+    numBlinkBlanks = 5;
     if strcmp(subjID,'wlsubj030')
         beginOfSweep = 1:(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
-        toRemove = startOfRun+beginOfSweep-1;        
+        toRemove = startOfRun+beginOfSweep-1;
     else
         beginOfSweep = (numBlinkBlanks+1):(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
         toRemove = startOfRun+beginOfSweep-1;
@@ -190,13 +190,13 @@ if opt.removeStartOfRunEpoch
 end
 
 % DEBUG: Plot a single channel to check data
-if opt.verbose        
+if opt.verbose
     t = (0:size(data,1)-1)./opt.fs;
     ft = (0:length(t)-1)/max(t);
     freqIdx = mprfFreq2Index(size(data,1), opt.flickerFreq, opt.fs);
     stimBarOnly = triggers.stimConditions<10;
     blankOnly = triggers.stimConditions==10;
-
+    
     figure; set(gcf, 'Position', [1000, 260, 887, 1078])
     for chan = 1:size(data,3)
         cla
@@ -239,7 +239,7 @@ if opt.verbose
         drawnow;
         
         if opt.saveFig
-            if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), 'dir') 
+            if ~exist(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'), 'dir')
                 mkdir(fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries'));
             end
             print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'predenoise_timeseries', ...
@@ -293,23 +293,32 @@ if opt.doDenoise
     opt.npcs2try            = 10;    % max nr of PCs = 10
     
     % Get 10 Hz evoked signal (fft power) to define noisepool and result
-    if ~strcmp(subjectID, 'wlsubj039') % evokedfun uses incoherent spectrum SSVEP
-        noisePoolFun        = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
-    elseif strcmp(subjectID, 'wlsubj039') % or get noisepool from coherent spectrum
-        meanData = squeeze(nanmean(data(:,triggers.stimConditions<10,~badChannels),2));
-        cohSpectrum = abs(fft(meanData))/size(data,1)*2;
-        response10Hz = cohSpectrum(freqIdx,:);
-        [val, idx] = sort(response10Hz, 'ascend');
-        noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
-        if opt.verbose;
-            figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
-                [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
-        noisePoolFun = logical(noisePool);
-    end
+    switch subjID
+        case {'wlsubj039', 'wlsubj040'} % get noisepool from coherent spectrum
+            freqIdx = mprfFreq2Index(size(data,1), opt.flickerFreq, opt.fs);
+            
+            epochsToKeep = triggers.stimConditions<10;
+            epochsToKeep = epochsToKeep(~badEpochs);
+            meanData = squeeze(nanmean(data(:,epochsToKeep,~badChannels),2));
+            cohSpectrum = abs(fft(meanData))/size(meanData,1)*2;
+            response10Hz = cohSpectrum(freqIdx,:);
+            [val, idx] = sort(response10Hz, 'ascend');
+            noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
+            if opt.verbose
+                figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
+                    [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
+            noisePoolFun = logical(noisePool);
+            
+            % Define function to get results
+            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
 
-    % Define function to get results (or the same as noise pool fun for
-    % some subjects)
-    evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+        otherwise % evokedfun uses incoherent spectrum SSVEP
+            % Define evoked signal function to get results (SSVEF from incoherent spectrum)
+            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+            
+            % Define function to get noisepool (same in this case as evokedfun)
+            noisePoolFun = evokedfun;
+    end
     
     % Get design matrix
     designConditions = zeros(size(triggers.stimConditions));
@@ -333,9 +342,9 @@ if opt.doDenoise
     
     % Plot figures
     if opt.verbose
-       if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), 'dir')
+        if ~exist(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'), 'dir')
             mkdir(fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra'));
-       end
+        end
         
         figure;
         plot(results.origmodel.r2,results.finalmodel.r2,'k.'); hold on;
@@ -364,7 +373,7 @@ if opt.doDenoise
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
             
-            drawnow; 
+            drawnow;
             
             % Coherent spectrum
             subplot(212); cla
@@ -372,7 +381,7 @@ if opt.doDenoise
             amps = abs(fft(meanDenoisedData,[],2))/size(meanDenoisedData,2)*2;
             
             plot(ft,amps); hold on;
-            plot([opt.flickerFreq opt.flickerFreq], [min(amps) max(amps)]); 
+            plot([opt.flickerFreq opt.flickerFreq], [min(amps) max(amps)]);
             title(sprintf('Coherent spectrum: sensor %d', chan));
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
@@ -381,12 +390,12 @@ if opt.doDenoise
                 print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,'postdenoise_spectra', ...
                     sprintf('%s_fft_spectrum_postDenoise_sensor%d', subjID,chan)))
             end
-            drawnow; 
+            drawnow;
         end
         
         % stim and blank SSVEF for incoherent spectrum
         allAmps                 = abs(fft(dataDenoised,[],2))/size(dataDenoised,2)*2;
-        epochsStimToPlot        = triggers.stimConditions==1;
+        epochsStimToPlot        = triggers.stimConditions<10;
         stimDataToPlot.incoh    = squeeze(nanmean(dataDenoised(:,freqIdx,epochsStimToPlot),3));
         
         epochsBlankToPlot       = triggers.stimConditions==10;
@@ -395,10 +404,10 @@ if opt.doDenoise
         % stim and blank SSVEF for coherent spectrum
         meanStimTs  = nanmean(dataDenoised(:,:,epochsStimToPlot),3);
         meanBlankTs = nanmean(dataDenoised(:,:,epochsBlankToPlot),3);
-
+        
         meanAmps = abs(fft(meanStimTs, [], 2))/size(dataDenoised,2)*2;
         meanAmps = abs(fft(meanBlankTs, [], 2))/size(dataDenoised,2)*2;
-
+        
         stimDataToPlot.coh = squeeze(meanAmps(:,freqIdx));
         
         
