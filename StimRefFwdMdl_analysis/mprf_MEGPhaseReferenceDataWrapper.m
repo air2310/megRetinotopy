@@ -45,8 +45,13 @@ end
 predMEGResponseAll = predMEGResponse; 
 
 % Allocate space
-[~, nEpochs, nRuns, nSensors] = size(megData);
-phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);
+[nTimePoints, nEpochs, nRuns, nSensors] = size(megData);
+
+if  opt.useCoherentSpectrum
+    phRefAmp10Hz = NaN(nEpochs, 2, nSensors, nIter); % only two runs as output, since it will be split half
+else
+    phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);
+end
 
 % loop over dimensions, if necessary
 for ii = 1:nIter
@@ -68,8 +73,8 @@ for ii = 1:nIter
         megPlotMap(circularavg(squeeze(bestRefPhase),[],1), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
         
         % Visualize the variance explained for every run across sensors
-        fH2 = figure(2); set(fH2, 'Position', [17,578,1543,760]);
-        for r = 1:nRuns
+        fH2 = figure(2); clf; set(fH2, 'Position', [17,578,1543,760]);
+        for r = 1:size(phRefAmp10Hz,2)
             subplot(3,7,r);
             dataToPlot = squeeze(maxVarExplVal(:,r,:));
             if all(isnan(dataToPlot))
@@ -103,8 +108,11 @@ for ii = 1:nIter
     
 end
 
+
 % Remove last dimension out, if not used
 phRefAmp10Hz = squeeze(phRefAmp10Hz);
+
+
 
 if opt.doSaveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')

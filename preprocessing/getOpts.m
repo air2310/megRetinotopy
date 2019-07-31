@@ -38,6 +38,7 @@ opt.varExplThresh         = [0.1 inf];      % MRI prf model: Remove low variance
 opt.betaPrctileThresh     = [0 95];         % MRI prf model: Remove beta outliers by only taking up to the 95th percentile
 opt.useSmoothedData       = true;           % MRI prf model: Use smoothed surface data or not
 opt.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt.useCoherentSpectrum   = true;           % MRI prf model: Use the coherent spectrum (average before FFT), instead of the incoherent spectrum (average after FFT)
 
 % --- PERTUBATION of pRF models ---
 opt.perturbOrigPRFs       = false;          % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'

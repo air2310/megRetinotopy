@@ -17,7 +17,7 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrap
 % OUTPUT:
 %   meanPredResponse : mean predicted response
 %                       (sensors x epochs x optional variations)
-%   meanVarExpl      : variance explained of mean data by modelfit 
+%   meanVarExpl      : variance explained of mean data by modelfit
 %                       ([1 or nr of optional variations] x sensor)
 %
 %
@@ -42,13 +42,18 @@ elseif ~opt.perturbOrigPRFs
     nIter = 1;
 end
 
+
+
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse;
 phRefAmp10HzAll    = phRefAmp10Hz;
 
-
 % Allocate space
-[nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
+if opt.useCoherentSpectrum
+    [nEpochs, ~, nSensors] = size(phRefAmp10Hz);
+else
+    [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
+end
 
 meanPredResponse = NaN(nEpochs, nSensors, nIter);
 meanPhRefAmp10Hz = NaN(nEpochs, nSensors, nIter);
@@ -63,7 +68,7 @@ for ii = 1:nIter
     phRefAmp10Hz    = phRefAmp10HzAll(:,:,:,ii);
     
     [meanPredResponse(:,:,ii),meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
-        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse);
+        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, opt);
     
     
     
@@ -84,7 +89,7 @@ for ii = 1:nIter
         fH12 = figure(12); clf; megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
         fH13 = figure(13); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH13, 'parula', ttl, [],[], 'interpmethod', 'nearest');
         fH14 = figure(14); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH14, 'parula', ttl, [],[]);
-
+        
         if opt.saveFig
             print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_nearest',opt.fNamePostFix, ii)), '-dpng');
             print(fH12,fullfile(dirPth.model.saveFigPth, opt.subfolder, sprintf('varexpl_mesh%s_%d_interpolated',opt.fNamePostFix, ii)), '-dpng');
@@ -133,14 +138,14 @@ for ii = 1:nIter
             ylim(yl); xlim([0, max(t)])
             legend({'Data', 'Prediction'}, 'Location', 'SouthWest'); legend boxoff
             if opt.saveFig
-                if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries'), 'dir') 
+                if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries'), 'dir')
                     mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries')); end
                 print(fH3, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'timeseries', sprintf('varexpl_timeseries_sensor%d%s_iter%d',s, opt.fNamePostFix,ii)), '-dpng');
             end
         end
     end
     
-
+    
 end
 
 % Remove last dimension out, if not used
