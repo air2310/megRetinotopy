@@ -15,7 +15,7 @@ opt.skipMRIPreproc        = true;           % General
 opt.verbose               = true;          % General
 opt.doSaveData            = true;           % General
 opt.saveFig               = true;           % General
-opt.fullSizeGainMtx       = false;          % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
+opt.fullSizeGainMtx       = false;           % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
 opt.surfVisualize         = false;          % General: visualize surface meshes
 
 % --- MEG Preproc ---
@@ -90,6 +90,10 @@ if opt.onlyV123WangAtlas
     opt.subfolder             = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
 elseif opt.useBensonMaps
     opt.subfolder             = 'original/BensonMaps'; % add results to extra folder to not override 
+end
+
+if opt.useCoherentSpectrum
+    opt.subfolder             = [opt.subfolder '/coherent'];
 end
 
 return
