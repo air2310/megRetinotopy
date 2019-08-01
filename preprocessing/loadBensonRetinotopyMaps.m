@@ -99,6 +99,11 @@ prfData.sigma        = sigma.sub_bs_sigma;
 prfData.beta         = 1./sqrt(2*pi*prfData.sigma.^2);
 prfData.mask         = areas.all;
 
+% Check if prf betas are not crazy high
+thresh = prctile(prfData.beta, opt.betaPrctileThresh);
+betamask = ((prfData.beta  > thresh(1)) & (prfData.beta < thresh(2)));
+prfData.beta = prfData.beta.*betamask;
+
 % Store path where files are saved
 fn = fieldnames(prfData);
 for ii = 1:length(fn)
