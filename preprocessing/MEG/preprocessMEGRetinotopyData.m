@@ -396,31 +396,42 @@ if opt.doDenoise
         % stim and blank SSVEF for incoherent spectrum
         allAmps                 = abs(fft(dataDenoised,[],2))/size(dataDenoised,2)*2;
         epochsStimToPlot        = triggers.stimConditions<10;
-        stimDataToPlot.incoh    = squeeze(nanmean(dataDenoised(:,freqIdx,epochsStimToPlot),3));
+        stimDataToPlot.incoh    = squeeze(nanmean(allAmps(:,freqIdx,epochsStimToPlot),3));
         
         epochsBlankToPlot       = triggers.stimConditions==10;
-        blankDataToPlot.incoh   = squeeze(nanmean(dataDenoised(:,freqIdx,epochsBlankToPlot),3));
+        blankDataToPlot.incoh   = squeeze(nanmean(allAmps(:,freqIdx,epochsBlankToPlot),3));
         
         % stim and blank SSVEF for coherent spectrum
         meanStimTs  = nanmean(dataDenoised(:,:,epochsStimToPlot),3);
         meanBlankTs = nanmean(dataDenoised(:,:,epochsBlankToPlot),3);
         
-        meanAmps = abs(fft(meanStimTs, [], 2))/size(dataDenoised,2)*2;
-        meanAmps = abs(fft(meanBlankTs, [], 2))/size(dataDenoised,2)*2;
+        meanAmpsStim = abs(fft(meanStimTs, [], 2))/size(dataDenoised,2)*2;
+        meanAmpsBlank = abs(fft(meanBlankTs, [], 2))/size(dataDenoised,2)*2;
         
-        stimDataToPlot.coh = squeeze(meanAmps(:,freqIdx));
-        
-        
+        stimDataToPlot.coh = squeeze(meanAmpsStim(:,freqIdx));
+        blankDataToPlot.coh = squeeze(meanAmpsBlank(:,freqIdx));
+
         fh1 = figure;
         megPlotMap(stimDataToPlot.coh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field (10 Hz) coherent spectrum');
+        title('Steady state visually evoked field (10 Hz); Coherent spectrum');
         
         fh2 = figure;
+        megPlotMap(stimDataToPlot.coh-blankDataToPlot.coh,[],[],[],[],[],[],'interpmethod', 'nearest');
+        title('Steady state visually evoked field - blanks (10 Hz) Coherent spectrum');
+        
+        fh3 = figure;
         megPlotMap(stimDataToPlot.incoh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field (10 Hz) incoherent spectrum');
+        title('Steady state visually evoked field (10 Hz) Incoherent spectrum');
+        
+        fh4 = figure;
+        megPlotMap(stimDataToPlot.incoh-blankDataToPlot.incoh,[],[],[],[],[],[],'interpmethod', 'nearest');
+        title('Steady state visually evoked field - blanks (10 Hz) Incoherent spectrum');
+        
         if opt.saveFig
             print(fh1, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh', subjID)))
-            print(fh2, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh', subjID)))
+            print(fh2, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_diff', subjID)))
+            print(fh3, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh', subjID)))
+            print(fh4, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_diff', subjID)))
         end
         
     end % opt.verbose
