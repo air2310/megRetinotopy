@@ -43,9 +43,9 @@ prf = struct();
 for idx = 1:length(prfParams)
     
     % Load prf params
-    param     = dir(fullfile(prfSurfPath, sprintf('*.%s',prfParams{idx})));
+    param     = dir(fullfile(prfSurfPath, sprintf('pial.%s',prfParams{idx})));
     
-    if regexp(param.name, 'mgz', 'ONCE')
+    if regexp(param.name, '.mgz', 'ONCE')
         tmp = MRIread(fullfile(prfSurfPath,param.name));
         theseData = tmp.vol;
     else
