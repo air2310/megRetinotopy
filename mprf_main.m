@@ -57,7 +57,7 @@ opt = getOpts;
 if strcmp(subjID, 'wlsubj068')
     opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
 elseif strcmp(subjID, 'wlsubj039')
-    opt = getOpts('betaPrctileThresh',[0 90], 'useCoherentSpectrum', true);
+    opt = getOpts('betaPrctileThresh',[0 89], 'useCoherentSpectrum', true);
 end
 
 %% 1. MEG data preprocessing
@@ -99,67 +99,59 @@ clear gainMtx data stim conditions
 
 %% 2 MRI data preprocessing
 
+% Pre-requisits:
+% (1) preprocessing of raw data into preprocessed nifti's
+% (2) Running pRF model in mrVista (voxel space) to get Gray RM modelfits
+% (3) Having Wang et al. (2015) atlas in subject's FreeSurfer directory 
+
 mri     = struct();
 
-if opt.useBensonMaps 
+if opt.useBensonMaps % Use benson maps or not
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
-elseif opt.fullSizeGainMtx
+elseif opt.fullSizeGainMtx % if using full gain matrix, we need pRF params on FreeSurfer surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfFS;  
-else
+else % if using downsampled gain matrix, we need pRF params on Brainstorm surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfBS;
 end
 
-% Preprocessing
-% input - raw fMRI data (dicoms)
-% output - preprocessed fMRI (.nii) - voxels x #tr
-
-%************<code>***************
-
-% Running pRF model in mrVista (voxel space)
-% input - preprocessed fMRI (.nii)
-%       - fMRI stimuli
-% output - pRF parameters - voxels x #parameters
-
-%************<code>***************
-
-% Wang et al rois + smoothing pRF params (recomp beta) + exporting to FS + exporting to BS
+% This section will get Wang et al rois + smoothing pRF params (recomp
+% beta) + exporting to FS + exporting to BS
+% 
 % input - pRF parameters in mrVista voxel space
 %       - freesurfer directory for the subject (from step Anatomy)
-%         - anatomy
-%         - pial surface files
-%       - BS surface files
+%       - freesurfer anatomy - white and pial surface files
+%       - BS pial surface files
 % output - pRF parameters in BS
-
-%************<code>***************
-
-% prf parameters + ROIs on mrVista volume space
 
 if ~opt.skipMRIPreproc
 
-    %mprf_ROI % ROIs on mrVista space
-    mprf_pRF_sm(dirPth, opt); % pRF params from mrV >> smoothed pRF params on mrV (flag)
+    % MRVISTA>>MRVISTA: Smoothing pRF params (and then recompute beta values with smoothed parameters)
+    mprf_pRF_sm(dirPth, opt);
 
+    % Get summary figures for pRF parameters before/after smoothing
     if opt.verbose
-        mprf_pRF_sm_fig(dirPth, opt); % Generates summary figures for the pRF parameters before after smoothing
+        mprf_pRF_sm_fig(dirPth, opt); 
         close all;
     end
     
-    mprf_pRF_sm_FS(dirPth,opt); % smoothed pRF params on mrV >> smoothed pRF params on FS
-     
+    % MRVISTA>>FREESURFER: Get smoothed pRF params on FreeSurfer mid gray surface
+    mprf_pRF_sm_FS(dirPth,opt);
+    
+    % Get summary figures for pRF parameters before/after smoothing
     if opt.verbose
         mprf_pRF_sm_FS_fig(dirPth,opt);
         close all;
     end
     
-    mprf_pRF_sm_FS_BS(subjID, dirPth,opt); % smoothed pRF params on FS >>  smoothed pRF params on BS
+    % FREESURFER>>BRAINSTORM: Get smoothed pRF params and ROIs on Brainstorm pial surface
+    mprf_pRF_sm_FS_BS(subjID, dirPth,opt);
     
     if opt.verbose
         mprf_pRF_sm_FS_BS_fig(dirPth,opt);
         close all;
     end
-    % smoothed prf parameters + ROIs on BS (pial) surface saved
-
 end
+
 
 % If perturbing original pRF parameters on the cortical surface:
 if opt.perturbOrigPRFs  
