@@ -3,14 +3,14 @@ function [] = megRet_exportNiftis(subject, sessionDir)
 %% Configuration
 
 outputPath = fullfile(sessionDir, 'Outputs');
-
+if ~exist(outputPath, 'dir'); mkdir(outputPath); end
 % If you don't have SUBJECTS_DIR set, then you'll need to set this manually
 % to be your FreeSurfer subject's directory
 % fs_subjects_dir = '/Volumes/server/Freesurfer_subjects';
 
 % If your subject has a different FreeSurfer subject ID than VistaSoft ID,
 % you must set this to the subject's freesurfer id:
-% freesurfer_id = 'wl_subj001';
+freesurfer_id = subject;
 
 %% Deducing the remaining configuration data
 %  We assume that this file is in <something>/<subject>/code/scriptname.m
