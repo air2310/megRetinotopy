@@ -94,6 +94,8 @@ end
 
 if opt.useCoherentSpectrum
     opt.subfolder             = [opt.subfolder '/coherent'];
+else
+    opt.subfolder             = [opt.subfolder '/incoherent'];
 end
 
 return
