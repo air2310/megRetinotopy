@@ -7,7 +7,7 @@ function predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfaceResponse,
 %   predSurfaceResponse : predicted responses from surface
 %                           (epochs x vertices)
 %   gain                : gain matrix, defines weighted sum of vertices
-%                           contributing to each individual MEG sensor 
+%                           contributing to each individual MEG sensor
 %                           (sensors x vertices)
 %   dirPth              : paths to files for given subject
 %   opt                 : struct with boolean flag options
@@ -37,7 +37,7 @@ elseif ~opt.perturbOrigPRFs
 end
 
 % Keep a copy of all responses
-predSurfaceResponseAll = predSurfaceResponse; 
+predSurfaceResponseAll = predSurfaceResponse;
 
 
 % Allocate space
@@ -55,7 +55,7 @@ end
 
 %% Debug figures
 if opt.verbose
-    if opt.saveFig 
+    if opt.saveFig
         if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'), 'dir')
             mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse'));
         end
@@ -76,6 +76,23 @@ if opt.verbose
                 sprintf('predMEGResponseFromPRF%s_%d', opt.fNamePostFix, ii)), '-dpng')
         end
     end
+    
+    figure, set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
+    if nIter > 1
+        cols = round(nIter/3);
+        rows = round(nIter/cols)+1;
+    else
+        cols = 1; rows = 1;
+    end
+    for ii = 1:nIter
+        subplot(cols,rows,ii)
+        megPlotMap(squeeze(nanvar(predMEGResponse(:,:,ii))),[],[],[],[],[],[],'interpmethod', 'nearest');
+    end
+    if opt.saveFig
+        print(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predMEGResponse', ...
+            sprintf('predMEGResponseFromPRF%s_varianceAcrossEpochs', opt.fNamePostFix)), '-dpng')
+    end
+    
 end
 
 % Remove last dimension out, if not used
