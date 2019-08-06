@@ -101,14 +101,9 @@ switch subjID
     case 'wlsubj058'
         triggers.ts = meg_fix_triggers_wlsubj058(ts,opt.triggerChan);
         triggers.timing = find(triggers.ts);
-    case 'wlsubj068'
+    otherwise % {'wlsubj068', 'wlsubj039', 'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111', 'wlsubj112','}
         triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
         triggers.timing = find(triggers.ts);
-    case 'wlsubj039'
-        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
-        triggers.timing = find(triggers.ts);
-    otherwise
-        error('(%s) Can''t find subject ID', mfilename)
 end
 
 % Check the median trigger length (should be 1300 ms, note that after epoching this will be 1100 ms)
@@ -273,6 +268,8 @@ if opt.verbose; fprintf('(%s) Check for bad channels or epochs in data...\n', mf
 
 if strcmp(subjID, 'wlsubj040')
     badChannels([98, 42]) = 1;
+elseif strcmp(subjID, 'wlsubj081')
+    badChannels(11) = 1;
 end
 
 opt.badChannels = badChannels;
@@ -326,7 +323,7 @@ if opt.doDenoise
     uniqueStimConds = uniqueStimConds(uniqueStimConds<10);
     
     for ii = 1:length(uniqueStimConds)
-        designConditions(triggers.stimConditions==uniqueStimConds(ii))=ii;
+        designConditions(triggers.stimConditions==uniqueStimConds(ii))=1;
     end
     
     designMatrix     = conditions2design(designConditions);
@@ -393,46 +390,8 @@ if opt.doDenoise
             drawnow;
         end
         
-        % stim and blank SSVEF for incoherent spectrum
-        allAmps                 = abs(fft(dataDenoised,[],2))/size(dataDenoised,2)*2;
-        epochsStimToPlot        = triggers.stimConditions<10;
-        stimDataToPlot.incoh    = squeeze(nanmean(allAmps(:,freqIdx,epochsStimToPlot),3));
-        
-        epochsBlankToPlot       = triggers.stimConditions==10;
-        blankDataToPlot.incoh   = squeeze(nanmean(allAmps(:,freqIdx,epochsBlankToPlot),3));
-        
-        % stim and blank SSVEF for coherent spectrum
-        meanStimTs  = nanmean(dataDenoised(:,:,epochsStimToPlot),3);
-        meanBlankTs = nanmean(dataDenoised(:,:,epochsBlankToPlot),3);
-        
-        meanAmpsStim = abs(fft(meanStimTs, [], 2))/size(dataDenoised,2)*2;
-        meanAmpsBlank = abs(fft(meanBlankTs, [], 2))/size(dataDenoised,2)*2;
-        
-        stimDataToPlot.coh = squeeze(meanAmpsStim(:,freqIdx));
-        blankDataToPlot.coh = squeeze(meanAmpsBlank(:,freqIdx));
-
-        fh1 = figure;
-        megPlotMap(stimDataToPlot.coh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field (10 Hz); Coherent spectrum');
-        
-        fh2 = figure;
-        megPlotMap(stimDataToPlot.coh-blankDataToPlot.coh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field - blanks (10 Hz) Coherent spectrum');
-        
-        fh3 = figure;
-        megPlotMap(stimDataToPlot.incoh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field (10 Hz) Incoherent spectrum');
-        
-        fh4 = figure;
-        megPlotMap(stimDataToPlot.incoh-blankDataToPlot.incoh,[],[],[],[],[],[],'interpmethod', 'nearest');
-        title('Steady state visually evoked field - blanks (10 Hz) Incoherent spectrum');
-        
-        if opt.saveFig
-            print(fh1, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh', subjID)))
-            print(fh2, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_diff', subjID)))
-            print(fh3, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh', subjID)))
-            print(fh4, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_diff', subjID)))
-        end
+        % Plot meshes for stim - blank SSVEF and 10 Hz SNR 
+        plotSSVEFmesh(dataDenoised, triggers.stimConditions, subjID, dirPth, opt)
         
     end % opt.verbose
 end % opt.doDenoise
