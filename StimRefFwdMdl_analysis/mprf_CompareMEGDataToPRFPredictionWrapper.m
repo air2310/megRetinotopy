@@ -68,7 +68,7 @@ for ii = 1:nIter
     phRefAmp10Hz    = phRefAmp10HzAll(:,:,:,ii);
     
     [meanPredResponse(:,:,ii),meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
-        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, opt);
+        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse);
     
     
     
