@@ -1,4 +1,4 @@
-function [meanPredResponse,meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, opt)
+function [meanPredResponse,meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse)
 % Function to compare phase referenced steady-state data MEG data
 % to predicted MEG responses from MRI prfs
 %
