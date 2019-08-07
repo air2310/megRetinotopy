@@ -1,16 +1,19 @@
-function visualizeBrainstormMesh(anatDir, data, cmap, thresh, clims, meshType, ttl)
+function im = visualizeBrainstormMesh(anatDir, data, cmap, thresh, clims, meshType, ttl, fH)
 
-
+%% Check outputs
+if nargout > 0, visibleFlag = 'off'; else, visibleFlag = 'on'; end
 
 %% Check inputs
 
 if ~exist('meshType','var') || isempty(meshType)
     bs_pial_low = load(fullfile(anatDir, 'tess_cortex_pial_low.mat'));
 else
+    bs_pial_low = load(fullfile(anatDir, 'tess_cortex_pial_low.mat'));
     if strcmp(meshType,'smooth')
-        bs_pial_low = load(fullfile(anatDir, 'tess_cortex_pial_low_fig.mat'));
-    elseif strcmp(meshType,'unsmooth')
-        bs_pial_low = load(fullfile(anatDir, 'tess_cortex_pial_low.mat'));
+        smoothed = load(fullfile(anatDir, 'tess_cortex_pial_low_fig.mat'));
+        bs_pial_low.Vertices    = smoothed.Vertices;
+        bs_pial_low.Faces       = smoothed.Faces;
+        bs_pial_low.Comment     = smoothed.Comment;
     end
 end
 
@@ -28,13 +31,16 @@ end
 if ~exist('clims','var') || isempty(clims)
     clims = [min(data(:)), max(data(:))];
 end
+if any(isnan(clims)) ||  isequal(clims,[0 0]), clims = [0 1]; end
 
 if ~exist('ttl','var') || isempty(ttl)
     ttl = 'Brainstorm Mesh';
 end
 
 % Plot mean amplitude across epochs
-figure; set(gcf, 'Color', 'w', 'Position', [163 483 891 554])
+if ~exist('fH', 'var') || isempty(fH)
+    fH = figure('Visible', visibleFlag); set(fH, 'Color', 'w', 'Position', [163 483 891 554])
+end
 
 % Set up mesh
 tH = trimesh(bs_pial_low.Faces,bs_pial_low.Vertices(:,1),bs_pial_low.Vertices(:,2),bs_pial_low.Vertices(:,3));
@@ -56,8 +62,8 @@ colors(curv>0,:) = .75;
 ii = find(data>thresh);
 Z = data(ii);
 
-% Convert to 1-266
-Z_ind = round(sz.*((Z-min(Z)) ./ (max(Z)-min(Z))))+1;
+% Convert to 1-256
+Z_ind = round(sz.*((Z-clims(1)) ./ (clims(2)-clims(1))))+1;
 
 % overlay in colors variable
 colors(ii,:) = cmap(Z_ind,:);
@@ -65,7 +71,7 @@ colors(ii,:) = cmap(Z_ind,:);
 % set source pediction as colors
 set(tH, 'LineStyle', 'none', 'FaceColor', 'interp', 'FaceVertexCData', colors);
 % 
-colormap(cmap); colorbar; set(gca, 'CLim',clims);
+colormap(cmap); colorbar; set(gca, 'CLim',clims, 'view', [-90 0]);
 
 pos = [-.1 0 .1];
 light('Position',pos,'Style','local')
@@ -73,7 +79,7 @@ light('Position',pos,'Style','local')
 material shiny; %dull
 title(sprintf('%s', ttl)); 
 
-drawnow;
+if strcmpi(visibleFlag,'on'),  drawnow; else, im = getframe(fH); end
 
 
 return
