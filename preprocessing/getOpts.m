@@ -10,13 +10,13 @@ function opt = getOpts(varargin)
 
 
 % --- GENERAL ---
-opt.skipMEGPreproc        = true;           % General
-opt.skipMRIPreproc        = true;           % General
-opt.verbose               = true;          % General
-opt.doSaveData            = true;           % General
-opt.saveFig               = true;           % General
-opt.fullSizeGainMtx       = false;           % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
-opt.surfVisualize         = false;          % General: visualize surface meshes
+opt.skipMEGPreproc        = true;               % General
+opt.skipMRIPreproc        = true;               % General
+opt.verbose               = true;               % General
+opt.saveData              = true;               % General
+opt.saveFig               = true;               % General
+opt.fullSizeMesh          = false;              % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
+opt.surfVisualize         = false;              % General: visualize surface meshes
 opt.subfolder             = 'original'; 
 
 % --- MEG Preproc ---
@@ -41,9 +41,10 @@ opt.mri.varExplThresh         = [0.1 inf];      % MRI prf model: Remove low vari
 opt.mri.betaPrctileThresh     = [0 100];        % MRI prf model: Remove beta outliers by only taking data between 0 and xxth percentile
 opt.mri.useSmoothedData       = true;           % MRI prf model: Use smoothed surface data or not
 opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
+opt.mri.predSurfVarThresh     = [0 500];        % MRI prf model: if the variance of a predicted vertex response response is x1 times smaller or x2 times bigger than median, remove this response 
 
 % --- PERTUBATION of pRF models ---
-opt.vary.perturbOrigPRFs       = false;          % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
+opt.vary.perturbOrigPRFs       = false;         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
 opt.vary.position              = [];
 opt.vary.size                  = [];
 opt.vary.nScrambles            = [];
@@ -54,7 +55,7 @@ opt.roi.onlyV123WangAtlas     = false; % set to true in case you want to only us
 
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
-    opt.mri.useBensonMaps, opt.fullSizeGainMtx, opt.mri.useSmoothedData);
+    opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData);
 
 
 %% Check for extra inputs in case changing the default options
