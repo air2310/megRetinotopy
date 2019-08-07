@@ -71,7 +71,7 @@ if ~opt.skipMEGPreproc
     stim  = stim.MEG;
     
     % 1.3 Get Gain matrix (produced via brainstorm)
-    gainMtx             = loadGainMtx(subjID, dirPth, opt);
+    gainMtx  = loadGainMtx(subjID, dirPth, opt);
     
 else % If you want to skip preprocessing
     load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'epoched_data_hp_preproc_denoised.mat'), 'data');
@@ -106,7 +106,7 @@ mri     = struct();
 
 if opt.mri.useBensonMaps % Use benson maps or not
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
-elseif opt.fullSizeGainMtx % if using full gain matrix, we need pRF params on FreeSurfer surface
+elseif opt.fullSizeMesh % if using full gain matrix, we need pRF params on FreeSurfer surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfFS;  
 else % if using downsampled gain matrix, we need pRF params on Brainstorm surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfBS;
