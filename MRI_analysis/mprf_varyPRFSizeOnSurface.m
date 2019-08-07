@@ -47,7 +47,7 @@ prf.(fn_varySigma) = sigma * range;
 
 
 % Create file names for x,y vary position data and save in same folder
-if opt.doSaveData
+if opt.saveData
     
     surfdata = prf.(fn_varySigma);
     surfdatamgzfile = sprintf('%s/%s.%s.mgz', prfSurfPath, 'pial', fn_varySigma);
