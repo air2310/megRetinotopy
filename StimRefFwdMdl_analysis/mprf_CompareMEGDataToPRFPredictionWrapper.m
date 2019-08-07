@@ -26,19 +26,19 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrap
 
 
 % If perturb original pRFs, check dimensions with loaded pRF data
-if strcmp(opt.perturbOrigPRFs, 'position')
-    assert(size(phRefAmp10Hz,4)==length(opt.varyPosition))
-    assert(size(predMEGResponse,3)==length(opt.varyPosition))
-    nIter = length(opt.varyPosition);
-elseif strcmp(opt.perturbOrigPRFs, 'size')
-    assert(size(phRefAmp10Hz,4)==length(opt.varySize))
-    assert(size(predMEGResponse,3)==length(opt.varySize))
-    nIter = length(opt.varySize);
-elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(phRefAmp10Hz,4)==opt.nScrambles)
-    assert(size(predMEGResponse,3)==opt.nScrambles)
-    nIter = opt.nScrambles;
-elseif ~opt.perturbOrigPRFs
+if strcmp(opt.vary.perturbOrigPRFs, 'position')
+    assert(size(phRefAmp10Hz,4)==length(opt.vary.position))
+    assert(size(predMEGResponse,3)==length(opt.vary.position))
+    nIter = length(opt.vary.position);
+elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
+    assert(size(phRefAmp10Hz,4)==length(opt.vary.size))
+    assert(size(predMEGResponse,3)==length(opt.vary.size))
+    nIter = length(opt.vary.size);
+elseif strcmp(opt.vary.perturbOrigPRFs, 'scramble')
+    assert(size(phRefAmp10Hz,4)==opt.vary.nScrambles)
+    assert(size(predMEGResponse,3)==opt.vary.nScrambles)
+    nIter = opt.vary.nScrambles;
+elseif ~opt.vary.perturbOrigPRFs
     nIter = 1;
 end
 
@@ -49,7 +49,7 @@ predMEGResponseAll = predMEGResponse;
 phRefAmp10HzAll    = phRefAmp10Hz;
 
 % Allocate space
-if opt.useCoherentSpectrum
+if opt.meg.useCoherentSpectrum
     [nEpochs, ~, nSensors] = size(phRefAmp10Hz);
 else
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
@@ -99,7 +99,7 @@ for ii = 1:nIter
         
         % Plot Mean phase-referenced steady-state response and predicted response to
         % stimulus for top 10 sensors
-        t = (0:nEpochs-1) .* diff(opt.epochStartEnd);
+        t = (0:nEpochs-1) .* diff(opt.meg.epochStartEnd);
         
         fH2 = figure(2); clf; set(fH2, 'Position', [652, 38,1206,1300], 'Color', 'w', 'Name', ...
             sprintf('Mean phase-ref MEG data and predicted response from pRF %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4}));

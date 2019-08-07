@@ -19,19 +19,17 @@ function prf = mprf_varyPRFSizeOnSurface(prfSurfPath, opt)
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 % Get range to vary prf position
-if (~isfield(opt,'varySize') || isempty(opt.varySize))
+if (~isfield(opt.vary,'size') || isempty(opt.vary.size))
     error('(%s): Range to vary prf size is not defined in opt', mfilename)
 else
-    range = opt.varySize;
+    range = opt.vary.size;
 end
 
 if opt.verbose; fprintf('(%s): Scale pRF sizes with factors: %s\n', mfilename, sprintf('%1.1f ', range)); end
 
 
 % Load prf parameters on surface
-% if (~opt.useBensonMaps && opt.useSmoothedData)
-%     prfParams = {'varexplained', 'recomp_beta', 'mask', 'x_smoothed', 'y_smoothed'};
-if opt.useBensonMaps
+if opt.mri.useBensonMaps
     prfParams = {'mask', 'beta','x','y','sigma'};
 else
     prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed','y_smoothed','sigma_smoothed'};

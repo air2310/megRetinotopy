@@ -128,10 +128,10 @@ end
 %--------------------------------------------------------------------------
 
 % Either export hand-drawn on mrVista mesh to the Freesurfer space,
-% which can be set by opt.roimrvToFS = true
+% which can be set by opt.roi.roimrvToFS = true
 % Otherwise locate probabilistic atlas from Wang et al (2015)
 
-if ~opt.roimrvToFS
+if ~opt.roi.roimrvToFS
     fprintf('(%s): Trying to load Wang et al. 2015 probabilistic atlas on FreeSurfer surface in roi dir\n', mfilename)
 
     roifname      = @(hem)(sprintf('%s/surf/%s.wang2015_atlas.mgz', dirPth.fs.segPth, hem));
@@ -146,7 +146,7 @@ if ~opt.roimrvToFS
 %     end
     
     
-elseif opt.roimrvToFS
+elseif opt.roi.roi.roimrvToFS
     
     for h = 1:length(hemis)
         curHemi = hemis{h};

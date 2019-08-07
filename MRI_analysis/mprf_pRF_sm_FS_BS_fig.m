@@ -73,8 +73,8 @@ roiData = loadWangROIs(roiBSDir, 'pial.wang2015_atlas', combineHemi, combineRois
 
 % construct 2 masks: one for Variance Explained above 10%, one with
 % eccentricity below 10 deg.
-vemask    = (prfData.varexplained > opt.varExplThresh(1) & prfData.varexplained < opt.varExplThresh(2));
-eccenmask = (prfData.eccentricity > opt.eccThresh(1) & prfData.eccentricity < opt.eccThresh(2));
+vemask    = (prfData.varexplained > opt.mri.varExplThresh(1) & prfData.varexplained < opt.mri.varExplThresh(2));
+eccenmask = (prfData.eccentricity > opt.mri.eccThresh(1) & prfData.eccentricity < opt.mri.eccThresh(2));
 
 % Apply roi masks to pRF parameters
 fnPrf = fieldnames(prfData);
@@ -97,7 +97,7 @@ for p = 1:length(fnPrf)
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
             data = data(roiMask);
-            thresh = prctile(data, opt.betaPrctileThresh);
+            thresh = prctile(data, opt.mri.betaPrctileThresh);
             betamask = ((data > thresh(1)) & (data < thresh(2)));
             prfROIData.(fnRoi{r}).(fnPrf{p}) = data(betamask);
         else

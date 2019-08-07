@@ -59,8 +59,8 @@ for idx = 1:length(prfParams)
             prf.(prfParams{idx}) = theseData;
             
             % Check variance explained by pRF model and make mask if requested
-            if any(opt.varExplThresh)
-                prf.vemask = ((prf.varexplained > opt.varExplThresh(1)) & (prf.varexplained < opt.varExplThresh(2)));
+            if any(opt.mri.varExplThresh)
+                prf.vemask = ((prf.varexplained > opt.mri.varExplThresh(1)) & (prf.varexplained < opt.mri.varExplThresh(2)));
             else % If not, make mask with all ones
                 prf.vemask = true(size(prf.varexplained));
             end
@@ -70,11 +70,11 @@ for idx = 1:length(prfParams)
             
             % Benson maps don't have variance explained map, so we just use the
             % same vertices as the roi mask
-            if opt.useBensonMaps; prf.vemask = prf.roimask; end
+            if opt.mri.useBensonMaps; prf.vemask = prf.roimask; end
             
         case {'beta', 'recomp_beta'}
-            if any(opt.betaPrctileThresh)
-                thresh = prctile(theseData, opt.betaPrctileThresh);
+            if any(opt.mri.betaPrctileThresh)
+                thresh = prctile(theseData, opt.mri.betaPrctileThresh);
                 betamask = ((theseData > thresh(1)) & (theseData < thresh(2)));
                 theseData(~betamask) = NaN;
                 prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);

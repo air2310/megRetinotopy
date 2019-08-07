@@ -85,7 +85,7 @@ end
 %% --------------------------------------------------------------------
 % Export rois
 %----------------------------------------------------------------------
-if opt.roimrvToFS % in case you want to use the hand-drawn rois from mrVista
+if opt.roi.roimrvToFS % in case you want to use the hand-drawn rois from mrVista
     
     lhFiles = dir(fullfile(roi_dir_FS,'lh.*'));
     

@@ -96,8 +96,8 @@ numRoi = length(roiName);
 prfROIData = struct();
 fn = fieldnames(prf);
 
-vemask    = (prf.varexplained > opt.varExplThresh(1) & prf.varexplained < opt.varExplThresh(2));
-eccenmask = (prf.eccentricity > opt.eccThresh(1) & prf.eccentricity < opt.eccThresh(2));
+vemask    = (prf.varexplained > opt.mri.varExplThresh(1) & prf.varexplained < opt.mri.varExplThresh(2));
+eccenmask = (prf.eccentricity > opt.mri.eccThresh(1) & prf.eccentricity < opt.mri.eccThresh(2));
 
 for p = 1:length(fn)
     
@@ -109,11 +109,11 @@ for p = 1:length(fn)
         
         if strcmp(thisFieldName,'varexplained')
             data = data(roiLoc{roiIdx});
-            prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));
+            prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.mri.varExplThresh(1) & data < opt.mri.varExplThresh(2));
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
             data = data(roiLoc{roiIdx});
-            thresh = prctile(data, opt.betaPrctileThresh);
+            thresh = prctile(data, opt.mri.betaPrctileThresh);
             betamask = ((data > thresh(1)) & (data < thresh(2)));
             prfROIData.(roiName{roiIdx}).(fn{p}) = data(betamask);
         else
@@ -180,7 +180,7 @@ for roi_idx = 1:numRois
     title(roiName{roi_idx}, 'FontSize', 15)
     legend('original','smoothed','Location','NorthWest')
     legend('Location','NorthWest')
-    ylim([0 opt.eccThresh(2)]); xlim([0 opt.eccThresh(2)]); axis square
+    ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
     ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -197,7 +197,7 @@ for roi_idx = 1:numRois
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    xlim([0 opt.eccThresh(2)]); box off;
+    xlim([0 opt.mri.eccThresh(2)]); box off;
     ylabel('Frequency'); xlabel('PRF size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -213,7 +213,7 @@ for roi_idx = 1:numRois
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
     h.EdgeColor = 'w';
-    xlim([0 opt.eccThresh(2)]); box off;
+    xlim([0 opt.mri.eccThresh(2)]); box off;
     ylabel('Frequency'); xlabel('PRF smoothed size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
@@ -222,7 +222,7 @@ end
 % Beta histogram
 %-----------------------
 figure(6), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
-maxBeta = prctile(prfROIData.allROI.beta,[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
+maxBeta = prctile(prfROIData.allROI.beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
 
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
@@ -241,7 +241,7 @@ end
 % recomputed beta histogram
 %-----------------------
 figure(7), clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Recomputed beta')
-maxBeta = prctile(prfROIData.allROI.recomp_beta,[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
+maxBeta = prctile(prfROIData.allROI.recomp_beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
     dataToPlot = prfROIData.(roiName{roi_idx}).recomp_beta;
@@ -361,12 +361,12 @@ if opt.surfVisualize
             case {'eccentricity', 'eccentricity_smoothed'}
                 % Set colormap and limits
                 vw.ui.mapMode = setColormap(vw.ui.mapMode, 'hsvTbCmap');
-                vw = viewSet(vw, 'mapwin', [eps opt.eccThresh(2)]);
-                vw = viewSet(vw, 'mapclip', [eps opt.eccThresh(2)]);
+                vw = viewSet(vw, 'mapwin', [eps opt.mri.eccThresh(2)]);
+                vw = viewSet(vw, 'mapclip', [eps opt.mri.eccThresh(2)]);
                 
             case {'beta', 'recomp_beta'}
-                if opt.betaPrctileThresh
-                    maxBetaCmap = prctile(vw.map{1},[opt.betaPrctileThresh(1) opt.betaPrctileThresh(2)]);
+                if opt.mri.betaPrctileThresh
+                    maxBetaCmap = prctile(vw.map{1},[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
                     vw = viewSet(vw, 'mapwin', [eps maxBetaCmap]);
                     vw = viewSet(vw, 'mapclip', [eps maxBetaCmap]);
                 end

@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj068';
+subjID = 'wlsubj109';
 
 %%
 % Load paths with data files for this subject
@@ -54,10 +54,8 @@ cd(mprf_rootPath)
 % Set options
 opt = getOpts;
 
-if strcmp(subjID, 'wlsubj068')
-    opt = getOpts('betaPrctileThresh', [0 94]); % default threshold of 95th percentile still gives very large/outlier beta values
-elseif strcmp(subjID, 'wlsubj039')
-    opt = getOpts('betaPrctileThresh',[0 89], 'useCoherentSpectrum', true);
+if strcmp(subjID, 'wlsubj039')
+    opt = getOpts('useCoherentSpectrum', true);
 end
 
 %% 1. MEG data preprocessing
@@ -106,7 +104,7 @@ clear gainMtx data stim conditions
 
 mri     = struct();
 
-if opt.useBensonMaps % Use benson maps or not
+if opt.mri.useBensonMaps % Use benson maps or not
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
 elseif opt.fullSizeGainMtx % if using full gain matrix, we need pRF params on FreeSurfer surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfFS;  

@@ -22,18 +22,16 @@ function prf = mprf_varyPRFPositionOnSurface(prfSurfPath, opt)
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 % Get range to vary prf position
-if (~isfield(opt,'varyPosition') || isempty(opt.varyPosition))
+if (~isfield(opt.vary,'position') || isempty(opt.vary.position))
     error('(%s): Range to vary prf position is not defined in opt', mfilename)
 else
-    range = opt.varyPosition;
+    range = opt.vary.position;
 end
 
 if opt.verbose; fprintf('(%s): Rotate pRF position along polar angles: %s\n', mfilename, sprintf('%1.1f ', range)); end
 
 % Load prf parameters on surface
-% if (~opt.useBensonMaps && opt.useSmoothedData)
-%     prfParams = {'varexplained', 'recomp_beta', 'mask', 'x_smoothed', 'y_smoothed'};
-if opt.useBensonMaps
+if opt.mri.useBensonMaps
     prfParams = {'mask', 'beta','x', 'y'};
 else
     prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed', 'y_smoothed'};

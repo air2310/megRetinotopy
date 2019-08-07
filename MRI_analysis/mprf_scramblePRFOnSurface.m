@@ -23,17 +23,15 @@ function prf = mprf_scramblePRFOnSurface(prfSurfPath, opt)
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 % Get range to vary prf position
-if (~isfield(opt,'nScrambles') || isempty(opt.nScrambles))
+if (~isfield(opt.vary,'nScrambles') || isempty(opt.vary.nScrambles))
     error('(%s): Number of scrambling iterations is not defined in opt', mfilename)
 end
 
-if opt.verbose; fprintf('(%s): Scramble pRFs  %dx\n', mfilename, opt.nScrambles); end
+if opt.verbose; fprintf('(%s): Scramble pRFs  %dx\n', mfilename, opt.vary.nScrambles); end
 
 
 % Load prf parameters on surface
-% if (~opt.useBensonMaps && opt.useSmoothedData)
-%     prfParams = {'varexplained', 'recomp_beta', 'mask', 'x_smoothed', 'y_smoothed'};
-if opt.useBensonMaps
+if opt.mri.useBensonMaps
     prfParams = {'mask', 'beta','x','y','sigma'};
 else
     prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed','y_smoothed','sigma_smoothed'};
@@ -56,7 +54,7 @@ rng('shuffle')
 
 % Get scrambling array
 idx = find(roimask&vemask);
-scr = randi(length(idx), length(idx), opt.nScrambles);
+scr = randi(length(idx), length(idx), opt.vary.nScrambles);
 
 % Rearrange original prf parameters with new scrambling location
 prf.x_smoothed_scramble            = x0(scr);

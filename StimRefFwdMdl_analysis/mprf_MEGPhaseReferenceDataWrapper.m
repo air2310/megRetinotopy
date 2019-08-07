@@ -28,16 +28,16 @@ end
 
 
 % If perturb original pRFs, check dimensions with loaded pRF data
-if strcmp(opt.perturbOrigPRFs, 'position')
-    assert(size(predMEGResponse,3)==length(opt.varyPosition))
-    nIter = length(opt.varyPosition);
-elseif strcmp(opt.perturbOrigPRFs, 'size')
-    assert(size(predMEGResponse,3)==length(opt.varySize))
-    nIter = length(opt.varySize);
-elseif strcmp(opt.perturbOrigPRFs, 'scramble')
-    assert(size(predMEGResponse,3)==opt.nScrambles)
-    nIter = opt.nScrambles;
-elseif ~opt.perturbOrigPRFs
+if strcmp(opt.vary.perturbOrigPRFs, 'position')
+    assert(size(predMEGResponse,3)==length(opt.vary.position))
+    nIter = length(opt.vary.position);
+elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
+    assert(size(predMEGResponse,3)==length(opt.vary.size))
+    nIter = length(opt.vary.size);
+elseif strcmp(opt.vary.perturbOrigPRFs, 'scramble')
+    assert(size(predMEGResponse,3)==opt.vary.nScrambles)
+    nIter = opt.vary.nScrambles;
+elseif ~opt.vary.perturbOrigPRFs
     nIter = 1;
 end
 
@@ -47,7 +47,7 @@ predMEGResponseAll = predMEGResponse;
 % Allocate space
 [nTimePoints, nEpochs, nRuns, nSensors] = size(megData);
 
-if  opt.useCoherentSpectrum
+if  opt.meg.useCoherentSpectrum
     phRefAmp10Hz = NaN(nEpochs, 2, nSensors, nIter); % only two runs as output, since it will be split half
 else
     phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);

@@ -67,7 +67,7 @@ print(fH2, fullfile(saveDir,'voxels_vethresh'), '-dpng');
 
 %% Load FS ROIs
 
-if opt.roimrvToFS
+if opt.roi.roimrvToFS
     lhROIFiles = dir(fullfile(roiFSDir,'lh.*'));
     
     roiDataFS = struct();
@@ -96,8 +96,8 @@ else
 end
 
 % Sample prf data for different visual areas
-vemask     = (prfDataFS.varexplained > opt.varExplThresh(1) & prfDataFS.varexplained < opt.varExplThresh(2));
-eccenmask  = (prfDataFS.eccentricity > opt.eccThresh(1) & prfDataFS.eccentricity < opt.eccThresh(2));
+vemask     = (prfDataFS.varexplained > opt.mri.varExplThresh(1) & prfDataFS.varexplained < opt.mri.varExplThresh(2));
+eccenmask  = (prfDataFS.eccentricity > opt.mri.eccThresh(1) & prfDataFS.eccentricity < opt.mri.eccThresh(2));
 prfROIData = struct();
 fnData     = fieldnames(prfDataFS);
 fnRoi      = fieldnames(roiDataFS);
@@ -112,11 +112,11 @@ for p = 1:length(fnData)
         data = prfDataFS.(fnData{p});
         roimask = roiDataFS.(fnRoi{r});
         if strcmp(thisFieldName,'varexplained')
-            prfROIData.(fnRoi{r}).(fnData{p}) = data(data > opt.varExplThresh(1) & data < opt.varExplThresh(2));
+            prfROIData.(fnRoi{r}).(fnData{p}) = data(data > opt.mri.varExplThresh(1) & data < opt.mri.varExplThresh(2));
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
             data = data(roimask>0);
-            thresh = prctile(data, opt.betaPrctileThresh);
+            thresh = prctile(data, opt.mri.betaPrctileThresh);
             betamask = ((data > thresh(1)) & (data < thresh(2)));
             prfROIData.(fnRoi{r}).(fnData{p}) = data(betamask);
         else
@@ -157,7 +157,7 @@ for roi_idx = 1:numRois
     title(fnRoi{roi_idx}, 'FontSize', 15)
     legend('original','smoothed','Location','NorthWest')
     legend('Location','NorthWest')
-    ylim([0 opt.eccThresh(2)]); xlim([0 opt.eccThresh(2)]); axis square
+    ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
     ylabel('PRF sigma (deg)'); xlabel('PRF eccen (deg');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end

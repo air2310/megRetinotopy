@@ -17,7 +17,7 @@ function mprf_perturbOrigPRFs(prfSurfPath, opt)
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
                       
 % Select appropiate pertubation function
-switch opt.perturbOrigPRFs
+switch opt.vary.perturbOrigPRFs
     
     case false
         warning('(%s): pRF pertubation option was not defined!', mfilename) 

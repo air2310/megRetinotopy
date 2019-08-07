@@ -50,7 +50,7 @@ if (opt.saveFig && ~exist(dirPth.meg.saveFigPth, 'dir'))
 end
 
 % Define and create 'processed' folder to save time series
-if opt.removeStartOfRunEpoch
+if opt.meg.removeStartOfRunEpoch
     saveDataPth = fullfile(dirPth.meg.processedDataPth, 'firstEpochRemoved');
 else
     saveDataPth = fullfile(dirPth.meg.processedDataPth, 'allEpochs');
@@ -87,22 +87,22 @@ if opt.verbose; fprintf('(%s) Get triggers from data...\n', mfilename); end
 % Get trigger time series (same length as MEG ts) and compute triggertiming
 switch subjID
     case 'wlsubj004'
-        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.meg.triggerChan,:)');
         triggers.ts(697111:729608) = 0;      % wlsubj004: remove half run (to do: make it a general statement, not hardcoded)
         triggers.timing = find(triggers.ts);
     case 'wlsubj030'
-        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.meg.triggerChan,:)');
         triggers.timing = find(triggers.ts);
         triggers.ts(triggers.timing(1)) = 0; % wlsubj030: remove first trigger (not sure why this one is here)
         triggers.timing = find(triggers.ts);
     case 'wlsubj040'
-        triggers.ts = meg_fix_triggers_wlsubj040(ts(opt.triggerChan,:)');
+        triggers.ts = meg_fix_triggers_wlsubj040(ts(opt.meg.triggerChan,:)');
         triggers.timing = find(triggers.ts);
     case 'wlsubj058'
-        triggers.ts = meg_fix_triggers_wlsubj058(ts,opt.triggerChan);
+        triggers.ts = meg_fix_triggers_wlsubj058(ts,opt.meg.triggerChan);
         triggers.timing = find(triggers.ts);
     otherwise % {'wlsubj068', 'wlsubj039', 'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111', 'wlsubj112','}
-        triggers.ts = meg_fix_triggers(ts(opt.triggerChan,:)');
+        triggers.ts = meg_fix_triggers(ts(opt.meg.triggerChan,:)');
         triggers.timing = find(triggers.ts);
 end
 
@@ -153,7 +153,7 @@ if opt.verbose
     fprintf('(%s) Number of epochs per stimulus orientation: %d\n', mfilename, numOfEpochsPerOrientation);
 end
 % Epoch matrix dimensions: time x epochs x channels
-[data, startOfRun] = getEpochs(ts(opt.dataChan,:), triggers, opt.epochStartEnd, opt.flickerFreq, opt.fs, subjID);
+[data, startOfRun] = getEpochs(ts(opt.meg.dataChan,:), triggers, opt.meg.epochStartEnd, opt.meg.flickerFreq, opt.meg.fs, subjID);
 
 if length(startOfRun) > numRuns+1
     warning('(%s) Variable "startOfRun" has more values (%d) than actual number of runs (%d).. resetting "startOfRuns".. \n', mfilename, length(startOfRun), numRuns)
@@ -167,7 +167,7 @@ sz = size(data);
 data(:, triggers.stimConditions==20,:) = NaN;     % 20: Blink blocks
 
 % If requested: set the first epoch of the first bar sweep to NaN
-if opt.removeStartOfRunEpoch
+if opt.meg.removeStartOfRunEpoch
     numBlinkBlanks = 5;
     if strcmp(subjID,'wlsubj030')
         beginOfSweep = 1:(numOfEpochsPerOrientation+numBlinkBlanks):numOfEpochsPerRun;
@@ -186,9 +186,9 @@ end
 
 % DEBUG: Plot a single channel to check data
 if opt.verbose
-    t = (0:size(data,1)-1)./opt.fs;
+    t = (0:size(data,1)-1)./opt.meg.fs;
     ft = (0:length(t)-1)/max(t);
-    freqIdx = mprfFreq2Index(size(data,1), opt.flickerFreq, opt.fs);
+    freqIdx = mprfFreq2Index(size(data,1), opt.meg.flickerFreq, opt.meg.fs);
     stimBarOnly = triggers.stimConditions<10;
     blankOnly = triggers.stimConditions==10;
     
@@ -207,7 +207,7 @@ if opt.verbose
         ampsBlank = abs(fft(data(:,blankOnly,chan)))/size(data,1)*2;
         plot(ft,nanmean(ampsStim,2)); hold on;
         plot(ft,nanmean(ampsBlank,2)); legend({'Stim', 'Blank'});
-        plot([opt.flickerFreq opt.flickerFreq], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
+        plot([opt.meg.flickerFreq opt.meg.flickerFreq], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
         plot([60 60], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
         plot([120 120], [min(nanmean(ampsStim,2)) max(nanmean(ampsStim,2))])
         xlim([1 150]); ylim([10^-15 10^-12]);
@@ -224,7 +224,7 @@ if opt.verbose
         ampsBlank = abs(fft(meanBlank))/size(data,1)*2;
         plot(ft,ampsStim); hold on;
         plot(ft,ampsBlank); legend({'Stim', 'Blank'});
-        plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(ampsStim,2))])
+        plot([opt.meg.flickerFreq opt.meg.flickerFreq], [0 max(nanmean(ampsStim,2))])
         plot([60 60], [min(ampsStim) max(ampsStim)])
         plot([120 120], [min(ampsStim) max(ampsStim)])
         xlim([1 150]); ylim([10^-16 10^-13]);
@@ -246,14 +246,14 @@ end
 
 %% 4. Filter MEG data
 
-if opt.doFiltering
+if opt.meg.doFiltering
     if opt.verbose; sprintf('(%s) High pass filter data...\n', mfilename); end
     
     fParams.fStop = 0.1;    % LowPass filter (Hz)
     fParams.fPass = 1;      % BandPass filter (Hz)
     fParams.aStop = 60;     % Amplitude of lowpass filter (dB)
     fParams.aPass = 3;      % Amplitude band pass Ripple (dB)
-    fParams.fs    = opt.fs;     % Sample rate (Hz)
+    fParams.fs    = opt.meg.fs;     % Sample rate (Hz)
     
     
     data = highPassFilterData(data, fParams, opt.verbose);
@@ -264,7 +264,7 @@ end
 if opt.verbose; fprintf('(%s) Check for bad channels or epochs in data...\n', mfilename); end
 
 [data, badChannels, badEpochs]  = nppPreprocessData(data, ...
-    opt.varThreshold, opt.badChannelThreshold, opt.badEpochThreshold, opt.verbose);
+    opt.meg.varThreshold, opt.meg.badChannelThreshold, opt.meg.badEpochThreshold, opt.verbose);
 
 if strcmp(subjID, 'wlsubj040')
     badChannels([98, 42]) = 1;
@@ -272,27 +272,27 @@ elseif strcmp(subjID, 'wlsubj081')
     badChannels(11) = 1;
 end
 
-opt.badChannels = badChannels;
-opt.badEpochs   = badEpochs;
+opt.meg.badChannels = badChannels;
+opt.meg.badEpochs   = badEpochs;
 
 if opt.saveFig; print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID))); end
 
 %% 6. Denoise time series
 
-if opt.doDenoise
+if opt.meg.doDenoise
     if opt.verbose; sprintf('(%s) Denoise data...\n', mfilename); end
     
     % Define denoising options
-    opt.use3Channels        = false;
-    opt.removeFirstEpoch    = false;
-    opt.removeMsEpochs      = false;
-    opt.pcchoose            = 1.05;  % initial threshold
-    opt.npcs2try            = 10;    % max nr of PCs = 10
+    opt.meg.use3Channels        = false;
+    opt.meg.removeFirstEpoch    = false;
+    opt.meg.removeMsEpochs      = false;
+    opt.meg.pcchoose            = 1.05;  % initial threshold
+    opt.meg.npcs2try            = 10;    % max nr of PCs = 10
     
     % Get 10 Hz evoked signal (fft power) to define noisepool and result
     switch subjID
         case {'wlsubj039', 'wlsubj040'} % get noisepool from coherent spectrum
-            freqIdx = mprfFreq2Index(size(data,1), opt.flickerFreq, opt.fs);
+            freqIdx = mprfFreq2Index(size(data,1), opt.meg.flickerFreq, opt.meg.fs);
             
             epochsToKeep = triggers.stimConditions<10;
             epochsToKeep = epochsToKeep(~badEpochs);
@@ -307,11 +307,11 @@ if opt.doDenoise
             noisePoolFun = logical(noisePool);
             
             % Define function to get results
-            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
 
         otherwise % evokedfun uses incoherent spectrum SSVEP
             % Define evoked signal function to get results (SSVEF from incoherent spectrum)
-            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.flickerFreq, opt.flickerFreq] ,opt.fs);
+            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
             
             % Define function to get noisepool (same in this case as evokedfun)
             noisePoolFun = evokedfun;
@@ -354,31 +354,37 @@ if opt.doDenoise
             print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth, sprintf('%s_r2_denoising', subjID)))
         end
         
-        freqIdx = mprfFreq2Index(size(denoised_data{1},2), opt.flickerFreq, opt.fs);
-        t = (0:size(denoised_data{1},2)-1)./opt.fs;
+        freqIdx = mprfFreq2Index(size(dataDenoised,2), opt.meg.flickerFreq, opt.meg.fs);
+        t = (0:size(denoised_data{1},2)-1)./opt.meg.fs;
         ft = (0:length(t)-1)/max(t);
         
         figure;
-        for chan = 1:size(denoised_data{1},1)
+        for chan = 1:size(dataDenoised,1)
             % Incoherent spectrum
             subplot(211); cla
-            amps = abs(fft(denoised_data{1}(chan,:,:),[],2))/size(denoised_data{1},2)*2;
+            ampsStim = squeeze(abs(fft(dataDenoised(chan,:,stimBarOnly),[],2)))/size(dataDenoised,2)*2;
+            ampsBlank = squeeze(abs(fft(dataDenoised(chan,:,blankOnly),[],2)))/size(dataDenoised,2)*2;
+
             
-            plot(ft,nanmean(squeeze(amps),2)); hold on;
-            plot([opt.flickerFreq opt.flickerFreq], [0 max(nanmean(squeeze(amps),2))]);
+            plot(ft,nanmean(ampsStim,2), 'r-'); hold on;
+            plot(ft,nanmean(ampsBlank,2), 'k-');
+            plot([opt.meg.flickerFreq opt.meg.flickerFreq], [0 max(nanmean(squeeze(ampsStim),2))]);
             title(sprintf('Incoherent spectrum: sensor %d', chan));
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
-            
+            legend({'Mean across stim epochs', 'Mean across blank epochs'})
             drawnow;
             
             % Coherent spectrum
             subplot(212); cla
-            meanDenoisedData = squeeze(nanmean(denoised_data{1}(chan,:,:),3));
-            amps = abs(fft(meanDenoisedData,[],2))/size(meanDenoisedData,2)*2;
-            
-            plot(ft,amps); hold on;
-            plot([opt.flickerFreq opt.flickerFreq], [min(amps) max(amps)]);
+            meanDenoisedDataStim = squeeze(nanmean(dataDenoised(chan,:,stimBarOnly),3));
+            meanDenoisedDataBlank = squeeze(nanmean(dataDenoised(chan,:,blankOnly),3));
+
+            ampsStim = abs(fft(meanDenoisedDataStim,[],2))/size(meanDenoisedDataStim,2)*2;
+            ampsBlank = abs(fft(meanDenoisedDataBlank,[],2))/size(meanDenoisedDataBlank,2)*2;
+
+            plot(ft,ampsStim, 'r-'); hold on; plot(ft,ampsBlank, 'k-'); 
+            plot([opt.meg.flickerFreq opt.meg.flickerFreq], [min(ampsStim) max(ampsStim)]);
             title(sprintf('Coherent spectrum: sensor %d', chan));
             xlim([1 100]); xlabel('Frequency (Hz)'); ylabel('Amplitudes (T)');
             set(gca, 'TickDir', 'out', 'FontSize', 14);
