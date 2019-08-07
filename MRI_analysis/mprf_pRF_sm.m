@@ -218,5 +218,40 @@ end
 fname = fullfile(prf_data_mrVmat,'exported_prf_params.mat');
 save(fname, 'prf_par_exp');
 
+
+%% ROIS
+
+% Define path to Wang atlas
+wangAtlasPath = sprintf(fullfile(dirPth.fs.segPth, 'mri',...
+    'native.wang2015_atlas.mgz'));
+
+vw = mrVista('3');
+
+%% Open meshes
+mesh1 = fullfile('3DAnatomy', 'Left', '3DMeshes', 'Left_inflated.mat');
+mesh2 = fullfile('3DAnatomy', 'Right', '3DMeshes', 'Right_inflated.mat');
+
+if ~exist(mesh1, 'file') || ~exist(mesh2, 'file')
+    error('Meshes not found. Please run t_meshFromFreesurfer.')
+end
+[vw, OK] = meshLoad(vw, mesh1, 1); if ~OK, error('Mesh server failure'); end
+[vw, OK] = meshLoad(vw, mesh2, 1); if ~OK, error('Mesh server failure'); end
+
+%% Wang ROIs
+
+% Convert mgz to nifti
+[pth, fname] = fileparts(wangAtlasPath);
+wangAtlasNifti = fullfile(pth, sprintf('%s.nii.gz', fname));
+
+ni = MRIread(wangAtlasPath);
+MRIwrite(ni, wangAtlasNifti);
+
+% Load the nifti as ROIs
+vw = wangAtlasToROIs(vw, wangAtlasNifti);
+
+% Save the ROIs
+local = false; forceSave = true;
+saveAllROIs(vw, local, forceSave);
+
 end
 
