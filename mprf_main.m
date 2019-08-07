@@ -166,24 +166,6 @@ end
 
 predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.stim, dirPth, opt);
 
-meshim = zeros(1108, 1782, 3, 140, 'uint8');
-cmap = hot(256);
-clim = [min(predSurfResponse(:)) max(predSurfResponse(:))];
-for ii = 1:140    
-    fprintf('.');
-    tmp = visualizeBrainstormMesh(dirPth.bs.anatPth, predSurfResponse(ii,:), cmap, .75, clim, 'smooth');%, [], fH)
-    meshim(:,:,:,ii) = uint8(tmp.cdata);
-end
-sz = size(meshim,1);
-stim = imresize(meg_stim.resizedIm, [sz sz]);
-stim = cat(4, stim, stim, stim); stim = permute(stim, [1 2 4 3]);
-mx = max(stim(:));
-stim = uint8(stim / mx * 255);
-
-movieim = cat(2, stim, meshim);
- 
-implay(movieim, 4);
-
 % 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
 %       inputs (1) predicted surface responses (on BS or FS surface)
