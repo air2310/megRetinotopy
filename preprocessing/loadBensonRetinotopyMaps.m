@@ -38,7 +38,7 @@ bsAnatDir = dirPth.bs.anatPth;
 fsdir     = dirPth.fsPth;
 
 % Check if we use full size or downsampled surfaces and gain matrix
-if opt.fullSizeGainMtx
+if opt.fullSizeMesh
     highres = true;
     subFolder = 'highres';
 else
@@ -54,12 +54,12 @@ if ~exist(saveDir, 'dir'); mkdir(saveDir); end
 %% 1.Create combined hemi template that matches vertices in BS Gain matrix
 
 % Note: time consuming and computationally heavy if you want a high resolution template!
-if (opt.fullSizeGainMtx) && (~exist(fullfile(bsAnatDir, 'highres', 'benson14areas_overlay.mat'), 'file'))
+if (opt.fullSizeMesh) && (~exist(fullfile(bsAnatDir, subFolder, 'benson14areas_overlay.mat'), 'file'))
     interp_retinotopy(bsDB, fsdir, subjID, subjID, bsProtocol, highres)
 end
 
 
-if (~opt.fullSizeGainMtx) && (~exist(fullfile(bsAnatDir, 'lowres', 'benson14areas_overlay.mat'), 'file'))
+if (~opt.fullSizeMesh) && (~exist(fullfile(bsAnatDir, subFolder, 'benson14areas_overlay.mat'), 'file'))
     interp_retinotopy(bsDB, fsdir, subjID, subjID, bsProtocol)
 end
 

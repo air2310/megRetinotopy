@@ -62,7 +62,7 @@ prf.y_smoothed_scramble            = y0(scr);
 prf.sigma_smoothed_scramble        = sigma(scr);
 prf.recomp_beta_scramble  = beta(scr);
 
-if opt.doSaveData
+if opt.saveData
     
     % get new filenames
     fn = fieldnames(prf);

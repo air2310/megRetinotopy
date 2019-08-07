@@ -24,25 +24,8 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrap
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 
-
-% If perturb original pRFs, check dimensions with loaded pRF data
-if strcmp(opt.vary.perturbOrigPRFs, 'position')
-    assert(size(phRefAmp10Hz,4)==length(opt.vary.position))
-    assert(size(predMEGResponse,3)==length(opt.vary.position))
-    nIter = length(opt.vary.position);
-elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
-    assert(size(phRefAmp10Hz,4)==length(opt.vary.size))
-    assert(size(predMEGResponse,3)==length(opt.vary.size))
-    nIter = length(opt.vary.size);
-elseif strcmp(opt.vary.perturbOrigPRFs, 'scramble')
-    assert(size(phRefAmp10Hz,4)==opt.vary.nScrambles)
-    assert(size(predMEGResponse,3)==opt.vary.nScrambles)
-    nIter = opt.vary.nScrambles;
-elseif ~opt.vary.perturbOrigPRFs
-    nIter = 1;
-end
-
-
+% Check dimensions with loaded pRF data, and set the number of iterations
+nIter = checkNumberOfIterations([{phRefAmp10Hz},{predMEGResponse}], opt, 'prfMEG');
 
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse;
@@ -152,7 +135,7 @@ end
 meanPredResponse = squeeze(meanPredResponse);
 meanVarExpl      = squeeze(meanVarExpl);
 
-if opt.doSaveData
+if opt.saveData
     save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl','-v7.3');
     save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPredResponse'), 'meanPredResponse','-v7.3');
     save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPhRefAmp10Hz'), 'meanPhRefAmp10Hz','-v7.3');

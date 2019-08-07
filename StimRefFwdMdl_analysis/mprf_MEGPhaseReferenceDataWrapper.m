@@ -26,20 +26,8 @@ if opt.saveFig
          mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
 end
 
-
-% If perturb original pRFs, check dimensions with loaded pRF data
-if strcmp(opt.vary.perturbOrigPRFs, 'position')
-    assert(size(predMEGResponse,3)==length(opt.vary.position))
-    nIter = length(opt.vary.position);
-elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
-    assert(size(predMEGResponse,3)==length(opt.vary.size))
-    nIter = length(opt.vary.size);
-elseif strcmp(opt.vary.perturbOrigPRFs, 'scramble')
-    assert(size(predMEGResponse,3)==opt.vary.nScrambles)
-    nIter = opt.vary.nScrambles;
-elseif ~opt.vary.perturbOrigPRFs
-    nIter = 1;
-end
+% Check dimensions with loaded pRF data, and set the number of iterations
+nIter = checkNumberOfIterations(predMEGResponse, opt, 'MEGPhaseRef');
 
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse; 
@@ -114,7 +102,7 @@ phRefAmp10Hz = squeeze(phRefAmp10Hz);
 
 
 
-if opt.doSaveData
+if opt.saveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');

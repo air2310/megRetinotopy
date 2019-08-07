@@ -20,7 +20,7 @@ function G_constrained = loadGainMtx(subjID, dirPth, opt)
 
 if opt.verbose; sprintf('(%s) Load MEG Gain matrix for subject %s...\n', mfilename, subjID); end
 
-if opt.fullSizeGainMtx
+if opt.fullSizeMesh
     d = dir(fullfile(dirPth.bs.dataPth, '*', 'headmodel*meg_02.mat'));
 else
     d = dir(fullfile(dirPth.bs.dataPth, '*', 'headmodel*meg.mat'));

@@ -10,7 +10,7 @@ fs_msh.smooth_relaxation = 1;
 fs_msh = meshSmooth(fs_msh);
 fs_msh = meshColor(fs_msh);
 
-if opt.roimrvToFS
+if opt.roi.roimrvToFS
     lhROIFiles = dir(fullfile(dirPth.fmri.saveDataPth_roiFS,'lh.*'));
 else
     lhROIFiles = dir(fullfile(dirPth.fs.surfPth,'lh.wang2015_atlas.mgz'));
@@ -34,7 +34,7 @@ for ii = 1:length(roiName)
     cur_hs = cur_hs_tmp{1};
     cur_eoi = strcat(cur_hs,'.',roiName{ii});
     
-    if opt.roimrvToFS
+    if opt.roi.roimrvToFS
         surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_roiFS, cur_eoi));
         data_in = surf_data;
     else

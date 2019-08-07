@@ -71,7 +71,7 @@ meg_stim.Y  = meg_stim.resizedY(:);
 meg_stim.X  = meg_stim.X(meg_stim.window);
 meg_stim.Y  = meg_stim.Y(meg_stim.window);
 
-if opt.doSaveData
+if opt.saveData
     % save at two places, once on the server under Data/MEG/ and one in the
     % Subject_sessions folder
     saveDir1 = fullfile(dirPth.sessionPth, 'stimuli', 'meg', 'imported_stimulus');

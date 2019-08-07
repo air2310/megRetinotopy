@@ -52,7 +52,7 @@ prf.(fn_varyY) = (x0*sin(range))+(y0*cos(range));
 
 
 % Create file names for x,y vary position data and save in same folder
-if opt.doSaveData
+if opt.saveData
     newFieldNames = {fn_varyX, fn_varyY};
     for ii = 1:length(newFieldNames)
         surfdata = prf.(newFieldNames{ii});

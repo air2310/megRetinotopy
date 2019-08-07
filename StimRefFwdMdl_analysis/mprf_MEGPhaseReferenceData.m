@@ -28,11 +28,11 @@ phaseRange = linspace(0,2*pi,100); % range of values to search for the reference
 assert(all(nTimepoints>[nEpochs,nRuns,nSensors]))
 
 % Get frequency index
-freqIdx = mprfFreq2Index(nTimepoints, opt.flickerFreq, opt.fs);
+freqIdx = mprfFreq2Index(nTimepoints, opt.meg.flickerFreq, opt.meg.fs);
 
 % Check if we want the coherent (average before FFT) or incoherent spectrum
 % (after after FFT)
-if opt.useCoherentSpectrum
+if opt.meg.useCoherentSpectrum
     
     warning off
     fprintf('(%s): Checking best reference phase for coherent spectrum.', mfilename)

@@ -146,7 +146,7 @@ if ~opt.roi.roimrvToFS
 %     end
     
     
-elseif opt.roi.roi.roimrvToFS
+elseif opt.roi.roimrvToFS
     
     for h = 1:length(hemis)
         curHemi = hemis{h};

@@ -12,7 +12,7 @@ function [data, triggers, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt
 %                                      show debug figures
 %                     - doFiltering :  low pass filter
 %                     - doDenoise   :  GLM denoise for MEG
-%                     - doSaveData  :  Save data and conditions as matfiles
+%                     - saveData  :  Save data and conditions as matfiles
 %                     - saveFig     :  Save debug figures, only if verbose = true
 %                     - removeStartOfRunEpoch :  remove the first epoch of
 %                                                the bar sweep
@@ -132,7 +132,7 @@ triggers.stimConditions       = triggers.ts(triggers.ts>0);
 totalEpochs                   = length(triggers.stimConditions);
 
 % Save stimulus conditions (if requested)
-if opt.doSaveData; save(fullfile(saveDataPth, 'megStimConditions.mat'), 'triggers'); end
+if opt.saveData; save(fullfile(saveDataPth, 'megStimConditions.mat'), 'triggers'); end
 
 % Epoch information about stimulus (bar sweep) epochs
 triggers.onlyBarStim          = find((triggers.ts>0) & (triggers.ts<10));
@@ -458,7 +458,7 @@ clear data;
 data.data = permute(preprocDataBlocked, [2, 3, 4, 1]); % channels x time x epochs x blocks --> time x epochs x blocks x channels
 
 % Save if requested
-if opt.doSaveData
+if opt.saveData
     save(fullfile(saveDataPth, 'epoched_data_hp_preproc_denoised.mat'), 'data', '-v7.3');
 end
 
