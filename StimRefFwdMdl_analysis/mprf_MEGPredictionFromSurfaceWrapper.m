@@ -32,7 +32,7 @@ prfParams = getpRFParamNames(opt);
 prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);
 
 % Check dimensions with loaded pRF data, and set the number of iterations
-nIter = checkNumberOfIterations(prf, opt);
+nIter = checkNumberOfIterations(prf, opt, 'prfSurf');
 
 % Keep a copy of all parameters
 prfAll = prf;
@@ -68,7 +68,10 @@ for ii = 1:nIter
     
     % MAIN FUNCTION: Get predicted response from prf data
     predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim); 
-    
+   
+    md = nanmedian(nanmedian(predSurfResponse,2));
+    varSurfResp = nanvar(predSurfResponse,[],1);
+    predSurfResponse(:,(varSurfResp > md.*opt.mri.predSurfVarThresh(2))) = NaN;
 end
 
 %% Plot predicted response BS surface
@@ -96,7 +99,7 @@ end
 predSurfResponse = squeeze(predSurfResponse);
 
 % Save predicted response to MEG stimuli for every vertex
-if opt.doSaveData
+if opt.saveData
     if ~exist(fullfile(dirPth.model.saveDataPth,opt.subfolder, 'pred_resp'), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','predSurfResponseFromPRFs'), 'predSurfResponse', '-v7.3');
@@ -104,7 +107,7 @@ end
 
 % Create video of responses with stimulus on the side
 if opt.verbose
-    makeSurfResponseMovie(predSurfResponse, meg.stim, dirPth, opt); 
+    makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt); 
 end
 
 
