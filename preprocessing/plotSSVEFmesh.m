@@ -3,9 +3,9 @@ function plotSSVEFmesh(data, conditions, subjID, dirPth, opt)
 
 %% Get dimensions of data, frequencies, and epochs of interest
 [nSensors, nTimePoints, nEpochs] = size(data);
-freqs = [opt.flickerFreq-1,  opt.flickerFreq, opt.flickerFreq+1];
+freqs = [opt.meg.flickerFreq-1,  opt.meg.flickerFreq, opt.meg.flickerFreq+1];
 
-freqIdx = mprfFreq2Index(nTimePoints, freqs, opt.fs);
+freqIdx = mprfFreq2Index(nTimePoints, freqs, opt.meg.fs);
 
 epochsStimToPlot  = conditions<10;
 epochsBlankToPlot = conditions==10;
