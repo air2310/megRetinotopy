@@ -45,7 +45,7 @@ opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction
 opt.mri.predSurfVarThresh     = [0 500];        % MRI prf model: if the variance of a predicted vertex response response is x1 times smaller or x2 times bigger than median, remove this response 
 
 % --- PERTUBATION of pRF models ---
-opt.vary.perturbOrigPRFs       = 'scramble';         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
+opt.vary.perturbOrigPRFs       = 'size';         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
 opt.vary.position              = [];
 opt.vary.size                  = [];
 opt.vary.nScrambles            = [];

@@ -32,7 +32,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
      
     % define time scale
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
-    t = (0:nEpochs-1) .* diff(opt.epochStartEnd);
+    t = (0:nEpochs-1) .* diff(opt.meg.epochStartEnd);
 
     close all;
     % Calculate mean measured MEG time series from 19 runs

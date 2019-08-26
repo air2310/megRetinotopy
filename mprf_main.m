@@ -52,7 +52,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',0,'verbose',0);
+opt = getOpts('saveFig',1,'verbose',0);
 
 if strcmp(subjID, 'wlsubj039')
     opt = getOpts('useCoherentSpectrum', true','skipMRIPreproc',0,'verbose',0);
