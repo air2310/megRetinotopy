@@ -1,9 +1,9 @@
 function makeFigure1B(dirPth,opt)
 % Function to create figure 1B (Predicted responses for every MEG channel)
 
-varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','meanVarExpl.mat'));
-predRespFile = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','meanPredResponse.mat'));
-origMEGData = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','phaseReferencedMEGData.mat'));
+varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','coherent','pred_resp','meanVarExpl.mat'));
+predRespFile = dir(fullfile(dirPth.model.saveDataPth,'original','coherent','pred_resp','meanPredResponse.mat'));
+origMEGData = dir(fullfile(dirPth.model.saveDataPth,'original','coherent','pred_resp','phaseReferencedMEGData.mat'));
 
 saveSubDir = 'figure1B';
 saveDir = fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir);
@@ -32,7 +32,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
      
     % define time scale
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
-    t = (0:nEpochs-1) .* diff(opt.epochStartEnd);
+    t = (0:nEpochs-1) .* diff(opt.meg.epochStartEnd);
 
     close all;
     % Calculate mean measured MEG time series from 19 runs

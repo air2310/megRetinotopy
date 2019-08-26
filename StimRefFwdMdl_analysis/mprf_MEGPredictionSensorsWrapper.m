@@ -25,7 +25,7 @@ function predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfaceResponse,
 % If perturb original pRFs, check dimensions with loaded pRF data
 if strcmp(opt.vary.perturbOrigPRFs, 'position')
     assert(size(predSurfaceResponse,3)==length(opt.vary.position))
-    nIter = length(opt.varyPosition);
+    nIter = length(opt.vary.position);
 elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
     assert(size(predSurfaceResponse,3)==length(opt.vary.size))
     nIter = length(opt.vary.size);

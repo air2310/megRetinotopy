@@ -2,10 +2,10 @@ function makeFigure2(subjID, dirPth, opt)
 % Function to make that plots the effect of rotating the original pRF
 % polar angle positions around the fovea.
 
-varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position', 'pred_resp', 'meanVarExpl'));
+varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
 varexpl = varexpl.meanVarExpl;
 
-range   = opt.varyPosition;
+range   = opt.vary.position;
 
 %% Plot summary
 % Get sensor locations in the back

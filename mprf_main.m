@@ -42,7 +42,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj004';
+%subjID = 'wlsubj112';
 
 %%
 % Load paths with data files for this subject
@@ -52,10 +52,10 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts;
+opt = getOpts('saveFig',1,'verbose',0);
 
 if strcmp(subjID, 'wlsubj039')
-    opt = getOpts('useCoherentSpectrum', true);
+    opt = getOpts('useCoherentSpectrum', true','skipMRIPreproc',0,'verbose',0);
 end
 
 %% 1. MEG data preprocessing

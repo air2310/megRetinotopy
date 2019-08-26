@@ -33,7 +33,11 @@ phRefAmp10HzAll    = phRefAmp10Hz;
 
 % Allocate space
 if opt.meg.useCoherentSpectrum
-    [nEpochs, ~, nSensors] = size(phRefAmp10Hz);
+    if opt.vary.perturbOrigPRFs
+        [nEpochs, ~, nSensors,~] = size(phRefAmp10Hz);
+    else
+        [nEpochs, ~, nSensors] = size(phRefAmp10Hz);
+    end
 else
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
 end
