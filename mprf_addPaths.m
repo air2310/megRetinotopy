@@ -12,6 +12,7 @@ cd(projDir)
 % other folders which are not necessary for this project and slow things
 % down)
 addpath(genpath('./analysis'))
+addpath(genpath('./figurescripts'))
 addpath(genpath('./Devel'))
 addpath(genpath('./MEG_analysis'))
 addpath(genpath('./mprfSession'))
