@@ -18,6 +18,7 @@ opt.saveFig               = true;               % General
 opt.fullSizeMesh          = false;              % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
 opt.surfVisualize         = false;              % General: visualize surface meshes
 opt.subfolder             = 'original'; 
+opt.makeAverageFig        = 0;
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
@@ -44,7 +45,7 @@ opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction
 opt.mri.predSurfVarThresh     = [0 500];        % MRI prf model: if the variance of a predicted vertex response response is x1 times smaller or x2 times bigger than median, remove this response 
 
 % --- PERTUBATION of pRF models ---
-opt.vary.perturbOrigPRFs       = false;         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
+opt.vary.perturbOrigPRFs       = 'scramble';         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
 opt.vary.position              = [];
 opt.vary.size                  = [];
 opt.vary.nScrambles            = [];
@@ -84,7 +85,7 @@ if opt.vary.perturbOrigPRFs
     opt.vary.position          = -pi:(pi/4):pi;  % PERTUBATION of MRI prf model: Vary the prf center (polar angle rotation)
     opt.vary.size              = unique(round(logspace(log10(0.2),log10(10),20),1)); % PERTUBATION of MRI prf model: Vary the prf size (scale sigma)
     opt.vary.nScrambles        = 1000;
-    opt.subfolder              = ['vary_' opt.perturbOrigPRFs]; % create subfolder in case of saving images / data
+    opt.subfolder              = ['vary_' opt.vary.perturbOrigPRFs]; % create subfolder in case of saving images / data
 end
 
 % check in case additional original analyses are performed, we want to save those results separately
