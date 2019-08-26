@@ -17,8 +17,8 @@ opt.saveData              = true;               % General
 opt.saveFig               = true;               % General
 opt.fullSizeMesh          = false;              % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
 opt.surfVisualize         = false;              % General: visualize surface meshes
-opt.subfolder             = 'original'; 
-opt.makeAverageFig        = 0;
+opt.subfolder             = 'original';         % General: Create subfolder to save figures
+opt.makeAverageFig        = false;              % General: Plot average across subjects
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
@@ -45,7 +45,7 @@ opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction
 opt.mri.predSurfVarThresh     = [0 500];        % MRI prf model: if the variance of a predicted vertex response response is x1 times smaller or x2 times bigger than median, remove this response 
 
 % --- PERTUBATION of pRF models ---
-opt.vary.perturbOrigPRFs       = 'size';         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
+opt.vary.perturbOrigPRFs       = false;         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
 opt.vary.position              = [];
 opt.vary.size                  = [];
 opt.vary.nScrambles            = [];
@@ -56,7 +56,7 @@ opt.roi.onlyV123WangAtlas     = false; % set to true in case you want to only us
 
 % --- Folders and filenames ---
 opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
-    opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData);
+                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData);
 
 
 %% Check for extra inputs in case changing the default options
@@ -64,6 +64,7 @@ if exist('varargin', 'var')
     
     % Get fieldnames
     fns = fieldnames(opt);
+       
     for ii = 1:2:length(varargin)
         % paired parameter and value
         parname = varargin{ii};
@@ -74,9 +75,24 @@ if exist('varargin', 'var')
         
         % if so, replace it; if not add it to the end of opt
         if ~isempty(idx), opt.(fns{idx}) = val;
-        else, opt.(parname) = val; end
         
+        elseif isempty(idx)
         
+            % check whether this parameter exists in the substructs
+            for ii = 1:length(fns)
+                if isstruct(opt.(fns{ii}))
+                    subfns = fieldnames(opt.(fns{ii}));
+                    idx = cellfind(subfns, parname);
+                    if ~isempty(idx)
+                        opt.(fns{ii}).(subfns{idx}) = val;
+                    end
+                end
+            end
+        
+        elseif isempty(idx)
+            opt.(parname) = val;
+        end  
+                    
     end
 end
 
