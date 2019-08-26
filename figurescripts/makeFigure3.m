@@ -1,4 +1,4 @@
-function makeFigure3(subjID, dirPth, opt)
+function makeFigure3(dirPth, opt)
 % Function to make that plots the effect of scaling the original pRF
 % sizes (sigma).
 
@@ -67,8 +67,8 @@ if opt.saveFig
     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs'), 'dir')
         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs')); end
     
-    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3a_%s_varySizeSummary%s', subjID, opt.fNamePostFix)), '-dpng');
-    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3b_%s_varySizeMeshes%s', subjID, opt.fNamePostFix)), '-dpng');
+    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3a_%s_varySizeSummary%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
+    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3b_%s_varySizeMeshes%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
 
 end
 

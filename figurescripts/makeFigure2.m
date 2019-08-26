@@ -1,4 +1,4 @@
-function makeFigure2(subjID, dirPth, opt)
+function makeFigure2(dirPth, opt)
 % Function to make that plots the effect of rotating the original pRF
 % polar angle positions around the fovea.
 
@@ -67,8 +67,8 @@ if opt.saveFig
     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs'), 'dir')
         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs')); end
     
-    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2a_%s_varyPositionSummary%s', subjID, opt.fNamePostFix)), '-dpng');
-    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2b_%s_varyPositionMeshes%s', subjID, opt.fNamePostFix)), '-dpng');
+    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2a_%s_varyPositionSummary%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
+    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig2b_%s_varyPositionMeshes%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
 
 end
 
