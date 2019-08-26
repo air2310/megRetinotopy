@@ -105,8 +105,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
     
 end
  
-fprintf('\n saving figure 1B in %s',saveDir);
-fprintf('\n');
+fprintf('\n(%s): Saving figure 1B in %s\n',mfilename, saveDir);
 
 end
 
