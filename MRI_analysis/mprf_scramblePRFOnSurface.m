@@ -56,11 +56,11 @@ rng('shuffle')
 idx = find(roimask&vemask);
 scr = randi(length(idx), length(idx), opt.vary.nScrambles);
 
-% Rearrange original prf parameters with new scrambling location
-prf.x_smoothed_scramble            = x0(scr);
-prf.y_smoothed_scramble            = y0(scr);
-prf.sigma_smoothed_scramble        = sigma(scr);
-prf.recomp_beta_scramble  = beta(scr);
+% Keep original pRF and add rearranged prf parameters with new location
+prf.x_smoothed_scramble            = cat(3, x0, x0(scr));
+prf.y_smoothed_scramble            = cat(3, y0, y0(scr));
+prf.sigma_smoothed_scramble        = cat(3, sigma, sigma(scr));
+prf.recomp_beta_scramble           = cat(3, beta, beta(scr));
 
 if opt.saveData
     
