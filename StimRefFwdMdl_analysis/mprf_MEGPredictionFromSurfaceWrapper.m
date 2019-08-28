@@ -32,7 +32,8 @@ prfParams = getpRFParamNames(opt);
 prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt);
 
 % Check dimensions with loaded pRF data, and set the number of iterations
-nIter = checkNumberOfIterations(prf, opt, 'prfSurf');
+iter  = checkNumberOfIterations(prf, opt, 'prfSurf');
+nIter = length(iter);
 
 % Keep a copy of all parameters
 prfAll = prf;
@@ -48,8 +49,9 @@ t = (0:size(stim.im,2)-1) .* diff(opt.meg.epochStartEnd);
 % Allocate space
 predSurfResponse = NaN(length(t),size(prf.roimask,1),nIter);
 
+
 %% loop over dimensions, if necessary
-for ii = 1:nIter
+for ii = iter
     
     % Select new prf parameters, if they vary in size or position
     if strcmp(opt.vary.perturbOrigPRFs,'position')
@@ -69,9 +71,14 @@ for ii = 1:nIter
     % MAIN FUNCTION: Get predicted response from prf data
     predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim); 
    
-    md = nanmedian(nanmedian(predSurfResponse,2));
-    varSurfResp = nanvar(predSurfResponse,[],1);
-    predSurfResponse(:,(varSurfResp > md.*opt.mri.predSurfVarThresh(2))) = NaN;
+    if ii==iter(1)
+        md = nanmedian(nanmedian(predSurfResponse(:,:,ii),2));
+        varSurfResp = nanvar(predSurfResponse(:,:,ii),[],1);
+        exclOrigVerts   = (varSurfResp > md.*opt.mri.predSurfVarThresh(2));
+        predSurfResponse(:,exclOrigVerts,ii) = NaN;
+    else
+        predSurfResponse(:,exclOrigVerts,ii) = NaN;
+    end
 end
 
 %% Plot predicted response BS surface
@@ -106,7 +113,7 @@ if opt.saveData
 end
 
 % Create video of responses with stimulus on the side
-if opt.verbose
+if (opt.verbose && any(~opt.vary.perturbOrigPRFs))
     makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt); 
 end
 
