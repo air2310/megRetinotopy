@@ -27,7 +27,8 @@ if opt.saveFig
 end
 
 % Check dimensions with loaded pRF data, and set the number of iterations
-nIter = checkNumberOfIterations(predMEGResponse, opt, 'MEGPhaseRef');
+iter  = checkNumberOfIterations(predMEGResponse, opt, 'MEGPhaseRef');
+nIter = length(iter);
 
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse; 

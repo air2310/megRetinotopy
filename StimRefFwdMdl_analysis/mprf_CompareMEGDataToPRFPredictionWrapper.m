@@ -25,7 +25,8 @@ function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrap
 
 
 % Check dimensions with loaded pRF data, and set the number of iterations
-nIter = checkNumberOfIterations([{phRefAmp10Hz},{predMEGResponse}], opt, 'prfMEG');
+iter  = checkNumberOfIterations([{phRefAmp10Hz},{predMEGResponse}], opt, 'prfMEGPredvsData');
+nIter = length(iter);
 
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse;
@@ -36,7 +37,7 @@ if opt.meg.useCoherentSpectrum
     if opt.vary.perturbOrigPRFs
         [nEpochs, ~, nSensors,~] = size(phRefAmp10Hz);
     else
-        [nEpochs, ~, nSensors] = size(phRefAmp10Hz);
+        [nEpochs, ~, nSensors]   = size(phRefAmp10Hz);
     end
 else
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
