@@ -37,16 +37,16 @@ if opt.meg.useCoherentSpectrum
     warning off
     fprintf('(%s): Checking best reference phase for coherent spectrum.', mfilename)
     
+    % Get leave in 9 / leave out group of 10 runs
+    tmp = randperm(nRuns);
+    runGroup{1} = tmp(1:9);
+    runGroup{2} = tmp(10:nRuns);
+    
     for rp = 1:length(phaseRange)
         fprintf('.')
         
         % Get reference phase
         thisRefPhase = phaseRange(rp);
-        
-        % Get leave in 9 / leave out group of 10 runs
-        tmp = randperm(nRuns);
-        runGroup{1} = tmp(1:9);
-        runGroup{2} = tmp(10:nRuns);
         
         for ll = 1:length(runGroup)
             
