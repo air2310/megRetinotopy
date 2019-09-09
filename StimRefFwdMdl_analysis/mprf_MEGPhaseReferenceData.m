@@ -1,4 +1,4 @@
-function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt)
+function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt)
 % Function to computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
@@ -6,6 +6,7 @@ function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceDat
 % INPUTS:
 %   megData         : preprocessed MEG data (time x epochs x run x sensors)
 %   predMEGResponse : predicted MEG responses (epochs x sensors)
+%   runGroup        : groups for split halves in case of coherent spectrum
 %   opt             :  struct with boolean flag options
 
 %
@@ -17,6 +18,9 @@ function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceDat
 %
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+if ~exist('runGroup', 'var') || isempty(runGroup)
+    runGroup = [];
+end
 
 % Define the number of references phases to try
 phaseRange = linspace(0,2*pi,100); % range of values to search for the reference phase
@@ -36,11 +40,6 @@ if opt.meg.useCoherentSpectrum
     
     warning off
     fprintf('(%s): Checking best reference phase for coherent spectrum.', mfilename)
-    
-    % Get leave in 9 / leave out group of 10 runs
-    tmp = randperm(nRuns);
-    runGroup{1} = tmp(1:9);
-    runGroup{2} = tmp(10:nRuns);
     
     for rp = 1:length(phaseRange)
         fprintf('.')
