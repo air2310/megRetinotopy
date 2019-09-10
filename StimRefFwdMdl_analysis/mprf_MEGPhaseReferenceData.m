@@ -185,20 +185,25 @@ fprintf('\n(%s) done!\n',mfilename)
 
 if ~opt.vary.perturbOrigPRFs
     % do some plotting for debugging
-    fH1 = figure(1); set(gcf, 'Position',  [1000, 651, 1285, 687]); clf; hold all;
+    fH1 = figure(1); set(gcf, 'Position',  [1000, 651, 1285, 687]);
     
     for s = 1:nSensors
+        clf; hold all;
+        
         subplot(211);
         plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
         xlabel('time points'); ylabel('Magnetic flux (T)')
-        legend({'Amplitudes of split halves'})
+        legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
+        set(gca, 'TickDir', 'out', 'FontSize', 10)
         
         subplot(212);
         plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
         plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3); title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
         plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'b');
         xlabel('time points'); ylabel('Magnetic flux (T)')
-        legend({'Phase referenced split halves', 'Phase ref mean', 'predicted resp (scaled)'})
+        legend({'Phase referenced split half 1', 'Phase referenced split half 2', ...
+                'Phase ref mean', 'Predicted MEG resp (scaled with beta)'}); box off;
+        set(gca, 'TickDir', 'out', 'FontSize', 10)
         
         print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
             sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), '-dpng')
