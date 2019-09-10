@@ -58,7 +58,7 @@ for ii = 1:nIter
     predMEGResponse = predMEGResponseAll(:,:,ii);
     
     % Get phase-referenced steady state MEG responses for this iteration
-    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt);
+    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth);
     
     
     %% Debug figures
