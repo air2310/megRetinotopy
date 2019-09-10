@@ -194,7 +194,7 @@ if ~opt.vary.perturbOrigPRFs
         plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
         xlabel('time points'); ylabel('Magnetic flux (T)')
         legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
-        set(gca, 'TickDir', 'out', 'FontSize', 10)
+        set(ax1, 'TickDir', 'out', 'FontSize', 10)
         
         subplot(212);
         plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
@@ -203,7 +203,7 @@ if ~opt.vary.perturbOrigPRFs
         xlabel('time points'); ylabel('Magnetic flux (T)')
         legend({'Phase referenced split half 1', 'Phase referenced split half 2', ...
                 'Phase ref mean', 'Predicted MEG resp (scaled with beta)'}); box off;
-        set(gca, 'TickDir', 'out', 'FontSize', 10)
+        set(ax2, 'TickDir', 'out', 'FontSize', 10)
         
         print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
             sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), '-dpng')
