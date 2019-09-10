@@ -58,7 +58,7 @@ for ii = 1:nIter
     predMEGResponse = predMEGResponseAll(:,:,ii);
     
     % Get phase-referenced steady state MEG responses for this iteration
-    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt);
+    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt);
     
     
     %% Debug figures
@@ -101,7 +101,11 @@ for ii = 1:nIter
             end
         end
     end % opt.verbose
-    
+
+    % save betas corresponding to the highest variance explained per iteration
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp',sprintf('bestBetas_%d', ii)),'bestBetas','-v7.3');
+
+
 end
 
 
@@ -113,6 +117,7 @@ phRefAmp10Hz = squeeze(phRefAmp10Hz);
 if opt.saveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','runGroup'),'runGroup','-v7.3');
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');
 end
 
