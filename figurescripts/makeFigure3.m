@@ -1,4 +1,4 @@
-function makeFigure3(dirPth, opt)
+function makeFigure3(dirPth, opt,sensorsToAverage)
 % Function to make that plots the effect of scaling the original pRF
 % sizes (sigma).
 
@@ -7,16 +7,24 @@ varexpl = varexpl.meanVarExpl;
 
 range   = opt.vary.size;
 
-%% Plot summary
-% Get sensor locations in the back
-load(which('meg160_example_hdr.mat'))
-layout = ft_prepare_layout([],hdr);
-xpos = layout.pos(1:157,1);
-ypos = layout.pos(1:157,2);
-sensorLocBack = (ypos<0 & xpos<1);
+% What sensors are we averaging?
+if strcmp(sensorsToAverage, 'allPosterior')
+    % Get sensor locations in the back
+    load(which('meg160_example_hdr.mat'))
+    layout = ft_prepare_layout([],hdr);
+    xpos = layout.pos(1:157,1);
+    ypos = layout.pos(1:157,2);
+    sensorLoc = (ypos<0 & xpos<1);
+elseif strcmp(sensorsToAverage, 'top10')
+    % Get top 10 sensors
+    tmp = varexpl;
+    tmp(isnan(tmp))=0;
+    [~,idx] = sort(tmp,'descend');
+    sensorLoc = idx(1:10);
+end
 
 % Plot data for sensors over the back of the head
-dataToPlot = varexpl(:,sensorLocBack);
+dataToPlot = varexpl(:,sensorLoc);
 
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
@@ -64,11 +72,14 @@ end
 
 
 if opt.saveFig
-    if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs'), 'dir')
-        mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs')); end
+    saveDir = fullfile(dirPth.model.saveFigPth, 'figure3');
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+    fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
     
-    print(fH1, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3a_%s_varySizeSummary%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
-    print(fH2, fullfile(dirPth.model.saveFigPth, opt.subfolder, 'msFigs', sprintf('fig3b_%s_varySizeMeshes%s', dirPth.subjID, opt.fNamePostFix)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
 
 end
 

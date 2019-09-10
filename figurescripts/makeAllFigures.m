@@ -7,7 +7,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts;
+opt = getOpts('verbose', true, 'saveFig',true);
 
 %% Figures
 
@@ -16,8 +16,10 @@ makeFigure1(dirPth,opt);
 
 %Figure 2. Position range line plot and headplots for every position range
 opt = getOpts('perturbOrigPRFs', 'position');
-makeFigure2(dirPth,opt);
+
+sensorsToAverage = 'allPosterior';
+makeFigure2(dirPth,opt,sensorsToAverage);
 
 %Figure 3. Size range line plot and headplots for every size range
 opt = getOpts('perturbOrigPRFs', 'size');
-makeFigure3(dirPth,opt);
+makeFigure3(dirPth,opt,sensorsToAverage);

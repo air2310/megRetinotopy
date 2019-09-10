@@ -1,4 +1,4 @@
-function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt)
+function [phRefAmp10Hz, bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth)
 % Function to computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
@@ -6,6 +6,7 @@ function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceDat
 % INPUTS:
 %   megData         : preprocessed MEG data (time x epochs x run x sensors)
 %   predMEGResponse : predicted MEG responses (epochs x sensors)
+%   runGroup        : groups for split halves in case of coherent spectrum
 %   opt             :  struct with boolean flag options
 
 %
@@ -13,10 +14,13 @@ function [phRefAmp10Hz, bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceDat
 %   phRefAmp10Hz        : Phase referenced MEG time series (epochs x runs x sensors)
 %   bestRefPhase        : Ref phases that gives highest var explained (1 x runs x sensors)
 %   maxVarExplVal       : Variance explained by best ref phases (1 x runs x sensors)
-%
+%   betas
 %
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+if ~exist('runGroup', 'var') || isempty(runGroup)
+    runGroup = [];
+end
 
 % Define the number of references phases to try
 phaseRange = linspace(0,2*pi,100); % range of values to search for the reference phase
@@ -42,11 +46,6 @@ if opt.meg.useCoherentSpectrum
         
         % Get reference phase
         thisRefPhase = phaseRange(rp);
-        
-        % Get leave in 9 / leave out group of 10 runs
-        tmp = randperm(nRuns);
-        runGroup{1} = tmp(1:9);
-        runGroup{2} = tmp(10:nRuns);
         
         for ll = 1:length(runGroup)
             
@@ -93,7 +92,7 @@ if opt.meg.useCoherentSpectrum
                 
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans.out,s));
-                
+                betas(rp,ll,s) = B(2);
                 varexpl(rp,ll,s) = ve;
                 
                 if B(2) < 0
@@ -155,6 +154,7 @@ else % if using incoherent spectrum (then start with FFT before averaging)
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,sensor));
                 
+                betas(rp,ll,s) = B(2);
                 varexpl(rp,leftOutRun,sensor) = ve;
                 
                 if B(2) < 0
@@ -172,6 +172,7 @@ end  % if opt.useCoherentSpectrum
 
 % Get phase that gives max CoD per run, per sensor
 [maxVarExplVal, maxVarExplIdx] = nanmax(varexpl);
+bestBetas    = betas(maxVarExplIdx);
 bestRefPhase = refPhase(maxVarExplIdx);
 
 % rescale the original amplitudes and phase from MEG data
@@ -182,8 +183,33 @@ warning on
 fprintf('\n(%s) done!\n',mfilename)
 
 
-
-
+if ~opt.vary.perturbOrigPRFs
+    % do some plotting for debugging
+    fH1 = figure(1); set(gcf, 'Position',  [1000, 651, 1285, 687]);
+    
+    for s = 1:nSensors
+        clf; hold all;
+        
+        subplot(211);
+        plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
+        xlabel('time points'); ylabel('Magnetic flux (T)')
+        legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
+        set(ax1, 'TickDir', 'out', 'FontSize', 10)
+        
+        subplot(212);
+        plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
+        plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3); title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
+        plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'b');
+        xlabel('time points'); ylabel('Magnetic flux (T)')
+        legend({'Phase referenced split half 1', 'Phase referenced split half 2', ...
+                'Phase ref mean', 'Predicted MEG resp (scaled with beta)'}); box off;
+        set(ax2, 'TickDir', 'out', 'FontSize', 10)
+        
+        print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+            sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), '-dpng')
+        
+    end
+end
 
 return
 

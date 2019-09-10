@@ -38,10 +38,17 @@ predMEGResponseAll = predMEGResponse;
 
 if  opt.meg.useCoherentSpectrum
     phRefAmp10Hz = NaN(nEpochs, 2, nSensors, nIter); % only two runs as output, since it will be split half
+    
+    % Get leave in 9 / leave out group of 10 runs
+    tmp = randperm(nRuns);
+    runGroup{1} = tmp(1:9);
+    runGroup{2} = tmp(10:nRuns);
+    
 else
     phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);
 end
 
+    
 % loop over dimensions, if necessary
 for ii = 1:nIter
     
@@ -51,7 +58,7 @@ for ii = 1:nIter
     predMEGResponse = predMEGResponseAll(:,:,ii);
     
     % Get phase-referenced steady state MEG responses for this iteration
-    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, opt);
+    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth);
     
     
     %% Debug figures
@@ -94,7 +101,11 @@ for ii = 1:nIter
             end
         end
     end % opt.verbose
-    
+
+    % save betas corresponding to the highest variance explained per iteration
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp',sprintf('bestBetas_%d', ii)),'bestBetas','-v7.3');
+
+
 end
 
 
@@ -106,6 +117,7 @@ phRefAmp10Hz = squeeze(phRefAmp10Hz);
 if opt.saveData
     if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
         mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','runGroup'),'runGroup','-v7.3');
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');
 end
 
