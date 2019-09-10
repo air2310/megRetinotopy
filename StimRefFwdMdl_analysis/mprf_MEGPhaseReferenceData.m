@@ -1,4 +1,4 @@
-function [phRefAmp10Hz, bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt)
+function [phRefAmp10Hz, bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth)
 % Function to computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
 %   phaseRefMEGResponse = mprf_MEGPhaseReferenceData(megData, predMEGResponse)
@@ -189,14 +189,14 @@ if ~opt.vary.perturbOrigPRFs
     
     for s = 1:nSensors
         subplot(211);
-        plot(1:140, allAmp10Hz(:,1,s), 'r'); plot(1:140, allAmp10Hz(:,2,s), 'g');
+        plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
         xlabel('time points'); ylabel('Magnetic flux (T)')
         legend({'Amplitudes of split halves'})
         
         subplot(212);
-        plot(1:140, phRefAmp10Hz(:,1,s), 'r'); plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
-        plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3); title(sprintf('%1.2f %1.2f', bestRefPhase(:,:,s)));
-        plot(1:140, predMEGResponse(:,s).*10^-10, 'b');
+        plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
+        plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3); title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
+        plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'b');
         xlabel('time points'); ylabel('Magnetic flux (T)')
         legend({'Phase referenced split halves', 'Phase ref mean', 'predicted resp (scaled)'})
         
