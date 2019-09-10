@@ -86,7 +86,7 @@ if opt.meg.useCoherentSpectrum
                 
                 % Select current phase data from left out runs
                 ph10Hz.in = ph10Hz.in(~currentnans.in); % (epochs x runs-10)
-                
+              
                 % Rescale amplitudes with diff between reference phase and
                 % average phase of other runs
                 phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz.out(~currentnans.out), ph10Hz.in, thisRefPhase);
