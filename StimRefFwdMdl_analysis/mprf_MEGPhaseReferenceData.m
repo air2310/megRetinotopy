@@ -188,15 +188,15 @@ if ~opt.vary.perturbOrigPRFs
     fH1 = figure(1); set(gcf, 'Position',  [1000, 651, 1285, 687]);
     
     for s = 1:nSensors
-        clf; hold all;
+        figure(fH1); clf; 
         
-        subplot(211);
+        ax1 = subplot(2,1,1);
         plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
         xlabel('time points'); ylabel('Magnetic flux (T)')
         legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
         set(ax1, 'TickDir', 'out', 'FontSize', 10)
         
-        subplot(212);
+        ax2 = subplot(2, 1, 2);
         plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, phRefAmp10Hz(:,2,s), 'g'); hold on;
         plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3); title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
         plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'b');
