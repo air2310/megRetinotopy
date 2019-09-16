@@ -15,8 +15,8 @@ end
 close all;
 if ~isempty(varExpFile)
     load(fullfile(varExpFile.folder,varExpFile.name),'meanVarExpl');
-    
-    fH1 = figure; megPlotMap(meanVarExpl,[0 0.6],fH1, 'parula', 'mean variance explained', [],[]);
+    clims = [0 max(meanVarExpl)];
+    fH1 = figure; megPlotMap(meanVarExpl,clims,fH1, 'parula', 'mean variance explained', [],[], 'interpmethod', 'nearest');
     c = colorbar; c.Location='southoutside';    
 end
 
