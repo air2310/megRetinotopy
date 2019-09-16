@@ -72,7 +72,8 @@ end
 
 
 if opt.saveFig
-    saveDir = fullfile(dirPth.model.saveFigPth, 'figure2');
+    [pth, folder] = fileparts(dirPth.model.saveFigPth);
+    saveDir = fullfile(pth, 'finalfig', 'figure2');
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
