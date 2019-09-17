@@ -98,7 +98,8 @@ if opt.meg.useCoherentSpectrum
                 
                 if B(2) < 0
                     % If regression results in a negative scale factor, then
-                    % add pi to the reference phase
+                    % set the ve=0 such that when maximum ve is checked
+                    % only the one with positive beta will be selected
                     refPhase(rp,ll,s) = thisRefPhase;
                     varexpl(rp,ll,s) = 0;
                 else
