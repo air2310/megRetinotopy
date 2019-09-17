@@ -99,7 +99,8 @@ if opt.meg.useCoherentSpectrum
                 if B(2) < 0
                     % If regression results in a negative scale factor, then
                     % add pi to the reference phase
-                    refPhase(rp,ll,s) = thisRefPhase+pi;
+                    refPhase(rp,ll,s) = thisRefPhase;
+                    varexpl(rp,ll,s) = 0;
                 else
                     refPhase(rp,ll,s) = thisRefPhase;
                 end
