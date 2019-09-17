@@ -22,6 +22,7 @@
 %   3.3: Computing phase referenced amplitude from preprocessed MEG data 
 %           and predicted MEG responses from cortical surface
 %
+function mprf_main(subjID)
 % DEPENDENCIES:
 % 1. Preprocessing steps:
 % - FreeSurfer's auto-segmentation (v6???)
@@ -42,7 +43,7 @@
 %% 0. Load paths
 
 % Define subject ID
-subjID = 'wlsubj081';
+% subjID = 'wlsubj111';
 
 %%
 % Load paths with data files for this subject
@@ -52,8 +53,8 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',1,'perturbOrigPRFs','size');
-%opt = getOpts('saveFig',1,'verbose',1);
+%opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',1,'perturbOrigPRFs','position');
+opt = getOpts('saveFig',1,'verbose',1);
 
 if strcmp(subjID, 'wlsubj039')
     opt = getOpts('useCoherentSpectrum', true','skipMRIPreproc',0,'verbose',0);
@@ -195,4 +196,4 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 
 fprintf('(%s) Done!', mfilename)
 
-
+end

@@ -89,7 +89,7 @@ if opt.meg.useCoherentSpectrum
                 % Rescale amplitudes with diff between reference phase and
                 % average phase of other runs
                 phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz.out(~currentnans.out), ph10Hz.in, thisRefPhase);
-                
+            
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans.out,s));
                 betas(rp,ll,s) = B(2);
@@ -177,7 +177,6 @@ bestRefPhase = refPhase(maxVarExplIdx);
 
 % rescale the original amplitudes and phase from MEG data
 phRefAmp10Hz = rescaleAmpsWithRefPhase(allAmp10Hz, allPh10Hz, bestRefPhase);
-
 
 warning on
 fprintf('\n(%s) done!\n',mfilename)
