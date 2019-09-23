@@ -227,7 +227,7 @@ if opt.verbose
         plot([opt.meg.flickerFreq opt.meg.flickerFreq], [0 max(nanmean(ampsStim,2))])
         plot([60 60], [min(ampsStim) max(ampsStim)])
         plot([120 120], [min(ampsStim) max(ampsStim)])
-        xlim([1 150]); ylim([10^-16 10^-13]);
+        xlim([1 150]); ylim([10^-16 10^-14]);
         xlabel('Frequency (Hz)'); ylabel('FT Amplitudes (Tesla)');
         title(sprintf('Mean amplitudes coherent spectrum: Sensor %d', chan))
         set(gca, 'TickDir', 'out', 'FontSize', 14, 'XScale', 'linear', 'YScale', 'linear');
