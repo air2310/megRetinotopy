@@ -43,15 +43,15 @@ blankDataToPlot.coh =  squeeze(meanAmpsBlank(:,freqIdx(2)));
 %% Plot meshes
 fh1 = figure;
 megPlotMap(stimSNRToPlot.coh,[0 1],[],[],[],[],[],'interpmethod', 'nearest');
-title('Steady state visually evoked field (10 Hz / sum 9-11 Hz); Coherent spectrum');
+title('Steady state visually evoked field (10 Hz / sum 9-11 Hz); Coherent spectrum (max = 1)');
 
 fh2 = figure;
 megPlotMap(stimDataToPlot.coh-blankDataToPlot.coh,[0 max(stimDataToPlot.coh-blankDataToPlot.coh)],[],[],[],[],[],'interpmethod', 'nearest');
 title('Steady state visually evoked field - blanks (10 Hz) Coherent spectrum');
 
 fh3 = figure;
-megPlotMap(stimSNRToPlot.incoh,[0 1],[],[],[],[],[],'interpmethod', 'nearest');
-title('Steady state visually evoked field (10 Hz / sum 9-11 Hz) Incoherent spectrum');
+megPlotMap(stimSNRToPlot.incoh,[min(stimSNRToPlot.incoh) max(stimSNRToPlot.incoh)],[],[],[],[],[],'interpmethod', 'nearest');
+title('Steady state visually evoked field (10 Hz / sum 9-11 Hz) Incoherent spectrum (max = 1)');
 
 fh4 = figure;
 megPlotMap(stimDataToPlot.incoh-blankDataToPlot.incoh,[0 max(stimDataToPlot.incoh-blankDataToPlot.incoh)],[],[],[],[],[],'interpmethod', 'nearest');
