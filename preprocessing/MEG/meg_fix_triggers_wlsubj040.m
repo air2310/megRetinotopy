@@ -87,7 +87,7 @@ triggers_that_are_too_close = diff(any_trigger_inds) < 10;
 assert(sum(triggers_that_are_too_close) == 0)
 
 %% put in actual condition numbers:
-stim = load('/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wl_subj040/wl_subj040_20170406/Stimulus/Param_files/20170406T103932.mat');
+stim = load('/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wlsubj040/paramFiles/20170406T103932.mat');
 conditionsOneRun = stim.response.trig(find(stim.response.trig));
 
 allConditions = repmat(conditionsOneRun, [1,19]);
