@@ -19,7 +19,7 @@ elseif strcmp(sensorsToAverage, 'top10')
     % Get top 10 sensors
     tmp = varexpl;
     tmp(isnan(tmp))=0;
-    [~,idx] = sort(tmp,'descend');
+    [~,idx] = sort(tmp,2,'descend');
     sensorLoc = idx(1:10);
 end
 
