@@ -290,32 +290,32 @@ if opt.meg.doDenoise
     opt.meg.npcs2try            = 10;    % max nr of PCs = 10
     
     % Get 10 Hz evoked signal (fft power) to define noisepool and result
-    switch subjID
-        case {'wlsubj039', 'wlsubj040'} % get noisepool from coherent spectrum
-            freqIdx = mprfFreq2Index(size(data,1), opt.meg.flickerFreq, opt.meg.fs);
-            
-            epochsToKeep = triggers.stimConditions<10;
-            epochsToKeep = epochsToKeep(~badEpochs);
-            meanData = squeeze(nanmean(data(:,epochsToKeep,~badChannels),2));
-            cohSpectrum = abs(fft(meanData))/size(meanData,1)*2;
-            response10Hz = cohSpectrum(freqIdx,:);
-            [val, idx] = sort(response10Hz, 'ascend');
-            noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
-            if opt.verbose
-                figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
-                    [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
-            noisePoolFun = logical(noisePool);
-            
-            % Define function to get results
-            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
+%     switch subjID
+%         case {'wlsubj039', 'wlsubj040', 'wlsubj081'} % get noisepool from coherent spectrum
+        freqIdx = mprfFreq2Index(size(data,1), opt.meg.flickerFreq, opt.meg.fs);
 
-        otherwise % evokedfun uses incoherent spectrum SSVEP
-            % Define evoked signal function to get results (SSVEF from incoherent spectrum)
-            evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
-            
-            % Define function to get noisepool (same in this case as evokedfun)
-            noisePoolFun = evokedfun;
-    end
+        epochsToKeep = triggers.stimConditions<10;
+        epochsToKeep = epochsToKeep(~badEpochs);
+        meanData = squeeze(nanmean(data(:,epochsToKeep,~badChannels),2));
+        cohSpectrum = abs(fft(meanData))/size(meanData,1)*2;
+        response10Hz = cohSpectrum(freqIdx,:);
+        [val, idx] = sort(response10Hz, 'ascend');
+        noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
+        if opt.verbose
+            figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
+                [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
+        noisePoolFun = logical(noisePool);
+
+        % Define function to get results
+        evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
+
+%         otherwise % evokedfun uses incoherent spectrum SSVEP
+%             % Define evoked signal function to get results (SSVEF from incoherent spectrum)
+%             evokedfun = @(x)mprfDenoiseEvalFun(x,[opt.meg.flickerFreq, opt.meg.flickerFreq] ,opt.meg.fs);
+%             
+%             % Define function to get noisepool (same in this case as evokedfun)
+%             noisePoolFun = evokedfun;
+%     end
     
     % Get design matrix
     designConditions = zeros(size(triggers.stimConditions));
