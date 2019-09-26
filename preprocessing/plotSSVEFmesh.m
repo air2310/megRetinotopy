@@ -42,27 +42,39 @@ blankDataToPlot.coh =  squeeze(meanAmpsBlank(:,freqIdx(2)));
 
 %% Plot meshes
 fh1 = figure;
-megPlotMap(stimSNRToPlot.coh,[0 1],[],[],[],[],[],'interpmethod', 'nearest');
+megPlotMap(stimSNRToPlot.coh,[min(stimSNRToPlot.coh) max(stimSNRToPlot.coh)],[],[],[],[],[],'interpmethod', 'nearest');
 title('Steady state visually evoked field (10 Hz / sum 9-11 Hz); Coherent spectrum (max = 1)');
 
 fh2 = figure;
+megPlotMap(stimSNRToPlot.coh,[0 1],[],[],[],[],[],'interpmethod', 'nearest');
+title('Steady state visually evoked field (10 Hz / sum 9-11 Hz); Coherent spectrum (max = 1)');
+
+fh3 = figure;
 megPlotMap(stimDataToPlot.coh-blankDataToPlot.coh,[0 max(stimDataToPlot.coh-blankDataToPlot.coh)],[],[],[],[],[],'interpmethod', 'nearest');
 title('Steady state visually evoked field - blanks (10 Hz) Coherent spectrum');
 
-fh3 = figure;
+fh4 = figure;
 megPlotMap(stimSNRToPlot.incoh,[min(stimSNRToPlot.incoh) max(stimSNRToPlot.incoh)],[],[],[],[],[],'interpmethod', 'nearest');
 title('Steady state visually evoked field (10 Hz / sum 9-11 Hz) Incoherent spectrum (max = 1)');
 
-fh4 = figure;
+fh5 = figure;
+megPlotMap(stimSNRToPlot.incoh,[0 1],[],[],[],[],[],'interpmethod', 'nearest');
+title('Steady state visually evoked field (10 Hz / sum 9-11 Hz) Incoherent spectrum (max = 1)');
+
+
+fh6 = figure;
 megPlotMap(stimDataToPlot.incoh-blankDataToPlot.incoh,[0 max(stimDataToPlot.incoh-blankDataToPlot.incoh)],[],[],[],[],[],'interpmethod', 'nearest');
 title('Steady state visually evoked field - blanks (10 Hz) Incoherent spectrum');
 
 
 if opt.saveFig
-    print(fh1, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_SNR', subjID)))
-    print(fh2, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_diff', subjID)))
-    print(fh3, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_SNR', subjID)))
-    print(fh4, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_diff', subjID)))
+    print(fh1, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_SNR_maxCLim', subjID)))
+    print(fh2, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_SNR_0-1', subjID)))
+
+    print(fh3, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_coh_diff', subjID)))
+    print(fh4, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_SNR_maxCLim', subjID)))
+    print(fh5, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_SNR_0-1', subjID)))
+    print(fh6, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_SSVEFMESH_postDenoise_incoh_diff', subjID)))
 end
 
 return
