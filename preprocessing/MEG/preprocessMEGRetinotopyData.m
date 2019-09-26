@@ -272,10 +272,21 @@ elseif strcmp(subjID, 'wlsubj081')
     badChannels(11) = 1;
 end
 
+if opt.saveFig
+    print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID)));
+end
+
 opt.meg.badChannels = badChannels;
 opt.meg.badEpochs   = badEpochs;
 
-if opt.saveFig; print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsEpochs', subjID))); end
+fprintf('Nr of bad sensors: %d', sum(badChannels))
+fprintf('Nr of bad epochs: %d', sum(badEpochs))
+
+figure; megPlotMap(badChannels, [0 1], [], [],[],[],[],'interpmethod', 'nearest'); colormap gray;
+
+if opt.saveFig
+    print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsLayout', subjID)));
+end
 
 %% 6. Denoise time series
 
@@ -303,7 +314,7 @@ if opt.meg.doDenoise
         noisePool = zeros(1,length(idx)); noisePool(idx(1:75))=1;
         if opt.verbose
             figure; megPlotMap(to157chan(noisePool,~badChannels,'nans'),  ...
-                [0 1], [], [],[],[],[],'interpolation', 'nearest'); end
+                [0 1], [], [],[],[],[],'interpmethod', 'nearest'); end
         noisePoolFun = logical(noisePool);
 
         % Define function to get results
