@@ -12,7 +12,7 @@ end
 
 % check if the modelPredictions are saved in the folder.
 close all;
-if ~isempty(varExpFile)
+if isempty(varExpFile.folder)
     error('Can''t find mean variance explained mat-file')
 end
 
@@ -20,7 +20,7 @@ end
 load(fullfile(varExpFile.folder,varExpFile.name),'meanVarExpl');
 
 % Set colormap limits
-clims = [0 max(meanVarExpl)];
+clims = [0 0.4];
 
 % Plot it!
 fH1 = figure;

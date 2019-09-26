@@ -20,7 +20,7 @@ elseif strcmp(sensorsToAverage, 'top10')
     tmp = varexpl;
     tmp(isnan(tmp))=0;
     [val,idx] = sort(tmp,2,'descend');
-    sensorLoc = idx(1:10);
+    sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
 end
 
 % Plot data for sensors over the back of the head
@@ -44,7 +44,7 @@ plot(range,mean_varexpl,'r','Linewidth',3);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 0.25], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 inf], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
@@ -71,6 +71,10 @@ for ii = 1:length(range)
 end
 
 
+%% Plot the sensors selected for averaging
+fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
+
+
 if opt.saveFig
     [pth, folder] = fileparts(dirPth.model.saveFigPth);
     saveDir = fullfile(pth, 'finalfig', 'figure2');
@@ -81,7 +85,7 @@ if opt.saveFig
 
     print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-    
+    print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
 end
 
 return

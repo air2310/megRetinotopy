@@ -19,8 +19,8 @@ elseif strcmp(sensorsToAverage, 'top10')
     % Get top 10 sensors
     tmp = varexpl;
     tmp(isnan(tmp))=0;
-    [~,idx] = sort(tmp,2,'descend');
-    sensorLoc = idx(1:10);
+    [val,idx] = sort(tmp,2,'descend');
+    sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
 end
 
 % Plot data for sensors over the back of the head
@@ -71,6 +71,10 @@ for ii = 1:length(range)
 end
 
 
+%% Plot the sensors selected for averaging
+fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
+
+%%
 if opt.saveFig
     [pth, folder] = fileparts(dirPth.model.saveFigPth);
     saveDir = fullfile(pth, 'finalfig', 'figure3');
@@ -81,6 +85,8 @@ if opt.saveFig
     
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+
 
 end
 
