@@ -114,7 +114,7 @@ end
 
 % Create video of responses with stimulus on the side
 if (opt.verbose && any(~opt.vary.perturbOrigPRFs))
-    makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt); 
+%    makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt); 
 end
 
 
