@@ -1,10 +1,13 @@
 function makeFigure2(dirPth, opt, sensorsToAverage)
-% Function to make that plots the effect of rotating the original pRF
-% polar angle positions around the fovea.
+% Function to make Figure 2 from manuscript, plotting variance explained by
+% the model as a function of polar angle rotations around the fovea of the 
+% original estimated pRF centers.
 
+% Load variance explained file
 varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
 varexpl = varexpl.meanVarExpl;
 
+% Define the range of rotations
 range   = opt.vary.position;
 
 % What sensors are we averaging?
@@ -19,7 +22,7 @@ elseif strcmp(sensorsToAverage, 'top10')
     % Get top 10 sensors
     tmp = varexpl;
     tmp(isnan(tmp))=0;
-    [val,idx] = sort(tmp,2,'descend');
+    [~,idx] = sort(tmp,2,'descend');
     sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
 end
 
@@ -50,7 +53,6 @@ title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
 
 
-
 %% Plot meshes
 rows = 2;
 cols = round(length(range)/rows);
@@ -77,7 +79,7 @@ if strcmp(sensorsToAverage, 'top10')
 end
 
 if opt.saveFig
-    [pth, folder] = fileparts(dirPth.model.saveFigPth);
+    [pth, ~] = fileparts(dirPth.model.saveFigPth);
     saveDir = fullfile(pth, 'finalfig', 'figure2');
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
@@ -88,7 +90,6 @@ if opt.saveFig
     print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     if strcmp(sensorsToAverage, 'top10')
         print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-
     end
 end
 
