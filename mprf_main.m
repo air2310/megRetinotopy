@@ -53,7 +53,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',1,'skipMEGPreproc',1,'perturbOrigPRFs','position');
+opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',0,'skipMEGPreproc',1,'perturbOrigPRFs','size');
 %opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',1,'skipMEGPreproc',0);
 %opt = getOpts('saveFig',1,'verbose',1);
 

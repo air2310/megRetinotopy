@@ -44,7 +44,7 @@ plot(range,mean_varexpl,'r','Linewidth',3);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 0.25], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 inf], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');
@@ -72,7 +72,7 @@ end
 
 
 %% Plot the sensors selected for averaging
-fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
+%fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
 
 %%
 if opt.saveFig
@@ -85,7 +85,7 @@ if opt.saveFig
     
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-    print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    %print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
 
 
 end

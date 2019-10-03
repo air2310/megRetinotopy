@@ -72,7 +72,7 @@ end
 
 
 %% Plot the sensors selected for averaging
-fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
+%fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
 
 
 if opt.saveFig
@@ -85,7 +85,7 @@ if opt.saveFig
 
     print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-    print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+   % print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
 end
 
 return

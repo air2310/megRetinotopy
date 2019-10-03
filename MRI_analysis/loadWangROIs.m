@@ -19,7 +19,7 @@ roiData = struct();
 
 % Loop over the LH roi files
 curFile = roiFile.name;
-tmp = str_split(curFile, '.');
+tmp = strsplit(curFile, '.');
 
 if strcmp(tmp{2},'mat')
     error('(%s): This function does not support mrVista matfiles yet', mfilename)

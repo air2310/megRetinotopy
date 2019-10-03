@@ -26,7 +26,7 @@ prfDataFS = struct();
 for nn = 1:length(lhFiles)
     
     curLHFile = lhFiles(nn).name;
-    tmp = str_split(curLHFile, '.');
+    tmp = strsplit(curLHFile, '.');
     prfName = tmp{2};
     
     % Find the corresponding rh file:
