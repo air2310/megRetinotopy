@@ -109,7 +109,12 @@ for p = 1:length(fn)
         
         if strcmp(thisFieldName,'varexplained')
             data = data(roiLoc{roiIdx});
-            prfROIData.(roiName{roiIdx}).(fn{p}) = data(data > opt.mri.varExplThresh(1) & data < opt.mri.varExplThresh(2));
+            %prfROIData.(roiName{roiIdx}).(fn{p}) = data(data >
+            %opt.mri.varExplThresh(1) & data < opt.mri.varExplThresh(2));
+            
+            data = data((vemask(roiLoc{roiIdx}) & eccenmask(roiLoc{roiIdx})));
+            
+            prfROIData.(roiName{roiIdx}).(fn{p}) = data;
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
             data = data(roiLoc{roiIdx});
@@ -137,7 +142,7 @@ numRois = length(roiName);
 %  ----------------------
 
 % Variance explained (all voxels, whole brain)
-fH1 = figure(1); clf; set(gcf, 'Color', 'w', 'Position', [63,894,586,417]);
+fH1 = figure(1); clf; set(gcf, 'Color', 'w', 'Position', [41,1,1876,973]);
 hist(prf.varexplained,100);
 h = findobj(gca,'Type','patch');
 h.FaceColor = [0 0.5 0.5];
@@ -147,18 +152,6 @@ xlabel('Variance explained'); ylabel('Frequency')
 set(gca, 'FontSize', 15, 'TickDir', 'out'); box off;
 print(fH1, fullfile(saveDir,'variance_explained'), '-dpng');
 
-% prf size vs eccentricity (all voxels, whole brain)
-fH2 = figure(2); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/3   1080/2]);
-smoothing_mask = prf.varexplained > 0;
-c_orig = smoothing_mask;
-scatter(prf.eccentricity,prf.sigma,[],c_orig);
-title('Voxels used for smoothing (ve>0)');
-xlabel('Eccentricity  (deg)');
-ylabel('Prf size (deg)');
-xlim([0 17]); ylim([0 17]); axis square;
-set(gca, 'FontSize', 15, 'TickDir', 'out'); box off;
-legend('All voxels', 'Included for smoothing (ve>0)'); legend boxoff
-print(fH2, fullfile(saveDir,'voxels_vethresh'), '-dpng');
 
 %% ------------------------------------------------
 %  2. Visualize prf params for different ROIs
@@ -170,7 +163,7 @@ nbins = 50;
 
 % Plot pRF size vs ecc
 %-----------------------
-fH3 = figure(3); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'pRF size vs ecc');
+fH2 = figure(2); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'pRF size vs ecc');
 c_orig 	 = [0.5 1 0];
 c_smooth = [0 0.5 1];
 
@@ -186,12 +179,54 @@ for roi_idx = 1:numRois
     ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
+print(fH2, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
+
+fH3 = figure(3); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Variance explained');
+% Variance explained of the model fit split into rois
+for roi_idx = 1:numRois
+    subplot(nrows,ncols,roi_idx);
+    scatter(prfROIData.(roiName{roi_idx}).eccentricity, prfROIData.(roiName{roi_idx}).varexplained,[],c_orig,'*');  hold on;
+    
+    title(roiName{roi_idx}, 'FontSize', 15)
+    legend('original','smoothed','Location','NorthWest')
+    legend('Location','NorthWest')
+    ylim([0 1]); xlim([0 opt.mri.eccThresh(2)]); axis square
+    ylabel('variance explained (deg)'); xlabel('PRF eccen (deg');
+    set(gca, 'FontSize', 14, 'TickDir', 'out')
+end
+print(fH3, fullfile(saveDir,'variance_explained'), '-dpng');
+
+
+% Fit a line to the distribution of points and plot them all in one figure, 
+fH4 = figure(4); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'pRF fit for all rois');
+set(gcf, 'Color', 'w', 'Position',[407,103,1374,804]);
+
+roi_colors = [0.5 0.5 0.5; 1 0.5 0.5; 0.5 1 0.5; 0.5 0.5 1; 0.75 0.75 0; 0 0.75 0.75; 0.75 0 0.75...
+              ; 0.75 0.75 0.75; 0.75 0 0; 0 0 0.75; 0.75 1 0.75; 1 0 0.75; 0.75 0 1];
+
+for roi_idx = 1:numRois
+    x    = prfROIData.(roiName{roi_idx}).eccentricity_smoothed;
+    y    = prfROIData.(roiName{roi_idx}).sigma_smoothed;
+    w    = prfROIData.(roiName{roi_idx}).varexplained;
+    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+    
+    [yfit,stats] = mprf_fit(x,y,w,xfit);
+    plot(xfit,yfit,'color',roi_colors(roi_idx,:),'LineWidth',2);hold on;
+    legend(roiName,'Location','bestoutside')
+    xlabel('eccentricity (deg)'); ylabel('pRF size (deg)');
+%    ylim(opt.yaxislim);
+%    xlim(opt.xaxislim);
+    set(gca, 'FontSize', 10, 'TickDir','out','LineWidth',3); box off
+    hold on;
+
+end
+print(fH4, fullfile(saveDir,'prf_sig_ecc_all_rois'), '-dpng');
+
 
 
 % Sigma histogram
 %-----------------------
-fH4 = figure(4); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Sigma');
+fH5 = figure(5); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Sigma');
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
     hist(prfROIData.(roiName{roi_idx}).sigma,nbins)
@@ -204,11 +239,11 @@ for roi_idx = 1:numRois
     ylabel('Frequency'); xlabel('PRF size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH4, fullfile(saveDir,'sigma'), '-dpng');
+print(fH5, fullfile(saveDir,'sigma'), '-dpng');
 
 % Smoothed sigma histogram
 %-----------------------
-fH5 = figure(5); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Sigma smoothed');
+fH6 = figure(6); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Sigma smoothed');
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
     
@@ -221,11 +256,11 @@ for roi_idx = 1:numRois
     ylabel('Frequency'); xlabel('PRF smoothed size (deg)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
+print(fH6, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 
 % Beta histogram
 %-----------------------
-fH6 = figure(6); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
+fH7 = figure(7); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
 maxBeta = prctile(prfROIData.allROI.beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
 
 for roi_idx = 1:numRois
@@ -241,11 +276,11 @@ for roi_idx = 1:numRois
     ylabel('Frequency'); xlabel('PRF beta (a.u.)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH6, fullfile(saveDir,'beta'), '-dpng');
+print(fH7, fullfile(saveDir,'beta'), '-dpng');
 
 % recomputed beta histogram
 %-----------------------
-fH7 = figure(7); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Recomputed beta')
+fH8 = figure(8); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name', 'Recomputed beta')
 maxBeta = prctile(prfROIData.allROI.recomp_beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
 for roi_idx = 1:numRois
     subplot(nrows,ncols,roi_idx);
@@ -260,10 +295,10 @@ for roi_idx = 1:numRois
     ylabel('Frequency'); xlabel('PRF Recomp beta (a.u.)')
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH7, fullfile(saveDir,'recomp_beta'), '-dpng');
+print(fH8, fullfile(saveDir,'recomp_beta'), '-dpng');
 
 
-fH8 = figure(8); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080], 'Name', 'pRF center distribution');
+fH9 = figure(9); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920/2   1080], 'Name', 'pRF center distribution');
 % polar plot params
 params.grid          = 'on';
 params.line          = 'off';
@@ -293,33 +328,10 @@ for roi_idx = 1:numRois
     plot(x_smoothed,y_smoothed,'o','MarkerFaceColor',c_smooth,'MarkerSize',2);
     
 end
-print(fH8, fullfile(saveDir,'prf_center_distribution'), '-dpng');
+print(fH9, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
 
-% Fit a line to the distribution of points and plot them all in one figure, 
-fH9 = figure(9); clf; 
-set(gcf, 'Color', 'w', 'Position',[407,103,1374,804]);
 
-roi_colors = [0.5 0.5 0.5; 1 0.5 0.5; 0.5 1 0.5; 0.5 0.5 1; 0.75 0.75 0; 0 0.75 0.75; 0.75 0 0.75...
-              ; 0.75 0.75 0.75; 0.75 0 0; 0 0 0.75; 0.75 1 0.75; 1 0 0.75; 0.75 0 1];
-
-for roi_idx = 1:numRois
-    x    = prfROIData.(roiName{roi_idx}).eccentricity_smoothed;
-    y    = prfROIData.(roiName{roi_idx}).sigma_smoothed;
-    w    = prfROIData.(roiName{roi_idx}).varexplained;
-    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
-    
-    [yfit,stats] = mprf_fit(x,y,[],xfit);
-    plot(xfit,yfit,'color',roi_colors(roi_idx,:),'LineWidth',2);hold on;
-    legend(roiName,'Location','bestoutside')
-    xlabel('eccentricity (deg)'); ylabel('pRF size (deg)');
-%    ylim(opt.yaxislim);
-%    xlim(opt.xaxislim);
-    set(gca, 'FontSize', 10, 'TickDir','out','LineWidth',3); box off
-    hold on;
-
-end
-print(fH9, fullfile(saveDir,'prf_sig_ecc_all_rois'), '-dpng');
     
 %% --------------------------------------------------------------------
 %   Load mrMesh and display Wang Rois and prf parameters on the mesh
@@ -376,7 +388,11 @@ if opt.surfVisualize
         vw = loadParameterMap(vw,prfParamNifti);
         
         % Add smoothing/ve mask?
+        smoothing_mask_tmp = (vemask & eccenmask);
+        smoothing_mask     = nan(size(smoothing_mask_tmp));
+        smoothing_mask(smoothing_mask_tmp==1) = 1;
         vw.map{1} = vw.map{1}.*smoothing_mask;
+        %vw.map{1} = vw.map{1};
         
         switch prfParams{ii}
             case {'polar_angle', 'polar_angle_smoothed'}
