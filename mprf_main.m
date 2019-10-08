@@ -1,4 +1,4 @@
-%% mprf_main
+function mprf_main(subjID)
 %
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions
 % involved in the MEG Retinotopy project.
@@ -22,7 +22,6 @@
 %   3.3: Computing phase referenced amplitude from preprocessed MEG data 
 %           and predicted MEG responses from cortical surface
 %
-function mprf_main(subjID)
 % DEPENDENCIES:
 % 1. Preprocessing steps:
 % - FreeSurfer's auto-segmentation (v6???)
@@ -40,12 +39,9 @@ function mprf_main(subjID)
 % 
 % By Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
 %
+
 %% 0. Load paths
 
-% Define subject ID
-% subjID = 'wlsubj111';
-
-%%
 % Load paths with data files for this subject
 dirPth = loadPaths(subjID);
 
@@ -53,13 +49,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',0,'skipMEGPreproc',1,'perturbOrigPRFs','size');
-%opt = getOpts('saveFig',1,'verbose',1,'skipMRIPreproc',1,'skipMEGPreproc',0);
-%opt = getOpts('saveFig',1,'verbose',1);
-
-if strcmp(subjID, 'wlsubj039')
-    opt = getOpts('useCoherentSpectrum', true','skipMRIPreproc',0,'verbose',0);
-end
+opt = getOpts('saveFig',1,'verbose',1); % see getOpts function for more options
 
 %% 1. MEG data preprocessing
 

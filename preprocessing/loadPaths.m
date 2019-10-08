@@ -70,4 +70,7 @@ dirPth.model.saveDataPth  = fullfile(mprf_rootPath, 'data','Retinotopy', 'Qualit
 %% ----- Final figures ----
 
 dirPth.finalFig.savePth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'finalfig'); % should be sym link in git folder
+dirPth.finalFig.savePthAverage = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', 'average','finalfig'); % should be sym link in git folder
+
+
 end
