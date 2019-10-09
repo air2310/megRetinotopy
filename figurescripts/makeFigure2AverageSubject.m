@@ -21,8 +21,10 @@ ypos = layout.pos(1:157,2);
 
 % Figure specs
 fH1   = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
-colorLine = [0.8 0.8 0.8];
-colorPatch = [0.5 0.5 0.5];
+
+lineColorSat = repmat(linspace(0.3,0.9,10), [3 1]);
+
+% colorPatch = [0.5 0.5 0.5];
 
 for s = 1:length(subjects)
     
@@ -45,19 +47,25 @@ for s = 1:length(subjects)
     end
     
     % Plot data for sensors over the back of the head
-    dataToPlot = squeeze(varexpl(s,:,sensorLoc{s}));
+    thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
     
-    % Compute mean and standard error of variance explained across selected sensors
-    meanSelectedSensors(s,:) = nanmean(dataToPlot,2);
-    plot(range,meanSelectedSensors(s,:),'Color', colorLine, 'Linewidth',2); hold on;
+    % Compute summary metrics of variance explained across selected sensors
+    meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
+%     percentdiff(s,:) = 100*(meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./max(meanSelectedSensors(s,:));
+%     normalizedVE(s,:) = meanSelectedSensors(s,:)./max(meanSelectedSensors(s,:));
+    
+    % for now we pick the mean VE across sensors
+    dataToPlot = meanSelectedSensors;
+      
+    plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
     
 end
 
 % Average/SE/CI across subjects
-averageSubjectVarExpl = nanmean(meanSelectedSensors,1);
-averageSubjectSE = nanstd(meanSelectedSensors) ./ sqrt(length(subjects));
-averageSubjectCI = 1.96.* averageSubjectSE;
+averageDataToPlot          = nanmean(dataToPlot,1);
 
+% averageSubjectSE = nanstd(meanSelectedSensors) ./ sqrt(length(subjects));
+% averageSubjectCI = 1.96.* averageSubjectSE;
 
 % % Plot shaded error bar using 'patch' function
 % lo = averageSubjectVarExpl - averageSubjectCI;
@@ -66,12 +74,12 @@ averageSubjectCI = 1.96.* averageSubjectSE;
 % err = patch([range, fliplr(range)], [lo', fliplr(hi')], colorPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
 
 % Plot mean
-plot(range,averageSubjectVarExpl,'r','Linewidth',4);
+plot(range,averageDataToPlot,'r','Linewidth',5);
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 0.45], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [-50 50], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
@@ -85,7 +93,7 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
 
-    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s', opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%_meanVE', opt.fNamePostFix, sensorsToAverage)), '-dpng');
 end
 
 return
