@@ -13,7 +13,8 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage)
 %   plotAverage         : plot average across subjects (bool), default is
 %                         false
 %
-%
+% Example: 
+%   makeAllFigures('wlsubj004', 2, 'top10', true)
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
