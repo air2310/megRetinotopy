@@ -19,7 +19,7 @@ opt.fullSizeMesh          = false;              % General: if true, execute anal
 opt.surfVisualize         = true;              % General: visualize surface meshes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.makeAverageFig        = false;              % General: Plot average across subjects
-opt.headmodel             = 'BEM';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
+opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
