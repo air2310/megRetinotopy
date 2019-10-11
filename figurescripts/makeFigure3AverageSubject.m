@@ -33,7 +33,11 @@ for s = 1:length(subjects)
     dirPth = loadPaths(subjectID);
     
     % Load variance explained file
-    load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
+    if strcmp(subjects{s},'wlsubj081')
+        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','BEM','pred_resp', 'meanVarExpl'));
+    else
+        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
+    end
     varexpl(s,:,:) = meanVarExpl;
     
     if strcmp(sensorsToAverage, 'top10')
@@ -79,7 +83,7 @@ plot(range,averageSubjectVarExpl,'r','Linewidth',6);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 1], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 45], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');

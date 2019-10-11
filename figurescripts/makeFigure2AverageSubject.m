@@ -33,8 +33,12 @@ for s = 1:length(subjects)
     dirPth = loadPaths(subjectID);
     
     % Load variance explained file
-    load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
-    varexpl(s,:,:) = meanVarExpl;
+    if strcmp(subjects{s},'wlsubj081')
+        load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','BEM','pred_resp', 'meanVarExpl'));
+    else
+        load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
+        varexpl(s,:,:) = meanVarExpl;
+    end
     
     if strcmp(sensorsToAverage, 'top10')
         % Get top 10 sensors
@@ -79,7 +83,7 @@ plot(range,averageDataToPlot,'r','Linewidth',5);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [-50 50], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 45], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
@@ -93,7 +97,7 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
 
-    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%_meanVE', opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s_meanVE', opt.fNamePostFix, sensorsToAverage)), '-dpng');
 end
 
 return

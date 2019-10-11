@@ -8,13 +8,17 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage)
 %   whichFigure         : figures to plot (int or vect), choose from 1,2,3,
 %                         or 1:3 (default)
 %   sensorsToAverage    : what sensors to average when plotting variations
-%                         in size/position.
+%                         in size/position. 
 %                         Choose from 'allPosterior' (default) or 'top 10'
 %   plotAverage         : plot average across subjects (bool), default is
-%                         false
+%                         false. When true, individual subject plotting
+%                         will be ignored, so any subjectID can be used to
+%                         get the opts.
 %
-% Example: 
+% Example 1: Plot average variance explained for every pRF variation  
 %   makeAllFigures('wlsubj004', 2, 'top10', true)
+% Example 2: Plot average variance explained for every pRF variation  
+%   makeAllFigures('wlsubj004', 1, 'top10', false)
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
@@ -34,20 +38,20 @@ end
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('verbose', true, 'saveFig',true);
+opt = getOpts('verbose', true, 'saveFig',true, 'headmodel', 'OS');
 
 %% Figure 1. Time series (1A) and MEG head plot (1B)
 if any(intersect(whichFigure,1))
     
     % Figure 1. Time series (1A) and MEG head plot (1B)
-    makeFigure1(dirPth,opt);
+    makeFigure1(dirPth, opt, plotAverage);
     
 end
 
 %% Figure 2. Position range line plot and headplots for every position range
 if any(intersect(whichFigure,2))
     
-    opt = getOpts('perturbOrigPRFs', 'position');
+    opt = getOpts('perturbOrigPRFs', 'position', 'headmodel', 'OS');
     
     if plotAverage
         makeFigure2AverageSubject(opt,sensorsToAverage);
@@ -59,12 +63,12 @@ end
 %% Figure 3. Size range line plot and headplots for every size range
 if any(intersect(whichFigure,3))
     
-    opt = getOpts('perturbOrigPRFs', 'size');
+    opt = getOpts('perturbOrigPRFs', 'size', 'headmodel', 'OS');
     
     if plotAverage
         makeFigure3AverageSubject(opt,sensorsToAverage);
     else
-        makeFigure3(dirPth,opt,sensorsToAverage, plotAverage);
+        makeFigure3(dirPth,opt,sensorsToAverage);
     end
 end
 

@@ -84,7 +84,7 @@ if opt.saveFig
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
-    fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
+    fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
 
     print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
