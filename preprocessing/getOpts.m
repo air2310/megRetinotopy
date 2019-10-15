@@ -19,6 +19,7 @@ opt.fullSizeMesh          = false;              % General: if true, execute anal
 opt.surfVisualize         = false;              % General: visualize surface meshes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.makeAverageFig        = false;              % General: Plot average across subjects
+opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
@@ -55,8 +56,8 @@ opt.roi.roimrvToFS            = false; % set to false, use wang atlas, otherwise
 opt.roi.onlyV123WangAtlas     = false; % set to true in case you want to only use V1-V3 ROIs of the Wang atlas (for comparing against benson atlas results)
 
 % --- Folders and filenames ---
-opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d', ...
-                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData);
+opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d_%s', ...
+                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
 
 
 %% Check for extra inputs in case changing the default options
@@ -115,6 +116,10 @@ if opt.meg.useCoherentSpectrum
     opt.subfolder             = [opt.subfolder '/coherent'];
 else
     opt.subfolder             = [opt.subfolder '/incoherent'];
+end
+
+if strcmp(opt.headmodel, 'BEM')
+    opt.subfolder = [opt.subfolder '/BEM'];
 end
 
 return

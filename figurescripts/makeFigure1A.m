@@ -20,13 +20,18 @@ end
 load(fullfile(varExpFile.folder,varExpFile.name),'meanVarExpl');
 
 % Set colormap limits
-clims = [0 0.4];
+clims = [0 max(meanVarExpl)];
 
 % Plot it!
-fH1 = figure;
+fH1 = figure; clf;
 megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
-    'mean variance explained', [],[], 'interpmethod', 'nearest');
-c = colorbar; c.Location='southoutside';
+    'Mean variance explained', [],[], 'interpmethod', 'nearest');
+c = colorbar;
+c.Location = 'southoutside';
+c.Box = 'off';
+c.TickDirection = 'out';
+c.TickLength = [0.010 0.010];
+c.FontSize = 12;
 
 
 if opt.saveFig

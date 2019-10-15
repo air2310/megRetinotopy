@@ -70,14 +70,14 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         blank_t = t(blankIdx);
                
         % Plot the figure
-        fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName);hold on;
+        fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName); hold on;
         plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',[0.3010, 0.7450, 0.9330], 'MarkerSize',7,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
         hold on;
         plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.4 0.4], 'LineWidth',lW_pred);
                 
         %title(ttl);
         xlabel(xLbl); ylabel(yLbl);        
-        set(gca, 'FontSize', fontSize, 'TickDir','out','LineWidth',3); box off
+        set(gca, 'FontSize', fontSize, 'TickDir','out','TickLength',[0.010 0.010],'LineWidth',3); box off
              
         % set x and y axis limits
         tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,topSensor(tt))), max(meanPhRefAmp10Hz(:,topSensor(tt)))])).*10^14;

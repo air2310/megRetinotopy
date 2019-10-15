@@ -21,8 +21,10 @@ ypos = layout.pos(1:157,2);
 
 % Figure specs
 fH1   = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
-colorLine = [0.8 0.8 0.8];
-colorPatch = [0.5 0.5 0.5];
+
+lineColorSat = repmat(linspace(0.3,0.9,10), [3 1]);
+
+% colorPatch = [0.5 0.5 0.5];
 
 for s = 1:length(subjects)
     
@@ -31,7 +33,11 @@ for s = 1:length(subjects)
     dirPth = loadPaths(subjectID);
     
     % Load variance explained file
-    load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
+    if strcmp(subjects{s},'wlsubj081')
+        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','BEM','pred_resp', 'meanVarExpl'));
+    else
+        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
+    end
     varexpl(s,:,:) = meanVarExpl;
     
     if strcmp(sensorsToAverage, 'top10')
@@ -45,18 +51,24 @@ for s = 1:length(subjects)
     end
     
     % Plot data for sensors over the back of the head
-    dataToPlot = squeeze(varexpl(s,:,sensorLoc{s}));
+    thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
     
+    meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
+%     percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./max(meanSelectedSensors(s,:)));
+%     normalizedVE(s,:) = meanSelectedSensors(s,:)./max(meanSelectedSensors(s,:));
+    
+    % for now we pick the mean VE across sensors
+    dataToPlot = meanSelectedSensors;
+
     % Compute mean and standard error of variance explained across selected sensors
-    meanSelectedSensors(s,:) = nanmean(dataToPlot,2);
-    plot(range,meanSelectedSensors(s,:),'Color', colorLine, 'Linewidth',2); hold on;
+    plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
     
 end
 
 % Average/SE/CI across subjects
-averageSubjectVarExpl = nanmean(meanSelectedSensors,1);
-averageSubjectSE = nanstd(meanSelectedSensors) ./ sqrt(length(subjects));
-averageSubjectCI = 1.96.* averageSubjectSE;
+averageSubjectVarExpl = nanmean(dataToPlot,1);
+% averageSubjectSE = nanstd(dataToPlot) ./ sqrt(length(subjects));
+% averageSubjectCI = 1.96.* averageSubjectSE;
 
 
 % % Plot shaded error bar using 'patch' function
@@ -66,12 +78,12 @@ averageSubjectCI = 1.96.* averageSubjectSE;
 % err = patch([range, fliplr(range)], [lo', fliplr(hi')], colorPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
 
 % Plot mean
-plot(range,averageSubjectVarExpl,'r','Linewidth',4);
+plot(range,averageSubjectVarExpl,'r','Linewidth',6);
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 0.45], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [0 45], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');
@@ -85,7 +97,7 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
 
-    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varyPositionSummary%s_%s', opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varyPositionSummary%s_%s_meanVE', opt.fNamePostFix, sensorsToAverage)), '-dpng');
 end
 
 return
