@@ -1,4 +1,4 @@
-function bs_msh = mprf_VisualizeDataOnBrainstormSurface(dirPth,cur_surf,saveDir)
+function bs_msh = mprf_VisualizeDataOnBrainstormSurface(dirPth,cur_surf,saveDir, opt)
 % Load Brainstorm downsampled mesh with functions from vistaSoft and
 % visualize prf parameters on surface.
 %
@@ -11,7 +11,12 @@ bs_msh = mprfMeshFromBrainstorm(fullfile(bs_surf_files.folder,bs_surf_files.name
 
 % Get prf parameters saved as nifti's
 prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
-    'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta', 'wang2015_atlas', 'mask'};
+    'sigma', 'sigma_smoothed', 'beta', 'recomp_beta', 'wang2015_atlas', 'mask'};
+
+ve = read_curv(fullfile(dirPth.fmri.saveDataPth_prfBS, [cur_surf '.varexplained']));
+vemask = ve>opt.mri.varExplThresh(1);
+eccen = read_curv(fullfile(dirPth.fmri.saveDataPth_prfBS, [cur_surf '.eccentricity']));
+eccenmask = eccen<opt.mri.eccThresh(2);
 
 % Loop over parameters to load and save image 
 for ii = 1:length(prfParams)
@@ -33,20 +38,12 @@ for ii = 1:length(prfParams)
     end
     
     % mask - usually all the vertices that has a value for the data point.
+    data_in(~vemask) = NaN;
+    data_in(~eccenmask) = NaN;
     mask = true(size(data_in));
     mask(isnan(data_in)) = 0;
     
-    % Set a 95 percentile threshold for beta values
-    if any([regexp(prfParams{ii},'recomp_beta\>') ...
-            regexp(prfParams{ii},'mresp_smoothed\>') ...
-            regexp(prfParams{ii},'beta\>') ...
-            regexp(prfParams{ii},'mresp\>')])
-        
-        data_in(data_in == 0) = nan;
-        drange = [min(data_in(mask)) prctile(data_in(mask),95)];
-    else 
-        drange = [min(data_in) max(data_in)];     
-    end
+    cAxisLim = [min(data_in) max(data_in)];
     
     % Get list of viewpoints and meshes when saving different images
     viewList={'back','bottom','top','left','right'};
@@ -64,20 +61,22 @@ for ii = 1:length(prfParams)
             
         otherwise
             cmap = hsv(256);
-            figure(100); clf; imagesc(1:256); colormap(cmap);
-            set(gca, 'TickDir', 'out'); box off;
-            title('HSV colormap', 'FontSize',14)
     end
     
     % visualize parameter on the mesh
-    bs_msh = mprfSessionColorMesh(bs_msh,data_in,cmap,drange,mask);
+    bs_msh = mprfSessionColorMesh(bs_msh,data_in,cmap,cAxisLim,mask);
     for thisView=1:length(viewList)
         cam.actor=0;
         cam.rotation = rotationMatrix3d(viewVectors{thisView});
         mrMesh('localhost',bs_msh.id,'set',cam);
         
-        fH = figure('Color', 'w'); clf; 
-        imagesc(mrmGet(bs_msh, 'screenshot')/255); axis image; axis off; 
+        fH = figure(1); cla; set(fH, 'Color', 'w'); clf; 
+        imagesc(mrmGet(bs_msh, 'screenshot')/255); axis image; axis off;
+        if ~strcmp(prfParams{ii},'mask')
+            colormap(cmap); colorbar; caxis(cAxisLim); 
+            set(gca, 'TickDir', 'out');
+        end
+        
         title(sprintf('%s %s',prfParams{ii},viewList{thisView}), 'FontSize', 14)
         print(fH, fullfile(saveDir,sprintf('%s_%s',prfParams{ii},viewList{thisView})), '-dpng');
     end
@@ -87,6 +86,5 @@ for ii = 1:length(prfParams)
 end
 
 print(99, fullfile(saveDir,'polar_angle_cmap'), '-dpng');
-print(100, fullfile(saveDir,'eccen_cmap'), '-dpng');
 
 end
