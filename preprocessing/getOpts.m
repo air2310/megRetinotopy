@@ -16,7 +16,7 @@ opt.verbose               = true;               % General
 opt.saveData              = true;               % General
 opt.saveFig               = true;               % General
 opt.fullSizeMesh          = false;              % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
-opt.surfVisualize         = true;              % General: visualize surface meshes
+opt.surfVisualize         = false;              % General: visualize surface meshes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.makeAverageFig        = false;              % General: Plot average across subjects
 

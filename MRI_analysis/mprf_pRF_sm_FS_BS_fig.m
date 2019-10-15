@@ -92,7 +92,11 @@ for p = 1:length(fnPrf)
         roiMask = roiData.(fnRoi{r})>0;
         
         if strcmp(thisFieldName,'varexplained')
-            data = data(vemask(roiMask));
+            %data = data(vemask(roiMask));
+            %prfROIData.(fnRoi{r}).(fnPrf{p}) = data;
+            
+            data = data((vemask(roiMask) & eccenmask(roiMask)));
+            
             prfROIData.(fnRoi{r}).(fnPrf{p}) = data;
             
         elseif (strcmp(thisFieldName,'beta') || strcmp(thisFieldName,'recomp_beta'))
@@ -134,6 +138,56 @@ for roi_idx = 1:numRoi
     set(gca, 'TickDir', 'out', 'FontSize', 14)
 end
 print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
+
+
+% prf size vs ecc for all rois
+roiName_allROI = 'allROIs';
+fH201 = figure(201); clf; set(gcf, 'Color', 'w', 'Position',[675,384,763,590],'Name', 'pRF size vs ecc all rois');
+c_orig 	 = [0.5 1 0];
+c_smooth = [0 0.5 1];
+scatter(prfROIData.(roiName_allROI).eccentricity, prfROIData.(roiName_allROI).sigma,[],c_orig,'*');  hold on;
+scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName_allROI).sigma_smoothed,[],c_smooth,'*');
+title(roiName_allROI, 'FontSize', 15)
+legend('original','smoothed','Location','NorthWest')
+legend('Location','NorthWest')
+ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
+ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
+set(gca, 'FontSize', 20, 'TickDir', 'out','LineWidth',3); box off;
+print(fH201, fullfile(saveDir,'pRF_size_eccentricity_allROIs'), '-dpng');
+
+
+% Fit a line to the distribution of points and plot them all in one figure, 
+fH31 = figure(31); clf; set(gcf, 'Color', 'w', 'Position', [675,384,763,590], 'Name', 'pRF fit for all rois');
+
+roi_colors = [0.5 0.5 0.5; 1 0.5 0.5; 0.5 1 0.5; 0.5 0.5 1; 0.75 0.75 0; 0 0.75 0.75; 0.75 0 0.75...
+              ; 0.75 0.75 0.75; 0.75 0 0; 0 0 0.75; 0.75 1 0.75; 1 0 0.75; 0.75 0 1];
+
+roiToPlot = {'V1','V2','V3','IPS','LO','TO','VO','PHC','FEF','SPL1','hV4','allROIs'};          
+numRoi    = length(roiToPlot); 
+count = 1;
+for roiIdx = 1:numRoi
+    x    = prfROIData.(roiToPlot{roiIdx}).eccentricity_smoothed;
+    y    = prfROIData.(roiToPlot{roiIdx}).sigma_smoothed;
+    w    = prfROIData.(roiToPlot{roiIdx}).varexplained;
+    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+    
+    if ~isempty(y)
+        [yfit,stats] = mprf_fit(x,y,w,xfit);
+        plot(xfit,yfit,'color',roi_colors(roiIdx,:),'LineWidth',4);hold on;
+        legend(roiToPlot,'Location','bestoutside')
+        xlabel('eccentricity (deg)'); ylabel('pRF size (deg)');
+        ylim([0 10]);
+        lg{count} = roiToPlot{roiIdx};
+        %    xlim(opt.xaxislim);
+        set(gca, 'FontSize', 20, 'TickDir','out','LineWidth',3); box off
+        count = count+1;
+    end
+end
+legend(lg,'Location','bestoutside');
+print(fH31, fullfile(saveDir,'prf_sig_ecc_all_rois'), '-dpng');
+
+
+
 
 % Sigma histogram
 %-----------------------

@@ -83,7 +83,7 @@ for h = 1:length(hemis)
     
     
     % Load mesh using fs_meshFromSurface, this creates a mrVista compatible
-    % mesh. Using 'my own' function that skips the smoothing:
+    % mesh. Using 'my (Barrie Klein) own' function that skips the smoothing:
     mrVistaMeshPial = mprf_fs_meshFromSurface(pialSurfFname);
     mrVistaMeshWhite = mprf_fs_meshFromSurface(whiteSurfFname);
     

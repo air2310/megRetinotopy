@@ -16,8 +16,10 @@ end
 makeFigure1A(dirPth,opt);
 
 if opt.makeAverageFig
-    subjIDs = {'wlsubj004','wlsubj058','wlsubj068'};
-    makeFigure1C(subjIDs,opt); % Average MEG headplot for all subjects 
+    subjIDs = {'wlsubj004','wlsubj039','wlsubj040','wlsubj058','wlsubj068','wlsubj070','wlsubj081','wlsubj106','wlsubj109','wlsubj111'};
+    opt_all.dataChan = 1:157;          % MEG Sensor info
+    opt_all.saveFig  = true;
+    makeFigure1C(subjIDs,opt_all); % Average MEG headplot for all subjects 
 end
 
 %%

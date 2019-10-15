@@ -4,11 +4,11 @@ function makeFigure1C(subjIDs,opt)
 
 % define initial parameters
 numChans = length(opt.dataChan);
-numSubjs = length(subjIDs);
-varExplAllSubj = nan(numSubjs,numChans);
+numSub = length(subjIDs);
+varExplAllSubj = nan(numSub,numChans);
 
 % loop over all subjects
-for idxSubj = 1:numSubjs
+for idxSubj = 1:numSub
     % calculate average variance explained across subjects
     
     % Load paths with data files for this subject
@@ -24,13 +24,14 @@ for idxSubj = 1:numSubjs
      
 end
 
-meanVarExplAllSubj = nanmean(varExplAllSubj,1);
+meanVarExplAllSubj    = nanmean(varExplAllSubj,1);
+[maxMeanVarExplAllSubj, maxSen] = nanmax(meanVarExplAllSubj);
 
 close all;
 
 fH1 = figure; set(gcf,'Position',[100 100 1920/2 1920/2]);
-ttl = strcat('Mean variance explained (Average: ', sprintf('%s ,',subjIDs{:}),')');
-megPlotMap(meanVarExplAllSubj,[0 0.6],fH1, 'parula', ttl, [],[]);
+ttl = strcat('Mean variance explained (Average across subjects: N=', sprintf('%d )',numSub));
+megPlotMap(meanVarExplAllSubj,[0 maxMeanVarExplAllSubj],fH1, 'parula', ttl,[],[],'interpmethod', 'nearest');
 c = colorbar; c.Location='southoutside';
 
 if opt.saveFig
@@ -41,8 +42,8 @@ if opt.saveFig
         mkdir(saveDir);
     end
     
-    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs',numSubjs)), '-dpng');
-    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs',numSubjs)), '-depsc');
+    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%d_sen_%d',numSub,round(maxMeanVarExplAllSubj),maxSen)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%d_sen_%d',numSub,round(maxMeanVarExplAllSubj),maxSen)), '-depsc');
     fprintf('\n saving figure 1A in %s',saveDir);
     
     
