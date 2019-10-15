@@ -1,4 +1,4 @@
-function fs_msh = mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf,saveDir)
+function fs_msh = mprf_VisualizeDataOnFreesurferSurface(dirPth,cur_surf,saveDir, opt)
 % load mesh using fs_meshFromSurface and t_meshFromFreesurfer
 % surfaces_to_load = {'lh.pial','lh.white','rh.pial','rh.white'};
     
@@ -13,7 +13,9 @@ fs_msh = meshColor(fs_msh);
 
 % Get prf parameters saved as nifti's
 prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
-  'sigma', 'sigma_smoothed', 'varexplained', 'beta', 'recomp_beta'};
+  'sigma', 'sigma_smoothed', 'beta', 'recomp_beta'};
+
+
 
 fH = figure('Color', 'w'); clf;
 for ii = 1:length(prfParams)
@@ -22,6 +24,12 @@ for ii = 1:length(prfParams)
    
     cur_hs_tmp = strsplit(cur_surf,'.');
     cur_hs = cur_hs_tmp{1};
+    
+    ve = read_curv(fullfile(dirPth.fmri.saveDataPth_prfFS, [cur_hs '.varexplained']));
+    vemask = ve>opt.mri.varExplThresh(1);
+    eccen = read_curv(fullfile(dirPth.fmri.saveDataPth_prfFS, [cur_hs '.eccentricity']));
+    eccenmask = eccen<opt.mri.eccThresh(2);
+    
     cur_param = strcat(cur_hs,'.',prfParams{ii});
    
     switch prfParams{ii}
@@ -41,31 +49,17 @@ for ii = 1:length(prfParams)
     
     
     surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_prfFS, cur_param));
+    surf_data(~vemask) = NaN;
+    surf_data(~eccenmask) = NaN;
     data_in = surf_data;
-    
     
     % mask - usually all the vertices that has a value for the data point.
     mask = true(size(data_in));
     mask(isnan(data_in)) = 0;
-    
-    if any([regexp(prfParams{ii},'recomp_beta\>') ...
-            regexp(prfParams{ii},'mresp_smoothed\>') ...
-            regexp(prfParams{ii},'beta\>') ...
-            regexp(prfParams{ii},'mresp\>')])
+
+    cAxisLim = [min(data_in) max(data_in)];
         
-        data_in(data_in == 0) = nan;
-        drange = [min(data_in(mask)) prctile(data_in(mask),95)];
-        
-        
-    else
-        
-        drange = [min(data_in) max(data_in)];
-        
-    end
-    
-    
-    
-    fs_msh = mprfSessionColorMesh(fs_msh,data_in,cmap,drange,mask);
+    fs_msh = mprfSessionColorMesh(fs_msh,data_in,cmap,cAxisLim,mask);
     
     % Get list of viewpoints and meshes when saving different images
     viewList={'back','left','right','bottom','top'};
@@ -80,6 +74,8 @@ for ii = 1:length(prfParams)
         
         figure(fH); cla;
         imagesc(mrmGet(fs_msh, 'screenshot')/255); axis image; axis off;
+        cmapbar = cmap; caxis(cAxisLim); colormap(cmapbar); colorbar; 
+        
         title(sprintf('%s %s %s',cur_hs, prfParams{ii},viewList{thisView})); drawnow;
         saveas(fH, fullfile(saveDir,sprintf('%s_%s_%s', cur_hs, prfParams{ii},viewList{thisView})), 'png');
     end
