@@ -117,7 +117,7 @@ h2.FaceColor = 'r'; h2.EdgeColor = 'w';
 title('Variance explained of pRF model fits on FS surface (all vertices, or (ve>0.1)')
 xlabel('Variance explained'); ylabel('Frequency')
 set(gca, 'FontSize', 15, 'TickDir', 'out'); box off;
-print(fH1, fullfile(saveDir,'variance_explained'), '-dpng');
+print(fH1, fullfile(saveDir,'variance_explained_selection'), '-dpng');
 
 % pRF size vs eccentricity
 %----------------------
