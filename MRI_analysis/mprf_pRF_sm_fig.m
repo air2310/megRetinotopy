@@ -216,13 +216,10 @@ print(fH2, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 % prf size vs ecc across all rois
 roiName_allROI = roiName{end};
 fH3 = figure(3); clf; set(gcf, 'Color', 'w', 'Position',[675,384,763,590],'Name', 'pRF size vs ecc all rois');
-c_orig 	 = [0.5 1 0];
-c_smooth = [0 0.5 1];
 scatter(prfROIData.(roiName_allROI).eccentricity, prfROIData.(roiName{roiIdx}).sigma,[],c_orig,'*');  hold on;
 scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName{roiIdx}).sigma_smoothed,[],c_smooth,'*');
 title(roiName_allROI, 'FontSize', 15)
 legend('original','smoothed','Location','NorthWest'); legend boxoff
-legend('Location','NorthWest')
 ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
 ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
 set(gca, 'FontSize', 20, 'TickDir', 'out','LineWidth',2); box off;
@@ -243,7 +240,7 @@ for roiIdx = 1:numRois
     ylabel('variance explained (deg)'); xlabel('PRF eccen (deg');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
 end
-print(fH4, fullfile(saveDir,'variance_explained'), '-dpng');
+print(fH4, fullfile(saveDir,'variance_explained_selection'), '-dpng');
 
 
 %% Fit a line to size vs eccen distribution and plot the line fits 
