@@ -47,7 +47,7 @@ hvol = rmSelect(hvol,1,rm_model);
 % Mask to exclude unreliable voxels (i.e. VE == 0) from the smoothing
 % below. Otherwise, the pRF parameters will be averaged with a lot of
 % zeros:
-sm_mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
+ve0mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
 
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
@@ -117,7 +117,7 @@ for nn = 1:length(params)
             % reconstructing the pRF, multiplying it with the stimulus and
             % it's beta, and taking the maximum response from the
             % predicted time series
-            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),sm_mask);
+            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),ve0mask);
                  
             % Store the maximum responses as a nifti file: 
             hvol = viewSet(hvol,'map',{maxresp});
@@ -125,7 +125,7 @@ for nn = 1:length(params)
             mprfCheckParameterNiftiAlignment(cls, fname);
             
              % Smooth the maximum responses on the cortical surface
-            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, sm_mask);
+            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, ve0mask);
             
             % Export smoothed maximum responses as a nifti:
             hvol = viewSet(hvol,'map',{maxresp_smoothed});
@@ -152,7 +152,7 @@ for nn = 1:length(params)
         case {'x','y','sigma'}
             
             % Smooth the current paramter:
-            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, sm_mask);
+            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, ve0mask);
             
             % Export smoothed data as nifti:
             fname = fullfile(prf_data_mrVNif,[cur_param '_smoothed.nii.gz']);
