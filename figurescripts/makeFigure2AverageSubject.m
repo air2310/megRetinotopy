@@ -1,7 +1,12 @@
-function makeFigure2AverageSubject(opt, sensorsToAverage)
+function makeFigure2AverageSubject(opt, sensorsToAverage, summaryMetric)
 % Function to make average across subjects for Figure 2 from manuscript, 
 % plotting variance explained by the model as a function of polar angle 
 % rotations around the fovea of the original estimated pRF centers.
+
+% check inputs
+if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
+    summaryMetric = 'meanVE';
+end
 
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
             'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
@@ -37,8 +42,9 @@ for s = 1:length(subjects)
         load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','BEM','pred_resp', 'meanVarExpl'));
     else
         load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
-        varexpl(s,:,:) = meanVarExpl;
     end
+    varexpl(s,:,:) = meanVarExpl;
+
     
     if strcmp(sensorsToAverage, 'top10')
         % Get top 10 sensors
@@ -55,12 +61,23 @@ for s = 1:length(subjects)
     
     % Compute summary metrics of variance explained across selected sensors
     meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
-%     percentdiff(s,:) = 100*(meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./max(meanSelectedSensors(s,:));
-%     normalizedVE(s,:) = meanSelectedSensors(s,:)./max(meanSelectedSensors(s,:));
-    
-    % for now we pick the mean VE across sensors
-    dataToPlot = meanSelectedSensors;
-      
+    if strcmp(summaryMetric, 'meanVE')
+        dataToPlot = meanSelectedSensors;
+        yl = [0 45];
+        yLabel = 'Variance explained (%)';
+    elseif strcmp(summaryMetric, 'percentChangeVE')
+        percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
+        dataToPlot = percentdiff;
+        yl = [-100 100];
+        yLabel = 'Percent change variance explained (%)';
+    elseif strcmp(summaryMetric, 'zscoreVE')    
+        zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
+        dataToPlot = zscoredVE;
+        yl = [-3 3];
+        yLabel = 'Z-scored variance explained (%)';
+    end
+        
+
     plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
     
 end
@@ -83,10 +100,10 @@ plot(range,averageDataToPlot,'r','Linewidth',5);
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 45], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
-ylabel('Variance explained (%)');
+ylabel(yLabel);
 box off;
 
 % Save fig
@@ -97,7 +114,7 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
 
-    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s_meanVE', opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
 end
 
 return

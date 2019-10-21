@@ -1,4 +1,4 @@
-function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage)
+function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summaryMetric)
 % Wrapper function for make manuscript figures for MEG Retinotopy project.
 % Allows to plot all figures at once, or just a single one, for any
 % subject, or the average across subjects
@@ -14,11 +14,16 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage)
 %                         false. When true, individual subject plotting
 %                         will be ignored, so any subjectID can be used to
 %                         get the opts.
+%   summaryMetric       : what summary metric to use when averaging across
+%                         subjects (string) Choose from 'meanVE' (default),
+%                         'percentChangeVE', 'zscoreVE'.
 %
-% Example 1: Plot average variance explained for every pRF variation  
-%   makeAllFigures('wlsubj004', 2, 'top10', true)
-% Example 2: Plot average variance explained for every pRF variation  
-%   makeAllFigures('wlsubj004', 1, 'top10', false)
+% Example 1: Plot average variance explained for every pRF size variation  
+%   makeAllFigures('wlsubj004', 2, 'top10', true, 'meanVE')
+% Example 2: Plot average variance explained for every pRF position variation  
+%   makeAllFigures('wlsubj004', 1, 'top10', false, 'meanVE')
+% Example 3: Plot avergae zcored variance explained for every position pRF variation  
+%   makeAllFigures('wlsubj004', 1, 'top10', false, 'zscoreVE')
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
@@ -32,6 +37,10 @@ end
 
 if isempty(sensorsToAverage) || ~exist('sensorsToAverage','var')
     sensorsToAverage = 'allPosterior';
+end
+
+if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
+    summaryMetric = 'meanVE';
 end
 
 % Go back to root
@@ -54,7 +63,7 @@ if any(intersect(whichFigure,2))
     opt = getOpts('perturbOrigPRFs', 'position', 'headmodel', 'OS');
     
     if plotAverage
-        makeFigure2AverageSubject(opt,sensorsToAverage);
+        makeFigure2AverageSubject(opt,sensorsToAverage, summaryMetric);
     else
         makeFigure2(dirPth,opt,sensorsToAverage);
     end
@@ -66,7 +75,7 @@ if any(intersect(whichFigure,3))
     opt = getOpts('perturbOrigPRFs', 'size', 'headmodel', 'OS');
     
     if plotAverage
-        makeFigure3AverageSubject(opt,sensorsToAverage);
+        makeFigure3AverageSubject(opt,sensorsToAverage, summaryMetric);
     else
         makeFigure3(dirPth,opt,sensorsToAverage);
     end
