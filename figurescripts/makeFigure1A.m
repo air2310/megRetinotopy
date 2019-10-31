@@ -2,7 +2,7 @@ function makeFigure1A(dirPth,opt)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects).
 
-varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','coherent','pred_resp','meanVarExpl.mat'));
+varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','coherent','FSMesh','pred_resp','meanVarExpl.mat'));
 
 saveSubDir = 'figure1A';
 saveDir = fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir);
