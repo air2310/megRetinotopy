@@ -60,7 +60,7 @@ end
 %% Figure 2. Position range line plot and headplots for every position range
 if any(intersect(whichFigure,2))
     
-    opt = getOpts('perturbOrigPRFs', 'position', 'headmodel', 'OS');
+    opt = getOpts('perturbOrigPRFs', 'position', 'headmodel', 'OS', 'fullSizeMesh',true);
     
     if plotAverage
         makeFigure2AverageSubject(opt,sensorsToAverage, summaryMetric);
