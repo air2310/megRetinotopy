@@ -31,20 +31,20 @@ mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746], 'Name', 'Vary pRF size');
 
 % Plot mean with shaded error bar using 'patch' function
-lo = mean_varexpl - ci_varexpl;
-hi = mean_varexpl + ci_varexpl;
+lo = 100.*(mean_varexpl - ci_varexpl);
+hi = 100.*(mean_varexpl + ci_varexpl);
 color = [0.5 0.5 0.5];
 err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
 hold on;
-plot(range,mean_varexpl,'r','Linewidth',3);
+plot(range,100.*mean_varexpl,'r','Linewidth',3);
 
 % Add labels and make pretty
-yl = [0 0.25];
-if max(mean_varexpl)>yl(2)
-    yl = [0 max(mean_varexpl)+0.05];
+yl = [0 45];
+if max(100.*mean_varexpl)>yl(2)
+    yl = [0 max(100.*mean_varexpl)+5];
 end
 
 set(gca,'TickDir', 'out');
@@ -59,7 +59,7 @@ ylabel('Variance explained (%)');
 %% Plot meshes
 rows = 3;
 cols = round(length(range)/rows)+1;
-fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138]); hold all;
+fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
 
 clim = max(varexpl(range==1,:));
 interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
