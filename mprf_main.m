@@ -49,7 +49,7 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',1,'verbose',1); % see getOpts function for more options
+opt = getOpts('saveFig',1,'verbose',1, 'fullSizeMesh', 1); % see getOpts function for more options
 
 %% 1. MEG data preprocessing
 
