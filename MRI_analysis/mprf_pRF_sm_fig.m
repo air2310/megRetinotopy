@@ -216,8 +216,8 @@ print(fH2, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 % prf size vs ecc across all rois
 roiName_allROI = roiName{end};
 fH3 = figure(3); clf; set(gcf, 'Color', 'w', 'Position',[675,384,763,590],'Name', 'pRF size vs ecc all rois');
-scatter(prfROIData.(roiName_allROI).eccentricity, prfROIData.(roiName{roiIdx}).sigma,[],c_orig,'*');  hold on;
-scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName{roiIdx}).sigma_smoothed,[],c_smooth,'*');
+scatter(prfROIData.(roiName{roiIdx}).eccentricity, prfROIData.(roiName{roiIdx}).sigma,[],c_orig,'*');  hold on;
+scatter(prfROIData.(roiName{roiIdx}).eccentricity_smoothed, prfROIData.(roiName{roiIdx}).sigma_smoothed,[],c_smooth,'*');
 title(roiName_allROI, 'FontSize', 15)
 legend('original','smoothed','Location','NorthWest'); legend boxoff
 ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
@@ -248,13 +248,17 @@ fH4 = figure(4); clf; set(gcf, 'Color', 'w', 'Position', [1 1 scr_sz(3)/2, scr_s
                 'Name', 'pRF fit for all rois');
 
 for roiIdx = 1:numRois-1
-    x    = prfROIData.(roiName{roiIdx}).eccentricity_smoothed;
-    y    = prfROIData.(roiName{roiIdx}).sigma_smoothed;
-    w    = prfROIData.(roiName{roiIdx}).varexplained;
-    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+    if ~isempty(prfROIData.(roiName{roiIdx}).varexplained)
+        x    = prfROIData.(roiName{roiIdx}).eccentricity_smoothed;
+        y    = prfROIData.(roiName{roiIdx}).sigma_smoothed;
+        w    = prfROIData.(roiName{roiIdx}).varexplained;
+        xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+
+        yfit = mprf_fit(x,y,w,xfit);
+
+        plot(xfit,yfit,'color',roi_colors(roiIdx,:),'LineWidth',2); hold on;
+    end
     
-    yfit = mprf_fit(x,y,w,xfit);
-    plot(xfit,yfit,'color',roi_colors(roiIdx,:),'LineWidth',2); hold on;
     legend(roiName,'Location','bestoutside'); legend boxoff;
     xlabel('eccentricity (deg)'); ylabel('pRF size (deg)');
     set(gca, 'FontSize', 14, 'TickDir','out','LineWidth',2); box off
@@ -267,17 +271,19 @@ print(fH4, fullfile(saveDir,'prf_sig_ecc_all_rois'), '-dpng');
 fH5 = figure(5); clf; set(gcf, 'Color', 'w', 'Position', scr_sz, 'Name', 'pRF size vs ecc with fits');
 
 for roiIdx = 1:numRois-1
-    subplot(nrows,ncols,roiIdx);
+    if ~isempty(prfROIData.(roiName{roiIdx}).varexplained)
+        subplot(nrows,ncols,roiIdx);
 
-    x    = prfROIData.(roiName{roiIdx}).eccentricity_smoothed;
-    y    = prfROIData.(roiName{roiIdx}).sigma_smoothed;
-    w    = prfROIData.(roiName{roiIdx}).varexplained;
-    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
-    yfit = mprf_fit(x,y,w,xfit);
+        x    = prfROIData.(roiName{roiIdx}).eccentricity_smoothed;
+        y    = prfROIData.(roiName{roiIdx}).sigma_smoothed;
+        w    = prfROIData.(roiName{roiIdx}).varexplained;
+        xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+        yfit = mprf_fit(x,y,w,xfit);
+
+        scatter(x, y, [], roi_colors(roiIdx,:),'*'); hold on;
+        plot(xfit,yfit,'color','k','LineWidth',4); 
+    end
     
-    scatter(x, y, [], roi_colors(roiIdx,:),'*'); hold on;
-    plot(xfit,yfit,'color','k','LineWidth',4); 
-
     title(roiName{roiIdx}, 'FontSize', 15)
     ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
     ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
