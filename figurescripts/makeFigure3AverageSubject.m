@@ -37,11 +37,8 @@ for s = 1:length(subjects)
     dirPth = loadPaths(subjectID);
     
     % Load variance explained file
-    if strcmp(subjects{s},'wlsubj081')
-        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','BEM','pred_resp', 'meanVarExpl'));
-    else
-        load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
-    end
+    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
+
     varexpl(s,:,:) = meanVarExpl;
     
     if strcmp(sensorsToAverage, 'top10')

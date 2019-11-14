@@ -14,7 +14,7 @@ for idxSubj = 1:numSub
     % Load paths with data files for this subject
     dirPth = loadPaths(subjIDs{idxSubj});
     
-    varExpFile = dir(fullfile(dirPth.model.saveDataPth,'original','pred_resp','meanVarExpl.mat'));
+    varExpFile = dir(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','meanVarExpl.mat'));
     if ~isempty(varExpFile)
         load(fullfile(varExpFile.folder,varExpFile.name),'meanVarExpl');
         

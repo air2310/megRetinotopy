@@ -147,15 +147,16 @@ roi_colors =  hsv(length(roisToPlot));
 for roi_idx = 1:length(roisToPlot)
     subplot(numRow,numCol,roi_idx);
 
-    x    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).eccentricity_smoothed;
-    y    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).sigma_smoothed;
-    w    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained;
-    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
-    yfit = mprf_fit(x,y,w,xfit);
-    
-    scatter(x, y, [], roi_colors(roi_idx,:),'*'); hold on;
-    plot(xfit,yfit,'color','k','LineWidth',4); 
+    if ~isempty(prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained)
+        x    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).eccentricity_smoothed;
+        y    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).sigma_smoothed;
+        w    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained;
+        xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+        yfit = mprf_fit(x,y,w,xfit);
 
+        scatter(x, y, [], roi_colors(roi_idx,:),'*'); hold on;
+        plot(xfit,yfit,'color','k','LineWidth',4); 
+    end
     title(fnRoi{roisToPlot(roi_idx)}, 'FontSize', 15)
     ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
     ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
@@ -166,13 +167,15 @@ print(fH5, fullfile(saveDir,'pRF_size_eccentricity_smoothed_roi_wFits'), '-dpng'
 %% Plot line fits in one figure
 fH6 = figure(206); clf; set(gcf, 'Color', 'w', 'Position', scr_sz, 'Name', 'pRF size vs ecc fits');
 for roi_idx = 1:length(roisToPlot)
-    x    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).eccentricity_smoothed;
-    y    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).sigma_smoothed;
-    w    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained;
-    xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
-    yfit = mprf_fit(x,y,w,xfit);
+    if ~isempty(prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained)
+        x    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).eccentricity_smoothed;
+        y    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).sigma_smoothed;
+        w    = prfROIData.(fnRoi{roisToPlot(roi_idx)}).varexplained;
+        xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
+        yfit = mprf_fit(x,y,w,xfit);
     
-    plot(xfit,yfit,'color',roi_colors(roi_idx,:),'LineWidth',4);     hold on;
+        plot(xfit,yfit,'color',roi_colors(roi_idx,:),'LineWidth',4);     hold on;
+    end
 end
 
 legend(fnRoi{roisToPlot}, 'location', 'bestoutside'); legend boxoff;

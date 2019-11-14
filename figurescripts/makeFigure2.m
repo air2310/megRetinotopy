@@ -4,7 +4,7 @@ function makeFigure2(dirPth, opt, sensorsToAverage)
 % original estimated pRF centers.
 
 % Load variance explained file
-varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
+varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
 varexpl = varexpl.meanVarExpl;
 
 % Define the range of rotations
@@ -34,20 +34,24 @@ mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746]);
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746], 'Name', 'Vary pRF position');
 
 % Plot mean with shaded error bar using 'patch' function
-lo = mean_varexpl - ci_varexpl;
-hi = mean_varexpl + ci_varexpl;
+lo = 100.*(mean_varexpl - ci_varexpl);
+hi = 100.*(mean_varexpl + ci_varexpl);
 color = [0.5 0.5 0.5];
 err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
 hold on;
-plot(range,mean_varexpl,'r','Linewidth',3);
+plot(range,100.*mean_varexpl,'r','Linewidth',3);
 
 % Add labels and make pretty
+yl = [0 45];
+if max(100.*mean_varexpl)>yl(2)
+    yl = [0 max(100.*mean_varexpl)+5];
+end
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [0 inf], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
@@ -56,7 +60,7 @@ ylabel('Variance explained (%)');
 %% Plot meshes
 rows = 2;
 cols = round(length(range)/rows);
-fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754]); hold all;
+fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
 
 clim = max(varexpl(range==0,:));
 interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation

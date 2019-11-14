@@ -55,11 +55,6 @@ opt.vary.nScrambles            = [];
 opt.roi.roimrvToFS            = false; % set to false, use wang atlas, otherwise rois manually drawn in mrVista
 opt.roi.onlyV123WangAtlas     = false; % set to true in case you want to only use V1-V3 ROIs of the Wang atlas (for comparing against benson atlas results)
 
-% --- Folders and filenames ---
-opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d_%s', ...
-                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
-
-
 %% Check for extra inputs in case changing the default options
 if exist('varargin', 'var')
     
@@ -105,6 +100,11 @@ if opt.vary.perturbOrigPRFs
     opt.subfolder              = ['vary_' opt.vary.perturbOrigPRFs]; % create subfolder in case of saving images / data
 end
 
+% --- Folders and filenames ---
+opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d_%s', ...
+                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
+
+
 % check in case additional original analyses are performed, we want to save those results separately
 if opt.roi.onlyV123WangAtlas
     opt.subfolder             = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
@@ -120,6 +120,10 @@ end
 
 if strcmp(opt.headmodel, 'BEM')
     opt.subfolder = [opt.subfolder '/BEM'];
+end
+
+if opt.fullSizeMesh
+    opt.subfolder = [opt.subfolder '/FSMesh'];
 end
 
 return
