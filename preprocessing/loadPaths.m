@@ -23,7 +23,7 @@ dirPth.meg.processedDataPth = fullfile(dirPth.meg.dataPth, subjID, 'processed');
 dirPth.meg.stimFile     = fullfile(dirPth.meg.stimFilePth, 'MEG_retinotopy_stimulus_run_1.mat');
 dirPth.meg.stimGridFile = fullfile(dirPth.meg.stimFilePth, 'MEG_grid.mat');
 
-
+dirPth.meg.eyePth       = fullfile(dirPth.meg.dataPth, subjID, 'eye','eye');
 %% ------ FreeSurfer ------ 
 dirPth.fsPth            = fullfile(mprf_rootPath,'data','Freesurfer_subjects'); % should be sym link in git folder
 
