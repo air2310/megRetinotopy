@@ -97,8 +97,8 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
         
         if opt.saveFig
-            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d',topSensor(tt))), '-dpng');
-            makeFigure1B_i(topSensor(tt),saveDir);
+            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d%s',topSensor(tt), opt.fNamePostFix)), '-dpng');
+            makeFigure1B_i(topSensor(tt),saveDir, opt);
         end
     end
  
@@ -110,10 +110,10 @@ fprintf('\n(%s): Saving figure 1B in %s\n',mfilename, saveDir);
 end
 
 
-function makeFigure1B_i(topSensor,saveDir)
+function makeFigure1B_i(topSensor,saveDir, opt)
 % creates and saves plot showing the position of the meg sensor
 % axes('Position',[0.12 0.7 0.2 0.2]);
 % box on; axis off; axis image;
 fH1_1 = mprfPlotHeadLayout(topSensor, false, [], false);
-saveas(fH1_1, fullfile(saveDir, sprintf('sensor_location_%d',topSensor)), 'eps');
+saveas(fH1_1, fullfile(saveDir, sprintf('sensor_location_%d%s',topSensor,opt.fNamePostFix)), 'eps');
 end

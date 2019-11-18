@@ -3,7 +3,7 @@ function makeFigure1C(subjIDs,opt)
 % explained values for individual subjects).
 
 % define initial parameters
-numChans = length(opt.dataChan);
+numChans = length(opt.meg.dataChan);
 numSub = length(subjIDs);
 varExplAllSubj = nan(numSub,numChans);
 
@@ -36,14 +36,14 @@ c = colorbar; c.Location='southoutside';
 
 if opt.saveFig
     saveSubDir = 'figure1C';
-    saveDir = fullfile(mprf_rootPath,'data','Retinotopy','Quality_check','averageSub','finalFig',saveSubDir);
+    saveDir = fullfile(mprf_rootPath,'data','Retinotopy','Quality_check','average','finalfig',saveSubDir);
     
     if ~exist(saveDir,'dir')
         mkdir(saveDir);
     end
     
-    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%d_sen_%d',numSub,round(maxMeanVarExplAllSubj),maxSen)), '-dpng');
-    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%d_sen_%d',numSub,round(maxMeanVarExplAllSubj),maxSen)), '-depsc');
+    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d',numSub,100*maxMeanVarExplAllSubj,maxSen)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d',numSub,100*maxMeanVarExplAllSubj,maxSen)), '-depsc');
     fprintf('\n saving figure 1A in %s',saveDir);
     
     
