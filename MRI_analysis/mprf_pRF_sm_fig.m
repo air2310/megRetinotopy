@@ -129,7 +129,7 @@ title('Voxels excluded')
 xlabel('visual areas'); ylabel('voxels excluded (%)')
 set(gca, 'FontSize', 30, 'TickDir', 'out','xTickLabel',roiName); box off;
 ylim([0 100]);
-print(fH100, fullfile(saveDir,'variance_explained'), '-dpng');
+print(fH100, fullfile(saveDir,'voxels_excluded'), '-dpng');
 
 
 %% Get prf data per ROI
