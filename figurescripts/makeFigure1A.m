@@ -1,8 +1,8 @@
 function makeFigure1A(dirPth,opt)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects).
+varexpl = dir(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp','meanVarExpl.mat'));
 
-varExpFile = dir(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp','meanVarExpl.mat'));
 
 saveSubDir = 'figure1A';
 saveDir = fullfile(dirPth.finalFig.savePth,'figure1',saveSubDir);
@@ -12,12 +12,12 @@ end
 
 % check if the modelPredictions are saved in the folder.
 close all;
-if isempty(varExpFile.folder)
+if isempty(varexpl.folder)
     error('Can''t find mean variance explained mat-file')
 end
 
 % Load the variance explained file
-load(fullfile(varExpFile.folder,varExpFile.name),'meanVarExpl');
+load(fullfile(varexpl.folder,varexpl.name),'meanVarExpl');
 
 % Set colormap limits
 clims = [0 max(meanVarExpl)];
@@ -35,8 +35,8 @@ c.FontSize = 12;
 
 
 if opt.saveFig
-    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), '-dpng');
-    saveas(fH1, fullfile(saveDir, sprintf('Mean_variance_explained')), 'epsc');
+    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)), '-dpng');
+    saveas(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix')), 'epsc');
     fprintf('\n(%s): Saving figure 1A in %s\n',mfilename, saveDir);
 end
 

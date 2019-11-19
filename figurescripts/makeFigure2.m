@@ -4,7 +4,11 @@ function makeFigure2(dirPth, opt, sensorsToAverage)
 % original estimated pRF centers.
 
 % Load variance explained file
-varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
+if opt.fullSizeMesh
+    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
+else
+    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
+end
 varexpl = varexpl.meanVarExpl;
 
 % Define the range of rotations

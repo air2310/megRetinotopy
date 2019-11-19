@@ -1,8 +1,11 @@
 function makeFigure3(dirPth, opt,sensorsToAverage)
 % Function to make that plots the effect of scaling the original pRF
 % sizes (sigma).
-
-varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','FSMesh','pred_resp', 'meanVarExpl'));
+if opt.fullSizeMesh
+    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
+else
+    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
+end
 varexpl = varexpl.meanVarExpl;
 
 range   = opt.vary.size;

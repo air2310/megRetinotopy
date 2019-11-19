@@ -55,10 +55,10 @@ end
 % Add all ROIs and mask
 roiData.allROIs = roiVertices;
 roiData.mask    = roiVertices>0;
-roiData.V123    = zeros(size(roiVertices));
-roiData.V123(ismember(roiVertices,1:6)) = find(ismember(roiVertices,1:6));
-roiData.V123mask = false(size(roiVertices));
-roiData.V123mask(find(roiData.V123)) = true;
+% roiData.V123    = zeros(size(roiVertices));
+% roiData.V123(ismember(roiVertices,1:6)) = find(ismember(roiVertices,1:6));
+% roiData.V123mask = false(size(roiVertices));
+% roiData.V123mask(find(roiData.V123)) = true;
 
 % Combine data of certain ROIs if requested
 if combineRois
