@@ -22,8 +22,7 @@ prf_dir_mrv     = dirPth.fmri.saveDataPth_prfMrv;
 prf_data_mrVNif = fullfile(prf_dir_mrv, 'nifti');   % original and smoothed pRF parameters in mrVista space in .nii
 prf_data_mrVmat = fullfile(prf_dir_mrv,'mat');      % original and smoothed pRF parameters in mrVista space in .mat
 
-% Create directories if they don't exist, otherwise there will be an error
-% saving the data
+% Create directories if they don't exist
 if ~exist(prf_data_mrVNif,'dir'); mkdir(prf_data_mrVNif); end
 if ~exist(prf_data_mrVmat,'dir'); mkdir(prf_data_mrVmat); end
 

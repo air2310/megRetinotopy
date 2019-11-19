@@ -5,7 +5,7 @@
 % need scripts from noisepoolPCADenoise project - 
 % addpath(genpath('~/noisepoolPCADenoise/external/eyetracking'));
 
-subjID = 'wlsubj081';
+subjID = 'wlsubj106';
 % Load paths with data files for this subject
 dirPth = loadPaths(subjID);
 
