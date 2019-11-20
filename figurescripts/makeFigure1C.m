@@ -1,9 +1,10 @@
-function makeFigure1C(subjIDs,opt)
+function makeFigure1C(subjIDs)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects).
 
 % define initial parameters
-numChans = length(opt.meg.dataChan);
+%numChans = length(opt.meg.dataChan);
+numChans = 157;
 numSub   = length(subjIDs);
 varExplAllSubj = nan(numSub,numChans);
 
@@ -15,6 +16,8 @@ for idxSubj = 1:numSub
     
     % Load paths with data files for this subject
     dirPth = loadPaths(subjIDs{idxSubj});
+    opt = getOpts('saveFig',1,'verbose',1, 'fullSizeMesh', 1);
+    
     
     varExpFile = dir(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','meanVarExpl.mat'));
     if ~isempty(varExpFile)
@@ -40,6 +43,7 @@ fH2 = figure; set(gcf,'Position',[100 100 1920/2 1920/2]);
 ttl = strcat('Mean variance explained (Group Average N=', sprintf('%d)',numSub));
 megPlotMap(meanVarExplAllSubj,[0 0.30],fH2, 'parula', ttl,[],[],'interpmethod', 'nearest');
 c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
+
 
 if opt.saveFig
     saveSubDir = 'figure1C';

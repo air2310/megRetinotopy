@@ -19,7 +19,7 @@ if plotAverage
                'wlsubj068', 'wlsubj070', 'wlsubj081', 'wlsubj106', ...
                'wlsubj109', 'wlsubj111'};
 
-    makeFigure1C(subjIDs,opt); % Average MEG headplot for all subjects 
+    makeFigure1C(subjIDs); % Average MEG headplot for all subjects 
 else
     % Plot 10 MEG time series with pRF prediction for individual subject
     makeFigure1A(dirPth,opt);
