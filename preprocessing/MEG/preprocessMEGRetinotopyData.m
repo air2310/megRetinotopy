@@ -96,7 +96,7 @@ switch subjID
         triggers.ts(triggers.timing(1)) = 0; % wlsubj030: remove first trigger (not sure why this one is here)
         triggers.timing = find(triggers.ts);
     case 'wlsubj040'
-        triggers.ts = meg_fix_triggers_wlsubj040(ts(opt.meg.triggerChan,:)');
+        triggers.ts = meg_fix_triggers_wlsubj040(ts(opt.meg.triggerChan,:)',dirPth);
         triggers.timing = find(triggers.ts);
     case 'wlsubj058'
         triggers.ts = meg_fix_triggers_wlsubj058(ts,opt.meg.triggerChan);

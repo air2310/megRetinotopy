@@ -1,4 +1,4 @@
-function trigger = meg_fix_triggers_wlsubj040(ts)
+function trigger = meg_fix_triggers_wlsubj040(ts,dirPth)
 % Convert an analog signal representing triggers in binary, and return a
 % vector of integer trigger values over time.
 %
@@ -87,7 +87,7 @@ triggers_that_are_too_close = diff(any_trigger_inds) < 10;
 assert(sum(triggers_that_are_too_close) == 0)
 
 %% put in actual condition numbers:
-stim = load('/Volumes/server/Projects/MEG/Retinotopy/Data/MEG/wlsubj040/paramFiles/20170406T103932.mat');
+stim = load(fullfile(dirPth.meg.paramFilePth,'20170406T103932.mat'));
 conditionsOneRun = stim.response.trig(find(stim.response.trig));
 
 allConditions = repmat(conditionsOneRun, [1,19]);

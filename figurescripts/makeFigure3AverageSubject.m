@@ -139,7 +139,12 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
     
-    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
+    set(fH1,'Units','Inches');
+    pos = get(fH1,'Position');
+    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+
+    
+    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
     print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
     
     if  strcmp(summaryMetric, 'meanVE')

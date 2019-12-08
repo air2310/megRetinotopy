@@ -6,7 +6,7 @@
 % addpath(genpath('~/noisepoolPCADenoise/external/eyetracking'));
 % addpath(genpath('/Volumes/server/Projects/MEG/Eyetracking_scripts/'));
 
-subjID   = 'wlsubj068'; % For MEG data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj081, wlsubj106, wlsubj109, wlsubj111
+subjID   = 'wlsubj081'; % For MEG data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj081, wlsubj106, wlsubj109, wlsubj111
 modality = 'MEG'; % for now, we can only process data from 'MEG' and not from 'MRI' (Note: not all subjects have both datasets)
 
 % Load paths with data files for this subject

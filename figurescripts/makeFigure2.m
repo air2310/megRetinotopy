@@ -1,7 +1,22 @@
-function makeFigure2(dirPth, opt, sensorsToAverage)
+function makeFigure2(subjID, sensorsToAverage)
 % Function to make Figure 2 from manuscript, plotting variance explained by
 % the model as a function of polar angle rotations around the fovea of the 
 % original estimated pRF centers.
+
+% Load paths with data files for this subject
+dirPth = loadPaths(subjID);
+
+% Set options
+opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', 'position'); % see getOpts function for more options
+
+if opt.saveFig
+    [pth, ~] = fileparts(dirPth.model.saveFigPth);
+    saveDir = fullfile(pth, 'finalfig', 'figure2');
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+end
+
 
 % Load variance explained file
 if opt.fullSizeMesh
@@ -66,18 +81,26 @@ rows = 2;
 cols = round(length(range)/rows);
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
 
-clim = max(varexpl(range==0,:));
-interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
+%clim = max(varexpl(range==0,:));
+clim = 0.45;
+%interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
+interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
     meshDataToPlot = varexpl(ii,:);
     
     % Get subplot
-    subplot(rows, cols, ii);
+    %subplot(rows, cols, ii);
     
     megPlotMap(meshDataToPlot,[0 clim],fH2,'parula',...
         range(ii),[],[],'interpmethod',interpmethod);
+    
+    if opt.saveFig
+        fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
+        print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s_%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, ii)), '-dpng');       
+    end
+
 end
 
 
@@ -94,10 +117,14 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
 
-    print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-    print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    set(fH1,'Units','Inches');
+    pos = get(fH1,'Position');
+    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+    print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+
+ %  print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     if strcmp(sensorsToAverage, 'top10')
-        print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+        print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     end
 end
 

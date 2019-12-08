@@ -6,7 +6,7 @@
 % addpath(genpath('~/noisepoolPCADenoise/external/eyetracking'));
 % addpath(genpath('/Volumes/server/Projects/MEG/Eyetracking_scripts/'));
 
-subjID   = 'wlsubj068'; % For MEG data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj081, wlsubj106, wlsubj109, wlsubj111
+subjID   = 'wlsubj081'; % For MEG data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj081, wlsubj106, wlsubj109, wlsubj111
 modality = 'MEG'; % for now, we can only process data from 'MEG' and not from 'MRI' (Note: not all subjects have both datasets)
 
 % Load paths with data files for this subject
@@ -91,7 +91,7 @@ set(gcf,'Color', 'w', 'Position',[31, 252, 1067, 996]);  hold on;
 % Plot eye traces
 plot(xPos,yPos, '.','MarkerSize',1, 'Color', [.7 .7 .7]);
 % Plot 95% confidence ellipse
-ax = error_ellipse(traceCov,traceMean,'conf',0.95,'color','k');
+ax = error_ellipse(traceCov,traceMean,'conf',0.95);
 % Plot median
 plot(traceMean(1),traceMean(2), 'r+', 'markersize',5);
 

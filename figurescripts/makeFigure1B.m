@@ -27,9 +27,11 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
     % Select channels that have high variance explained values
     nSensors = 10;
 %%    
-    tmp = idx(~isnan(val)); topSensor=tmp(1:nSensors);
+    tmp = idx(~isnan(val)); 
+    topSensor=tmp(1:nSensors);
     ve = val(~isnan(val));
-     
+    ve_toPlot = round(ve.*100); 
+   
     % define time scale
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
     t = (0:nEpochs-1) .* diff(opt.meg.epochStartEnd);
@@ -41,13 +43,13 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
 
         % Define figure properties
         % figure 
-        figPos = [10 10 1920/2 1080/2]; 
+        figPos = [66,1,1855,1001]; 
         figName = strcat('MEG time series: Orig vs Pred',sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
         
         % plot
         % time series
-        lW_orig = 2;        
-        lW_pred = 4;        
+        lW_orig = 3;        
+        lW_pred = 6;        
         markerColor = [0.3010, 0.7450, 0.9330];
         
         % axis properties
@@ -71,9 +73,9 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
                
         % Plot the figure
         fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName); hold on;
-        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',[0.3010, 0.7450, 0.9330], 'MarkerSize',7,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
+        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',markerColor, 'MarkerSize',5,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
         hold on;
-        plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.4 0.4], 'LineWidth',lW_pred);
+        plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.45 0.45], 'LineWidth',lW_pred);
                 
         %title(ttl);
         xlabel(xLbl); ylabel(yLbl);        
@@ -81,10 +83,10 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
              
         % set x and y axis limits
         tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,topSensor(tt))), max(meanPhRefAmp10Hz(:,topSensor(tt)))])).*10^14;
-        if (tmp_yl > 6)
+        if (tmp_yl > 10)
             yl = [-1*tmp_yl, tmp_yl].*10^-14;
         else
-            yl = [-6,6].*10^-14;
+            yl = [-2,3].*10^-14;
         end
         ylim(yl); xlim([0, max(t)])
         
@@ -97,8 +99,15 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
         
         if opt.saveFig
-            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d%s',topSensor(tt), opt.fNamePostFix)), '-dpng');
-            makeFigure1B_i(topSensor(tt),saveDir, opt);
+            
+            set(fH1,'Units','Inches');
+            pos = get(fH1,'Position');
+            set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+            %print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%.2f_%s',topSensor(tt),ve(tt), opt.fNamePostFix)), '-dpng');
+            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)), '-dpdf');
+            
+            makeFigure1B_i(topSensor(tt),saveDir, opt); % sensor location
+            
         end
     end
  

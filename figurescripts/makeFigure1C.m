@@ -28,7 +28,7 @@ for idxSubj = 1:numSub
     % plot mesh of subject
     subplot(2,5,idxSubj);
     ttl = sprintf('S%d', idxSubj);
-    megPlotMap(varExplAllSubj(idxSubj,:),[0 0.45], fH1, 'parula', ttl,[],[],'interpmethod', 'nearest'); hold on;
+    megPlotMap(varExplAllSubj(idxSubj,:),[0 0.45], fH1, 'parula', ttl,[],[],'interpmethod', []); hold on;
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
     pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
     
@@ -41,7 +41,7 @@ meanVarExplAllSubj    = nanmean(varExplAllSubj,1);
 % Plot average
 fH2 = figure; set(gcf,'Position',[100 100 1920/2 1920/2]);
 ttl = strcat('Mean variance explained (Group Average N=', sprintf('%d)',numSub));
-megPlotMap(meanVarExplAllSubj,[0 0.30],fH2, 'parula', ttl,[],[],'interpmethod', 'nearest');
+megPlotMap(meanVarExplAllSubj,[0 0.30],fH2, 'parula', ttl,[],[],'interpmethod', []);
 c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
 
 
