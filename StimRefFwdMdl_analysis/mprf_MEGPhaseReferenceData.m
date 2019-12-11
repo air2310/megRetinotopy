@@ -263,11 +263,20 @@ if ~opt.vary.perturbOrigPRFs
     % Plot split half amplitude reliability
     fH2 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
     'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
-    c = colorbar; c.Location='southoutside';
+    c = colorbar; c.Location='eastoutside';
     
-     print(fH2,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-           'splitHalfAmplitudeReliability'), '-dpng');
+     figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+           'splitHalfAmplitudeReliability'),[],0,'.',1);
+       
+    % Plot split half amplitude reliability
+    fH3 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH3, 'hot', ...
+    'Mean split half reliability of SSVEF amplitudes');
+    c = colorbar; c.Location='eastoutside';
     
+    figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+           'splitHalfAmplitudeReliability_interp'),[],0,'.',1);  
+     
+     save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability.mat'), 'splitHalfAmpReliability');
 end
 
 return
