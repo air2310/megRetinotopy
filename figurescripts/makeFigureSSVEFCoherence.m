@@ -11,6 +11,8 @@ fH3 = figure(3); clf; set(gcf, 'Position',[0,300,500,500]); set(fH3, 'Name', 'Sp
 saveSubDir = 'Figure3_SSVEF_coherence';
 saveDir = fullfile(mprf_rootPath,'data','Retinotopy','Quality_check','average','finalfig',saveSubDir);
 
+interpMethod = 'v4'; % or if not interpolated, use 'nearest'
+
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
@@ -70,7 +72,11 @@ for s = 1:length(subjects)
     figure(fH3); clf;
     
     % Define MEG sensor to plot
-    sensorIdx = 1;
+    if s == 1;
+        sensorIdx = 13;
+    else
+        sensorIdx = 1;
+    end
     
     % Define color to plot full conditions
     colors    = [0 0 0; 126 126 126]./255;
@@ -82,7 +88,8 @@ for s = 1:length(subjects)
     fok = f;
     fok(f==60) = [];
     xt = [10:10:60];
-    yt = [0:.1:.4]; % .*(10^-14) => fempto tesla
+    ymax = 0.05+(max(meanAmpsStim(sensorIdx,10:50)).*10^14);
+    yt = [0:.1:ymax]; % .*(10^-14) => fempto tesla
     yl = [yt(1), yt(end)]; % .*(10^-14) => fempto tesla
     
     % plot mean
@@ -108,25 +115,28 @@ for s = 1:length(subjects)
     %% Plot meshes
     figure(fH1); clf;
     %     subplot(2,5,s)
-    megPlotMap(stimSNRToPlot_coh(s,:),[0 1], fH1, 'parula',[],[],[],'interpmethod', 'nearest');
+    megPlotMap(stimSNRToPlot_coh(s,:),[0 .9], fH1, 'parula',[],[],[],'interpmethod', interpMethod);
     title(sprintf('S%d',s));
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
     pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
     
     figure(fH2);  clf;
     %     subplot(2,5,s) 
-    megPlotMap(stimSNRToPlot_incoh(s,:),[.3 .4], fH1, 'parula',[],[],[],'interpmethod', 'nearest');
+    megPlotMap(stimSNRToPlot_incoh(s,:),[.3 .4], fH1, 'parula',[],[],[],'interpmethod', interpMethod);
     title(sprintf('S%d',s));
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
     pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
     
     if opt.saveFig
-        print(fH1, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingCoherentSpectrum_%s', s, opt.fNamePostFix)), '-dpng');
-        print(fH1, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingCoherentSpectrum_%s', s, opt.fNamePostFix)), '-depsc');
+        %      figurewrite(fullfile(figureDir, sprintf('figure5_examplesubject%d_thresh%d',whichSubject, threshold)),[],0,'.',1);
+        figure(fH1)
+        print(fH1, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingCoherentSpectrum_%s_%s', s, opt.fNamePostFix,interpMethod)), '-dpng');
+        figurewrite(fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingCoherentSpectrum_%s_%s', s, opt.fNamePostFix,interpMethod)),[],0,'.',1);
         fprintf('\n saving figure XX: Individual Subject SSVEF_coherence in %s',saveDir);
-    
-        print(fH2, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s', s, opt.fNamePostFix)), '-dpng');
-        print(fH2, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s', s, opt.fNamePostFix)), '-depsc');
+        
+        figure(fH2)
+        print(fH2, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', s, opt.fNamePostFix,interpMethod)), '-dpng');
+        figurewrite(fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', s, opt.fNamePostFix)),[],0,'.',1);
         fprintf('\n saving figure XX: Individual Subject SSVEF_coherence in %s',saveDir);
     end
     
@@ -134,23 +144,24 @@ end
 
 fH4 = figure();
 mn_stimSNRToPlot_coh = nanmean(stimSNRToPlot_coh,1);
-megPlotMap(mn_stimSNRToPlot_coh,[0 1], fH2, 'parula',[],[],[],'interpmethod', 'nearest');
+megPlotMap(mn_stimSNRToPlot_coh,[0 .9], fH2, 'parula',[],[],[],'interpmethod', interpMethod);
 title(sprintf('Group Average (N=%d) SSVEF coherence: Incoherent spectrum',length(subjects)));
 c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
 
 fH5 = figure();
 mn_stimSNRToPlot_incoh = nanmean(stimSNRToPlot_incoh,1);
-megPlotMap(mn_stimSNRToPlot_incoh,[.3 .4], fH2, 'parula',[],[],[],'interpmethod', 'nearest');
+megPlotMap(mn_stimSNRToPlot_incoh,[.3 .4], fH2, 'parula',[],[],[],'interpmethod', interpMethod);
 title(sprintf('Group Average (N=%d) SSVEF coherence: Incoherent spectrum',length(subjects)));
 c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
 
 if opt.saveFig
-
-    print(fH4, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingCoherentSpectrum_%s', opt.fNamePostFix)), '-dpng');
-    print(fH4, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingCoherentSpectrum_%s', opt.fNamePostFix)), '-depsc');
+    figure(fH4)
+    print(fH4, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingCoherentSpectrum_%s_%s', opt.fNamePostFix)), '-dpng');
+    figurewrite(fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingCoherentSpectrum_%s_%s', opt.fNamePostFix)),[],0,'.',1);
     fprintf('\n saving figure XX: Group Average SSVEF_coherence in %s',saveDir);
     
-    print(fH5, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingIncoherentSpectrum_%s', opt.fNamePostFix)), '-dpng');
-    print(fH5, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingIncoherentSpectrum_%s', opt.fNamePostFix)), '-depsc');
+    figure(fH5)
+    print(fH5, fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', opt.fNamePostFix)), '-dpng');
+    figurewrite(fullfile(saveDir, sprintf('Figure3_GroupAverage_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', opt.fNamePostFix)),[],0,'.',1);
     fprintf('\n saving figure XX: Group Average SSVEF_coherence in %s',saveDir);
 end
