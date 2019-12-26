@@ -131,6 +131,29 @@ title('Variance explained by modelfit: Vary Size');
 ylabel(yLabel);
 box off;
 
+% Figure 3 with bootstrapping data across subjects
+% Bootstrap with 1000 iterations
+BootStrappedData = bootstrp(1000, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
+pct1 = 100 * 0.05/2; 
+pct2 = 100 - pct1;
+lo = prctile(BootStrappedData,pct1); % 2.5 percentile 
+hi = prctile(BootStrappedData,pct2); % 97.5 percentile 
+% Average of bootstrapped data
+ave = mean(BootStrappedData,1);
+
+fH3 = figure(3); set(gcf,'position',[66,1,1855,1001]);
+plot(range,ave,'r','Linewidth',5); hold on;
+patch([range, fliplr(range)], [lo, fliplr(hi)],[1 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
+
+% Add labels and make pretty
+set(gca,'TickDir', 'out');
+xlabel('Position (deg)');
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [10 30], 'XLim', [range(1),range(end)]);
+set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
+title('Variance explained by modelfit: Vary Size');
+ylabel(yLabel);
+box off;
+
 % Save fig
 if opt.saveFig
     saveDir = fullfile(dirPth.finalFig.savePthAverage, 'figure3');
@@ -143,7 +166,6 @@ if opt.saveFig
     pos = get(fH1,'Position');
     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
 
-    
     print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
     print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
     
@@ -151,6 +173,13 @@ if opt.saveFig
         print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
         print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
     end
+    
+    set(fH3,'Units','Inches');
+    pos = get(fH3,'Position');
+    set(fH3,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+    print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
+    print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+
     
 end
 

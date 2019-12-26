@@ -37,8 +37,11 @@ c.FontSize = 12;
 
 
 if opt.saveFig
-        
-    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)), '-depsc');
+    
+    set(fH1,'Units','Inches');
+    pos = get(fH1,'Position');
+    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)), '-dpng');
     saveas(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix')), 'epsc');
     fprintf('\n(%s): Saving figure 1A in %s\n',mfilename, saveDir);
 end

@@ -35,7 +35,7 @@ else
     
     % Plot variance explained by model prediction on a mesh for individual
     % subject
-    makeFigure1B(dirPth,opt);
+    %makeFigure1B(dirPth,opt);
 end
 
 end
