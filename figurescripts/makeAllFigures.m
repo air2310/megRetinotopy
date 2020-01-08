@@ -31,12 +31,16 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summ
 dirPth = loadPaths(subjID);
 
 % See what figures to plot
-if isempty(whichFigure) || ~exist('whichFigure','var')
+if ~exist('whichFigure','var') || isempty(whichFigure)
     whichFigure = 1:3;
 end
 
-if isempty(sensorsToAverage) || ~exist('sensorsToAverage','var')
+if ~exist('sensorsToAverage','var') || isempty(sensorsToAverage)
     sensorsToAverage = 'allPosterior';
+end
+
+if ~exist('plotAverage', 'var') || isempty(plotAverage)
+    plotAverage = 0;
 end
 
 if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
@@ -53,7 +57,7 @@ opt = getOpts('verbose', 1, 'saveFig',1, 'headmodel', 'OS','fullSizeMesh',1);
 if any(intersect(whichFigure,1))
     
     % Figure 1. Time series (1A) and MEG head plot (1B)
-    makeFigure1(dirPth, opt, plotAverage);
+    makeFigure1(subjID, dirPth, opt, plotAverage);
     
 end
 

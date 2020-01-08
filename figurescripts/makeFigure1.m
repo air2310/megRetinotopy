@@ -1,5 +1,10 @@
-function makeFigure1(subjID, plotAverage)
-% Warpper function to generate figures 3 A, B and C for the paper.
+function makeFigure1(subjID, dirPth, opt, plotAverage)
+% Wrapper function to generate figures 4 A, B and C for the paper.
+
+% INPUTS:
+%   opt         : options for modelfit etc (see getOpts)
+%   dirPth      : paths with data files for this subject    
+
 
 if plotAverage
     
@@ -13,13 +18,6 @@ else
     
     % Check if the folder to save the final figures exists, else create one
     saveSubDir = 'figure1';
-    
-    % Load paths with data files for this subject
-    dirPth = loadPaths(subjID);
-    
-    % Set options
-    opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1); % see getOpts function for more options
-    
     
     if ~exist(dirPth.finalFig.savePth,'dir')
         mkdir(dirPth.finalFig.savePth);
@@ -35,7 +33,7 @@ else
     
     % Plot variance explained by model prediction on a mesh for individual
     % subject
-    %makeFigure1B(dirPth,opt);
+    makeFigure1B(dirPth,opt);
 end
 
 end

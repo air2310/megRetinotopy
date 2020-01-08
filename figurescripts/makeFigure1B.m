@@ -104,7 +104,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
             pos = get(fH1,'Position');
             set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
             %print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%.2f_%s',topSensor(tt),ve(tt), opt.fNamePostFix)), '-dpng');
-            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)), '-dpdf');
+            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)), '-depsc');
             
             makeFigure1B_i(topSensor(tt),saveDir, opt); % sensor location
             
