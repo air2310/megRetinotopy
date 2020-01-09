@@ -44,18 +44,18 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         % Define figure properties
         % figure 
         figPos = [66,1,1855,1001]; 
-        figName = strcat('MEG time series: Orig vs Pred',sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
+        figName = strcat('MEG time series: Measured vs Pred',sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
         
         % plot
         % time series
         lW_orig = 3;        
         lW_pred = 6;        
-        markerColor = [0.3010, 0.7450, 0.9330];
+        markerColor = [0 0 0]; %[0.3010, 0.7450, 0.9330];
         
         % axis properties
         %ttl = sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt));
         xLbl = 'Time (s)';
-        yLbl = 'MEG response (Tesla)';
+        yLbl = 'Phase-referenced 10 Hz amplitudes (Tesla)';
         fontSize = 20;
                
         % blink and blank blocks
@@ -73,6 +73,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
                
         % Plot the figure
         fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName); hold on;
+        plot(t, zeros(size(t)), 'k');
         plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',markerColor, 'MarkerSize',5,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
         hold on;
         plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.45 0.45], 'LineWidth',lW_pred);
@@ -83,10 +84,10 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
              
         % set x and y axis limits
         tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,topSensor(tt))), max(meanPhRefAmp10Hz(:,topSensor(tt)))])).*10^14;
-        if (tmp_yl > 10)
+        if (tmp_yl > 3)
             yl = [-1*tmp_yl, tmp_yl].*10^-14;
         else
-            yl = [-2,3].*10^-14;
+            yl = [-3,3].*10^-14;
         end
         ylim(yl); xlim([0, max(t)])
         
@@ -96,7 +97,7 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
             patch([blank_t(tmpIdx),blank_t(tmpIdx+1) blank_t(tmpIdx+1) blank_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.7, 'LineStyle','none');
         end
 
-        legend('Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
+        legend('', 'Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
         
         if opt.saveFig
             
