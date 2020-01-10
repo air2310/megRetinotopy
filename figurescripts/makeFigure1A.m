@@ -29,7 +29,7 @@ fH1 = figure; clf;
 megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
     'Mean variance explained', [],[]);
 c = colorbar;
-c.Location = 'southoutside';
+c.Location = 'eastoutside';
 c.Box = 'off';
 c.TickDirection = 'out';
 c.TickLength = [0.010 0.010];
@@ -38,12 +38,11 @@ c.FontSize = 12;
 
 if opt.saveFig
     
-    set(fH1,'Units','Inches');
-    pos = get(fH1,'Position');
-    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+%     set(fH1,'Units','Inches');
+%     pos = get(fH1,'Position');
+%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
     figurewrite(fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)),[],0,'.',1);
-    print(fH1, fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)), '-dpng');
-
+    figurewrite(fullfile(saveDir, sprintf('Mean_variance_explained_%s', opt.fNamePostFix)),[], [1 300],'.',1);
     fprintf('\n(%s): Saving figure 1A in %s\n',mfilename, saveDir);
 end
 

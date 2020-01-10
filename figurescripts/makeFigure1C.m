@@ -52,13 +52,15 @@ if opt.saveFig
     if ~exist(saveDir,'dir')
         mkdir(saveDir);
     end
-     
-    print(fH1, fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)), '-dpng');
-    print(fH1, fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)), '-depsc');
+    
+    figure(fH1);
+    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)),[],0,'.',1);
     fprintf('\n saving figure 1D in %s',saveDir);
     
-    print(fH2, fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)), '-dpng');
-    print(fH2, fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)), '-depsc');
+    figure(fH2);
+    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)),[],0,'.',1);
     fprintf('\n saving figure 1C in %s',saveDir);
     
     fprintf('\n');
