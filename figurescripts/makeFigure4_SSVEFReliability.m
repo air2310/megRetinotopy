@@ -19,6 +19,9 @@ if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
 
+figure(fH1); clf; set(gcf,'Position',[1000, 651, 1500, 687]);
+
+
 for s = 1:length(subjects)
     
     % Get subject ID, options and paths
@@ -30,20 +33,23 @@ for s = 1:length(subjects)
     load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability.mat'), 'splitHalfAmpReliability');
     allSubjectData(s,:) = splitHalfAmpReliability;
     
-    % Plot split half amplitude reliability
-    figure(fH1); clf;
-    megPlotMap(splitHalfAmpReliability,[0 .8],fH1, 'hot', ...
-        'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', interpMethod);
-    c = colorbar; c.Location='eastoutside';
     
+    % Plot split half amplitude reliability
+    subplot(2,5,s);
+    ttl = sprintf('S%d', s);
+    megPlotMap(splitHalfAmpReliability,[0 .8],fH1, 'hot', ...
+        ttl, [],[], 'interpmethod', interpMethod); hold on;
+    c = colorbar;c.TickDirection = 'out'; c.Box = 'off';
+    pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
+end    
     if opt.saveFig
         figure(fH1)
-        print(fH1, fullfile(saveDir, sprintf('Figure4_S%d_SSVEFReliability_%s_%s', s, opt.fNamePostFix,interpMethod)), '-dpng');
-        figurewrite(fullfile(saveDir, sprintf('Figure4_S%d_SSVEFReliability_%s_%s', s, opt.fNamePostFix,interpMethod)),[],0,'.',1);
+        print(fH1, fullfile(saveDir, sprintf('Figure4_S%d_SSVEFReliability_All_%s',  opt.fNamePostFix,interpMethod)), '-dpng');
+        figurewrite(fullfile(saveDir, sprintf('Figure4_S%d_SSVEFReliability_All_%s',  opt.fNamePostFix,interpMethod)),[],0,'.',1);
         fprintf('\n saving figure XX: Individual Subject SSVEF reliability in %s',saveDir);
     end
     
-end
+
 
 
 % Plot split half amplitude reliability
