@@ -55,8 +55,8 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         % axis properties
         %ttl = sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt));
         xLbl = 'Time (s)';
-        yLbl = 'Phase-referenced 10 Hz amplitudes (Tesla)';
-        fontSize = 20;
+        yLbl = 'Phase-referenced 10 Hz amplitudes (fT)';
+        fontSize = 30;
                
         % blink and blank blocks
         color = [0.5 0.5 0.5];
@@ -70,43 +70,43 @@ if ~isempty(varExpFile) && ~isempty(predRespFile) && ~isempty(origMEGData)
         blankIdx(2:2:end) = blinkIdx(2:2:end) + 2;
         blink_t = t(blinkIdx);
         blank_t = t(blankIdx);
-               
-        % Plot the figure
-        fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName); hold on;
-        plot(t, zeros(size(t)), 'k');
-        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',markerColor, 'MarkerSize',5,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
-        hold on;
-        plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.45 0.45], 'LineWidth',lW_pred);
-                
-        %title(ttl);
-        xlabel(xLbl); ylabel(yLbl);        
-        set(gca, 'FontSize', fontSize, 'TickDir','out','TickLength',[0.010 0.010],'LineWidth',3); box off
-             
-        % set x and y axis limits
+
+         % Compute y limits
         tmp_yl = max(abs([min(meanPhRefAmp10Hz(:,topSensor(tt))), max(meanPhRefAmp10Hz(:,topSensor(tt)))])).*10^14;
         if (tmp_yl > 3)
             yl = [-1*tmp_yl, tmp_yl].*10^-14;
         else
             yl = [-3,3].*10^-14;
         end
-        ylim(yl); xlim([0, max(t)])
         
-        hold on;
+        % Plot the figure
+        fH1 = figure; set(gcf, 'Color', 'w', 'Position', figPos, 'Name', figName); hold all;
+
+        % Plot the blank and blink periods
         for tmpIdx = 1:2:length(blink_t)
             patch([blink_t(tmpIdx),blink_t(tmpIdx+1) blink_t(tmpIdx+1) blink_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.2, 'LineStyle','none');
             patch([blank_t(tmpIdx),blank_t(tmpIdx+1) blank_t(tmpIdx+1) blank_t(tmpIdx)],[yl(1),yl(1),yl(2),yl(2)],color,'FaceAlpha', 0.7, 'LineStyle','none');
         end
-
-        legend('', 'Data', 'Prediction', 'Location', 'NorthEast'); legend boxoff;
+        
+        plot(t, zeros(size(t)), 'k');
+        plot(t, meanPhRefAmp10Hz(:,topSensor(tt)), 'o--','color',markerColor, 'MarkerSize',10,'MarkerEdge',markerColor,'MarkerFace',markerColor, 'LineWidth',lW_orig);
+        plot(t, meanPredResponse(:,topSensor(tt)), 'color',[1 0.45 0.45], 'LineWidth',lW_pred);
+                
+        % Set labels, limits, legends
+        xlabel(xLbl); ylabel(yLbl);
+        ylim(yl); xlim([0, max(t)])
+        set(gca, 'FontSize', fontSize, 'TickDir','out','TickLength',[0.010 0.010],'LineWidth',3); box off
+        
+        l = findobj(gca, 'Type','Line');
+        legend(l([2,1]), {'Observed', 'Predicted'}, 'Location', 'NorthEastOutside', 'FontSize', 25); legend boxoff;
         
         if opt.saveFig
             
             set(fH1,'Units','Inches');
             pos = get(fH1,'Position');
             set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-            %print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%.2f_%s',topSensor(tt),ve(tt), opt.fNamePostFix)), '-dpng');
-            print(fH1, fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)), '-depsc');
-            
+            figurewrite(fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)),[],0,'.',1);
+            figurewrite(fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)),[1 300],0,'.',1);
             makeFigure1B_i(topSensor(tt),saveDir, opt); % sensor location
             
         end
