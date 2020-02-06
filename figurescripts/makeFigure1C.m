@@ -8,6 +8,8 @@ numChans = 157;
 numSub   = length(subjIDs);
 varExplAllSubj = nan(numSub,numChans);
 
+maxClim = false;
+
 % Plot all individuals
 fH1 = figure; set(gcf,'Position',[1000, 651, 1500, 687]);
 
@@ -25,10 +27,16 @@ for idxSubj = 1:numSub
         varExplAllSubj(idxSubj,:) = meanVarExpl;      
     end
     
+    if maxClim
+        cmax = max(varExplAllSubj(idxSubj,:));
+    else
+        cmax = 0.4;
+    end
+    
     % plot mesh of subject
     subplot(2,5,idxSubj);
     ttl = sprintf('S%d', idxSubj);
-    megPlotMap(varExplAllSubj(idxSubj,:),[0 0.45], fH1, 'parula', ttl,[],[],'interpmethod', []); hold on;
+    megPlotMap(varExplAllSubj(idxSubj,:),[0 cmax], fH1, 'parula', ttl,[],[],'interpmethod', []); hold on;
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
     pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
     
@@ -38,10 +46,16 @@ end
 meanVarExplAllSubj    = nanmean(varExplAllSubj,1);
 [maxMeanVarExplAllSubj, maxSen] = nanmax(meanVarExplAllSubj);
 
+if maxClim
+    cmax = max(meanVarExplAllSubj);
+else
+    cmax = 0.3;
+end
+
 % Plot average
 fH2 = figure; set(gcf,'Position',[100 100 1920/2 1920/2]);
 ttl = strcat('Mean variance explained (Group Average N=', sprintf('%d)',numSub));
-megPlotMap(meanVarExplAllSubj,[0 0.30],fH2, 'parula', ttl,[],[],'interpmethod', []);
+megPlotMap(meanVarExplAllSubj,[0 cmax],fH2, 'parula', ttl,[],[],'interpmethod', []);
 c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
 
 
@@ -53,14 +67,20 @@ if opt.saveFig
         mkdir(saveDir);
     end
     
+    if cmax
+        figNameEnd = '_max';
+    else
+        figNameEnd = '';
+    end
+        
     figure(fH1);
-    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)),[],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s', opt.fNamePostFix)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s%s', opt.fNamePostFix,figNameEnd)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1D_Individual_subjecs_VE_%s%s', opt.fNamePostFix,figNameEnd)),[],0,'.',1);
     fprintf('\n saving figure 1D in %s',saveDir);
     
     figure(fH2);
-    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)),[],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix,figNameEnd)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig1C_Mean_VE_average_%d_subjs_maxVar_%2.0f_sen_%d_%s%s',numSub,100*maxMeanVarExplAllSubj,maxSen, opt.fNamePostFix,figNameEnd)),[],0,'.',1);
     fprintf('\n saving figure 1C in %s',saveDir);
     
     fprintf('\n');
