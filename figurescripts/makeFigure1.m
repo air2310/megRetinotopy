@@ -28,11 +28,11 @@ else
     end
     
     
-    % Plot 10 MEG time series with pRF prediction for individual subject
-    makeFigure1A(dirPth,opt);
-    
     % Plot variance explained by model prediction on a mesh for individual
     % subject
+    makeFigure1A(dirPth,opt);
+    
+    % Plot 10 MEG time series with pRF prediction for individual subject
     makeFigure1B(dirPth,opt);
 end
 
