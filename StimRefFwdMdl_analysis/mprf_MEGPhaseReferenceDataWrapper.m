@@ -1,4 +1,4 @@
-function phRefAmp10Hz = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGResponse, dirPth, opt)
+function [phRefAmp10Hz, bestBetas, bestRefPhase] = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGResponse, dirPth, opt)
 % Wrapper for function to compute phase referenced amplitude from
 % preprocessed MEG data and predicted MEG responses from cortical surface
 %
