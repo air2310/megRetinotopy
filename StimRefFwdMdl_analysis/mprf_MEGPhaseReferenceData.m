@@ -93,10 +93,10 @@ if opt.meg.useCoherentSpectrum
                
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans.in,s));
-                betas(rp,ll,s) = B(2);
+                betas(rp,ll,s) = B;
                 varexpl(rp,ll,s) = ve;
                 
-                if B(2) < 0
+                if B < 0
                     % If regression results in a negative scale factor, then
                     % set the ve=0 such that when maximum ve is checked
                     % only the one with positive beta will be selected
@@ -157,10 +157,10 @@ else % if using incoherent spectrum (then start with FFT before averaging)
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,sensor));
                 
-                betas(rp,ll,s) = B(2);
+                betas(rp,ll,s) = B;
                 varexpl(rp,leftOutRun,sensor) = ve;
                 
-                if B(2) < 0
+                if B < 0
                     % If regression results in a negative scale factor, then
                     % add pi to the reference phase
                     refPhase(rp,leftOutRun,sensor) = thisRefPhase+pi;
@@ -255,8 +255,8 @@ if ~opt.vary.perturbOrigPRFs
             'Predicted MEG resp (scaled with beta split half 2)'}); box off;
         set(ax2, 'TickDir', 'out', 'FontSize', 10)
         
-        print(fH1,fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-            sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), '-dpng')
+        figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+            sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), [], [1 300], '.',1);
 
     end
     
