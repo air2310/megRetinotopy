@@ -1,4 +1,4 @@
-function [meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, dirPth, opt)
+function [predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, bestBetas, dirPth, opt)
 % Function to compare phase referenced steady-state data MEG data to
 % predicted MEG responses from MRI prfs
 %
@@ -43,7 +43,6 @@ else
     [nEpochs, ~, nSensors, ~] = size(phRefAmp10Hz);
 end
 
-meanPredResponse = NaN(nEpochs, nSensors, nIter);
 meanPhRefAmp10Hz = NaN(nEpochs, nSensors, nIter);
 meanVarExpl      = NaN(nIter, nSensors);
 
@@ -52,11 +51,11 @@ meanVarExpl      = NaN(nIter, nSensors);
 for ii = 1:nIter
     
     % Select new prf parameters, if they vary in size or position
-    predMEGResponse = predMEGResponseAll(:,:,ii);
-    phRefAmp10Hz    = phRefAmp10HzAll(:,:,:,ii);
+    predMEGResponseScaled = predMEGResponseAll(:,:,ii).*squeeze(mean(bestBetas,2))';
+    phRefAmp10Hz          = phRefAmp10HzAll(:,:,:,ii);
     
-    [meanPredResponse(:,:,ii),meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
-        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse);
+    [meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
+        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponseScaled);
     
     
     
@@ -73,8 +72,8 @@ for ii = 1:nIter
         ttl = sprintf('Var expl of modelfit predicting mean phase-ref MEG data: %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4});
         
         % Plot var expl mesh
-        fH1 = figure(1); clf; megPlotMap(meanVarExpl(ii,:),[0 0.6],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
-        fH12 = figure(12); clf; megPlotMap(meanVarExpl(ii,:),[0 0.6],fH12, 'parula', ttl, [],[]);
+        fH1 = figure(1); clf; megPlotMap(meanVarExpl(ii,:),[0 0.4],fH1, 'parula', ttl, [],[], 'interpmethod', 'nearest');
+        fH12 = figure(12); clf; megPlotMap(meanVarExpl(ii,:),[0 0.4],fH12, 'parula', ttl, [],[]);
         fH13 = figure(13); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH13, 'parula', ttl, [],[], 'interpmethod', 'nearest');
         fH14 = figure(14); clf; megPlotMap(meanVarExpl(ii,:),[0 max(meanVarExpl(ii,:))],fH14, 'parula', ttl, [],[]);
         
@@ -93,9 +92,9 @@ for ii = 1:nIter
             sprintf('Mean phase-ref MEG data and predicted response from pRF %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4}));
         
         for tt = 1:length(top10)
-            subplot(5,2,tt);
+            subplot(5,2,tt); plot(t, zeros(size(t)), 'k'); hold on; 
             plot(t, meanPhRefAmp10Hz(:,top10(tt),ii), 'ko-', 'LineWidth',2);
-            hold on; plot(t, meanPredResponse(:,top10(tt),ii), 'r', 'LineWidth',4);
+            plot(t, predMEGResponse(:,top10(tt),ii), 'r', 'LineWidth',4);
             title(sprintf('Sensor %d, var expl: %1.2f',top10(tt), ve(tt)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
@@ -117,7 +116,7 @@ for ii = 1:nIter
         for s = 1:nSensors
             clf;
             plot(t, meanPhRefAmp10Hz(:,s,ii), 'ko-', 'LineWidth',2);
-            hold on; plot(t, meanPredResponse(:,s,ii), 'r', 'LineWidth',4);
+            hold on; plot(t, predMEGResponse(:,s,ii), 'r', 'LineWidth',4);
             title(sprintf('Sensor %d, var expl: %1.2f',s, meanVarExpl(ii, s)))
             xlabel('Time (s)'); ylabel('MEG response (Tesla)');
             set(gca, 'FontSize', 14, 'TickDir','out'); box off
@@ -137,12 +136,12 @@ for ii = 1:nIter
 end
 
 % Remove last dimension out, if not used
-meanPredResponse = squeeze(meanPredResponse);
-meanVarExpl      = squeeze(meanVarExpl);
+predMEGResponseScaled  = squeeze(predMEGResponseScaled);
+meanVarExpl            = squeeze(meanVarExpl);
 
 if opt.saveData
     save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl','-v7.3');
-    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPredResponse'), 'meanPredResponse','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'predMEGResponseScaled'), 'predMEGResponseScaled','-v7.3');
     save(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanPhRefAmp10Hz'), 'meanPhRefAmp10Hz','-v7.3');
 end
 
