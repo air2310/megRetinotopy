@@ -113,7 +113,7 @@ elseif opt.mri.useBensonMaps
 end
 
 if opt.meg.useCoherentSpectrum
-    opt.subfolder             = [opt.subfolder '/coherent'];
+    opt.subfolder             = [opt.subfolder '/coherentNoOffset'];
 else
     opt.subfolder             = [opt.subfolder '/incoherent'];
 end
