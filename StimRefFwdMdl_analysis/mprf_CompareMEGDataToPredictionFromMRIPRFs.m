@@ -1,4 +1,4 @@
-function [meanPredResponse,meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse)
+function [meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse)
 % Function to compare phase referenced steady-state data MEG data
 % to predicted MEG responses from MRI prfs
 %
@@ -25,7 +25,6 @@ meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));
 [nEpochs, nSensors] = size(meanPhRefAmp10Hz);
 
 % Preallocate space
-meanPredResponse = NaN(nEpochs,nSensors);
 meanVarExpl      = NaN(1,nSensors);
 
 % Get predicted response that explains most variance from mean response
@@ -36,17 +35,17 @@ for s = 1:nSensors
     meanPrediction = predMEGResponse(~meanNanMask,s);
     meanData = meanPhRefAmp10Hz(~meanNanMask,s);
     
-    % Create predictions
-    meanX = [ones(size(meanPrediction)) meanPrediction];
-    
-    % Regress out predictions
-    meanB = meanX \ meanData;
-    
-    % Compute scaled predictions with betas
-    meanPredResponse(~meanNanMask,s) =  meanX * meanB;
+%     % Create predictions
+%     meanX = meanPrediction;
+%     
+%     % Regress out predictions
+%     meanB = meanX \ meanData;
+%     
+%     % Compute scaled predictions with betas
+%     meanPredResponse(~meanNanMask,s) =  meanX * meanB;
     
     % Compute coefficient of determination:
-    meanVarExpl(s) = 1 - (var(meanData - meanPredResponse(~meanNanMask,s)) ...
+    meanVarExpl(s) = 1 - (var(meanData - meanPrediction) ...
         ./ var(meanData));
     
 end
