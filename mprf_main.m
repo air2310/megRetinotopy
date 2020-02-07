@@ -174,7 +174,7 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %              (2) predicted MEG responses (epochs x sensors)
 %       output - Phase referenced MEG time series (sensors x epochs)
 
-phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
+[phaseRefMEGResponse,bestBetas, bestRefPhase] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
 % 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       inputs (1) Phase referenced MEG time series (sensors x time)
@@ -182,7 +182,7 @@ phaseRefMEGResponse = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGRespons
 %       outputs(1) modelfit to mean phase-referenced MEG data,
 %              (2) variance explained per MEG sensor 
 
-[meanPredResponse,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, dirPth, opt);
+[predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, bestBetas, dirPth, opt);
 
 
 fprintf('(%s) Done!', mfilename)
