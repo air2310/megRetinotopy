@@ -49,9 +49,9 @@ if opt.meg.useCoherentSpectrum
         
         fprintf('Sensors:')
         for s = 1:nSensors
-
+            
             fprintf('.%d',s)
-
+            
             % Take the mean across runs first (time x epochs)
             meanTs.in  = nanmean(megData(:,:,leftInRuns,s),3);
             meanTs.out = nanmean(megData(:,:,leftOutRuns,s),3);
@@ -90,7 +90,7 @@ if opt.meg.useCoherentSpectrum
                 % Rescale amplitudes with diff between reference phase and
                 % average phase of other runs
                 phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz.in(~currentnans.in), ph10Hz.in, thisRefPhase);
-               
+                
                 % Regress prediction from phase referenced 10 Hz MEG response
                 [B, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans.in,s));
                 betas(rp,ll,s) = B;
@@ -194,7 +194,7 @@ for rr = 1:size(varexpl,2)
     
     maxVarExplIdx(rr,:,:) = maxVEidx;
     maxVarExplVal(rr,:,:) = maxVEvalue;
-
+    
     bestBetas(1,~nanIdx,rr)     = betaRun(maxVEidx(~nanIdx))';
     bestRefPhase(1,~nanIdx,rr)  = refPhaseRun(maxVEidx(~nanIdx))';
     
@@ -211,11 +211,14 @@ phRefAmp10Hz = rescaleAmpsWithRefPhase(allAmp10Hz, allPh10Hz, bestRefPhase);
 warning on
 fprintf('\n(%s) done!\n',mfilename)
 
-% do some plotting for debugging
+% Compute split half reliability of SSVEF amplitude halves
 if ~opt.vary.perturbOrigPRFs
+    
+    % do some plotting for debugging
     
     fH1 = figure(1); clf; set(gcf, 'Position',  [1000, 651, 1285, 687]);
     fH2 = figure(2); clf; set(gcf, 'Position',  [1000, 651, 1285, 687]);
+    
     
     splitHalfAmpReliability = NaN(1,nSensors);
     for s = 1:nSensors
@@ -229,55 +232,66 @@ if ~opt.vary.perturbOrigPRFs
         
         [~, varexpl1] = regressPredictedResponse(splitHalfAmps1'.*10^14, splitHalfAmps2'.*10^14);
         [~, varexpl2] = regressPredictedResponse(splitHalfAmps2'.*10^14, splitHalfAmps1'.*10^14);
-
+        
         splitHalfAmpReliability(s) = nanmean([varexpl1,varexpl2]);
         
-        % Plot the split half amplitudes (absolute values)
-        figure(fH1); clf;
+        if opt.verbose
+            % Plot the split half amplitudes (absolute values)
+            figure(fH1); clf;
+            
+            ax1 = subplot(2,1,1);
+            plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
+            xlabel('time points'); ylabel('Magnetic flux (T)'); title(sprintf('Sensor %d amplitudes, splithalf reliability %1.2f', s, splitHalfAmpReliability(s)));
+            legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
+            set(ax1, 'TickDir', 'out', 'FontSize', 10)
+            
+            % Plot the split half phase-referenced amplitudes
+            ax2 = subplot(2, 1, 2);
+            plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on;
+            plot(1:140, phRefAmp10Hz(:,2,s), 'g');
+            plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3);
+            title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
+            plot(1:140, predMEGResponse(:,s).*bestBetas(:,1,s), 'b', 'lineWidth',3);
+            plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'c', 'lineWidth',3);
+            xlabel('time points'); ylabel('Magnetic flux (T)')
+            legend({'Phase referenced split half 1', 'Phase referenced split half 2', ...
+                'Phase ref mean', 'Predicted MEG resp (scaled with beta split half 1)' ...
+                'Predicted MEG resp (scaled with beta split half 2)'}); box off;
+            set(ax2, 'TickDir', 'out', 'FontSize', 10)
+            
+            if opt.saveFig
+                figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+                    sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), [], [1 300], '.',1);
+            end % savefig
+        end % verbose
+    end % sensor
+    
+    if opt.verbose
+        % Plot split half amplitude reliability
+        fH2 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
+            'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
+        c = colorbar; c.Location='eastoutside';
         
-        ax1 = subplot(2,1,1);
-        plot(1:140, allAmp10Hz(:,1,s), 'r'); hold on; plot(1:140, allAmp10Hz(:,2,s), 'g');
-        xlabel('time points'); ylabel('Magnetic flux (T)'); title(sprintf('Sensor %d amplitudes, splithalf reliability %1.2f', s, splitHalfAmpReliability(s)));
-        legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
-        set(ax1, 'TickDir', 'out', 'FontSize', 10)
+        if opt.saveFig
+            figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+                'splitHalfAmplitudeReliability'),[],0,'.',1);
+        end
         
-        % Plot the split half phase-referenced amplitudes
-        ax2 = subplot(2, 1, 2);
-        plot(1:140, phRefAmp10Hz(:,1,s), 'r'); hold on; 
-        plot(1:140, phRefAmp10Hz(:,2,s), 'g');
-        plot(1:140, nanmean(phRefAmp10Hz(:,:,s),2), 'k:', 'lineWidth',3);
-        title(sprintf('Best ref phases split halves: %1.2f %1.2f, resulting in %1.2f %1.2f var expl', bestRefPhase(:,:,s), maxVarExplVal(:,:,s)));
-        plot(1:140, predMEGResponse(:,s).*bestBetas(:,1,s), 'b', 'lineWidth',3);
-        plot(1:140, predMEGResponse(:,s).*bestBetas(:,2,s), 'c', 'lineWidth',3);
-        xlabel('time points'); ylabel('Magnetic flux (T)')
-        legend({'Phase referenced split half 1', 'Phase referenced split half 2', ...
-            'Phase ref mean', 'Predicted MEG resp (scaled with beta split half 1)' ...
-            'Predicted MEG resp (scaled with beta split half 2)'}); box off;
-        set(ax2, 'TickDir', 'out', 'FontSize', 10)
+        % Plot split half amplitude reliability
+        fH3 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH3, 'hot', ...
+            'Mean split half reliability of SSVEF amplitudes');
+        c = colorbar; c.Location='eastoutside';
         
-        figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-            sprintf('sensor%d_amplitudes%s', s, opt.fNamePostFix)), [], [1 300], '.',1);
+        if opt.saveFig
+            figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+                'splitHalfAmplitudeReliability_interp'),[],0,'.',1);
+        end
+        
+    end  % verbose
+end % non vary PRF analysis only
 
-    end
-    
-    % Plot split half amplitude reliability
-    fH2 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
-    'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
-    c = colorbar; c.Location='eastoutside';
-    
-     figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-           'splitHalfAmplitudeReliability'),[],0,'.',1);
-       
-    % Plot split half amplitude reliability
-    fH3 = figure; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH3, 'hot', ...
-    'Mean split half reliability of SSVEF amplitudes');
-    c = colorbar; c.Location='eastoutside';
-    
-    figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-           'splitHalfAmplitudeReliability_interp'),[],0,'.',1);  
-     
-     save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability.mat'), 'splitHalfAmpReliability');
-end
+save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability.mat'), 'splitHalfAmpReliability');
+
 
 return
 
