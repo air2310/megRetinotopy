@@ -1,4 +1,4 @@
-function mprf_main(subjID)
+function mprf_main(subjID, opt)
 %
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions
 % involved in the MEG Retinotopy project.
@@ -49,11 +49,15 @@ dirPth = loadPaths(subjID);
 cd(mprf_rootPath)
 
 % Set options
-opt = getOpts('saveFig',1,'verbose',1, 'fullSizeMesh', 1, 'perturbOrigPRFs',0); % see getOpts function for more options
+% opt = getOpts('saveFig',1,'verbose',1, 'fullSizeMesh', 1, 'perturbOrigPRFs',false); % see getOpts function for more options
+
+fprintf('(%s): Starting analysis of subject %s, using %s\n', mfilename, subjID, regexprep(opt.subfolder,'/',' '));
 
 %% 1. MEG data preprocessing
 
 if ~opt.skipMEGPreproc
+    if opt.verbose; fprintf('(%s): Preprocess MEG data..\n', mfilename); end
+
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
     % (matfile, MEG sensors x epochs x time points x run nr)
     [data, conditions, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt);
@@ -115,6 +119,7 @@ end
 % output - pRF parameters in BS
 
 if ~opt.skipMRIPreproc
+    if opt.verbose; fprintf('(%s): Preprocess MRI data..\n', mfilename); end
 
     % MRVISTA>>MRVISTA: Smoothing pRF params (and then recompute beta values with smoothed parameters)
     mprf_pRF_sm(dirPth, opt);
@@ -145,7 +150,8 @@ end
 
 
 % If perturbing original pRF parameters on the cortical surface:
-if opt.vary.perturbOrigPRFs  
+if opt.vary.perturbOrigPRFs
+    if opt.verbose; fprintf('(%s): Perturb local pRFs on cortex..\n', mfilename); end
     mprf_perturbOrigPRFs(mri.prfSurfPath, opt) 
 end
 
@@ -174,7 +180,7 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %              (2) predicted MEG responses (epochs x sensors)
 %       output - Phase referenced MEG time series (sensors x epochs)
 
-[phaseRefMEGResponse,bestBetas, bestRefPhase] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
+[phaseRefMEGResponse, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
 % 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       inputs (1) Phase referenced MEG time series (sensors x time)
@@ -182,9 +188,9 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %       outputs(1) modelfit to mean phase-referenced MEG data,
 %              (2) variance explained per MEG sensor 
 
-[predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, bestBetas, dirPth, opt);
+[predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, bestBetas, bestOffsets, dirPth, opt);
 
 
-fprintf('(%s) Done!', mfilename)
+fprintf('(%s) finished without error!\n', mfilename)
 
 end
