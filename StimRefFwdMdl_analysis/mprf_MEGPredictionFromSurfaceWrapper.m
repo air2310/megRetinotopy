@@ -16,7 +16,7 @@ function predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(prfSurfPath, st
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
-
+fprintf('(%s): Make predictions on cortical surface.', mfilename)
 
 % Create folders if figures are saved
 if opt.saveFig
@@ -52,7 +52,7 @@ predSurfResponse = NaN(length(t),size(prf.roimask,1),nIter);
 
 %% loop over dimensions, if necessary
 for ii = iter
-    
+    fprintf('.')
     % Select new prf parameters, if they vary in size or position
     if strcmp(opt.vary.perturbOrigPRFs,'position')
         prf.x_smoothed_vary         = prfAll.x_smoothed_vary(:,ii);
@@ -81,6 +81,7 @@ for ii = iter
     end
 end
 
+fprintf('.Done!\n');
 %% Plot predicted response BS surface
 if opt.verbose
     if opt.saveFig && ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'),'dir')
