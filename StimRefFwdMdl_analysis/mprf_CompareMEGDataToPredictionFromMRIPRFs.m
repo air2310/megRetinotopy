@@ -22,7 +22,7 @@ function [meanVarExpl, meanPhRefAmp10Hz] = mprf_CompareMEGDataToPredictionFromMR
 meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));   
 
 % Check dimensions
-[nEpochs, nSensors] = size(meanPhRefAmp10Hz);
+[~, nSensors] = size(meanPhRefAmp10Hz);
 
 % Preallocate space
 meanVarExpl      = NaN(1,nSensors);
@@ -30,24 +30,9 @@ meanVarExpl      = NaN(1,nSensors);
 % Get predicted response that explains most variance from mean response
 for s = 1:nSensors
     
-    % Identify and remove nans
-    meanNanMask = isnan(meanPhRefAmp10Hz(:,s));
-    meanPrediction = predMEGResponse(~meanNanMask,s);
-    meanData = meanPhRefAmp10Hz(~meanNanMask,s);
-    
-%     % Create predictions
-%     meanX = meanPrediction;
-%     
-%     % Regress out predictions
-%     meanB = meanX \ meanData;
-%     
-%     % Compute scaled predictions with betas
-%     meanPredResponse(~meanNanMask,s) =  meanX * meanB;
-    
     % Compute coefficient of determination:
-    meanVarExpl(s) = 1 - (var(meanData - meanPrediction) ...
-        ./ var(meanData));
-    
+    meanVarExpl(s) = 1 - (var(meanPhRefAmp10Hz(:,s) - predMEGResponse(:,s), 'omitnan') ...
+        ./ var(meanPhRefAmp10Hz(:,s), 'omitnan')); 
 end
 
 
