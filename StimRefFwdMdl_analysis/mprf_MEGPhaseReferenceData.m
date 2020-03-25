@@ -66,7 +66,7 @@ if opt.meg.useCoherentSpectrum
         fprintf('.%d',s)
         
         % Take the mean across runs first (time x epochs)
-        meanTs{1}  = nanmean(megData(:,:,runGroup{1},s),3);
+        meanTs{1} = nanmean(megData(:,:,runGroup{1},s),3);
         meanTs{2} = nanmean(megData(:,:,runGroup{2},s),3);
         
         % Transform to Fourier domain
@@ -81,13 +81,13 @@ if opt.meg.useCoherentSpectrum
         amp{2}     = abs(F{2})/nTimepoints*2;
         
         % Select amplitude and phase at stimulus frequency (10 Hz)
-        amp10Hz{1}  = squeeze(amp{1}(freqIdx,:)); % one value per epoch
+        amp10Hz{1} = squeeze(amp{1}(freqIdx,:)); % one value per epoch
         ph10Hz{1}  = squeeze(ph{1}(freqIdx,:)); % one value per epoch
         
         amp10Hz{2} = squeeze(amp{2}(freqIdx,:)); % one value per epoch
         ph10Hz{2}  = squeeze(ph{2}(freqIdx,:)); % one value per epoch
         
-        allAmp10Hz(:,:,s) = cat(2,amp10Hz{1}',amp10Hz{2}');
+        allAmp10Hz(:,:,s) = cat(2,amp10Hz{1}',amp10Hz{2}'); % one value per epoch x run x sensor
         allPh10Hz(:,:,s) = cat(2,ph10Hz{1}',ph10Hz{2}');
         
         currentnans{1} = isnan(amp10Hz{1});
