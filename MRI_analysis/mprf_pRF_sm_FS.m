@@ -138,11 +138,11 @@ if ~opt.roi.roimrvToFS
     surfdat       = @(lh, rh, rc)(setfield(setfield([], 'lh', lh.vol(:)), 'rh', rc*rh.vol(:)));
     roiFSWang     = surfdat(MRIread(roifname('lh')), MRIread(roifname('rh')), 1);
     
-%     for h = 1:length(hemis)
-%         curHemi = hemis{h};
-%         outFileName = [curHemi '.wang2015_atlas'];
+%     for h = {'lh', 'rh'}
+%         outFileName = [h '.wang2015_atlas'];
 %         fname = fullfile(roiFSDir,outFileName);
-%         write_curv(fname, roiFSWang.(curHemi), 1);
+%         
+%         write_curv(fname, roiFSWang.(h), 1);
 %     end
     
     
