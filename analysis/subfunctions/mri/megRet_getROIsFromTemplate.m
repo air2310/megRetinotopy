@@ -58,7 +58,7 @@ if exist(wangAtlasPath, 'file')
         ' We will proceed without re-running the docker.'))
 else
     % Run the docker using a system call
-    str = sprintf('docker run -ti --rm -v %s:/input \\nben/occipital_atlas:latest', fsFolder);
+    str = sprintf('docker run -ti --rm -v %s:/input \\nben/neuropythy atlas', fsFolder);
     system(str)
 end
 
