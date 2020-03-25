@@ -113,20 +113,24 @@ for s = 1:length(subjects)
     end
     
     %% Plot meshes
-    figure(fH1); clf;
-    %     subplot(2,5,s)
+    figure(fH1);
+    % clf;
+    subplot(2,5,s)
     megPlotMap(stimSNRToPlot_coh(s,:),[0 .9], fH1, 'parula',[],[],[],'interpmethod', interpMethod);
     title(sprintf('S%d',s));
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-    pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
+%     pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
     
-    figure(fH2);  clf;
-    %     subplot(2,5,s) 
+    figure(fH2); 
+    %clf;
+    subplot(2,5,s) 
     megPlotMap(stimSNRToPlot_incoh(s,:),[.3 .4], fH1, 'parula',[],[],[],'interpmethod', interpMethod);
     title(sprintf('S%d',s));
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-    pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
+%     pos = c.Position; set(c, 'Position', [pos(1)+0.09 pos(2)+0.06, pos(3)/1.5, pos(4)/1.5])
     
+    
+end
     if opt.saveFig
         %      figurewrite(fullfile(figureDir, sprintf('figure5_examplesubject%d_thresh%d',whichSubject, threshold)),[],0,'.',1);
         figure(fH1)
@@ -135,12 +139,12 @@ for s = 1:length(subjects)
         fprintf('\n saving figure XX: Individual Subject SSVEF_coherence in %s',saveDir);
         
         figure(fH2)
-        print(fH2, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', s, opt.fNamePostFix,interpMethod)), '-dpng');
-        figurewrite(fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', s, opt.fNamePostFix)),[],0,'.',1);
+        print(fH2, fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s',  s, opt.fNamePostFix,interpMethod)), '-dpng');
+        figurewrite(fullfile(saveDir, sprintf('Figure3_S%d_SSVEFcoherence_usingIncoherentSpectrum_%s_%s', s, opt.fNamePostFix,interpMethod)),[],0,'.',1);
         fprintf('\n saving figure XX: Individual Subject SSVEF_coherence in %s',saveDir);
     end
     
-end
+% end
 
 fH4 = figure();
 mn_stimSNRToPlot_coh = nanmean(stimSNRToPlot_coh,1);
