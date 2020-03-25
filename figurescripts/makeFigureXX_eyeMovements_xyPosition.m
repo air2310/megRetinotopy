@@ -44,6 +44,7 @@ ax = error_ellipse(traceCov,traceMean,'conf',0.95,'color','k');
 plot(traceMean(1),traceMean(2), 'r+', 'markersize',5);
 
 % Scale axes
+stimRad = 10; %deg
 xlim([-stimRad stimRad]);
 ylim([-stimRad stimRad]);
 xlabel('X Position (deg of visual angle)');
@@ -75,7 +76,7 @@ end
 fH2 = figure(100); clf; set(gcf, 'Color', 'w'); hold all;
 
 nboot    = 1000;
-maxbin   = median(sum(eyeData.msVec,2))+2;
+maxbin   = median(sum(eyeData.msVec,2))+5;
 nbins    = linspace(0,maxbin, 61);
 epochnum = 1:size(eyeData.msVec,1);
 bootstat = bootstrp(nboot, @(x) nanmean(sum(eyeData.msVec(x, :),2)), epochnum);
