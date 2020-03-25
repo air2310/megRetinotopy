@@ -19,10 +19,9 @@ if plotAverage
         'wlsubj068', 'wlsubj070', 'wlsubj081', 'wlsubj106', ...
         'wlsubj109', 'wlsubj111'};
     
-%     makeFigure1C(subjIDs,saveSubDir); % Average MEG headplot for all subjects
     mprf_CompareGroupAverageDataVsPrediction(subjIDs, dirPth, opt, saveSubDir)
     
-    makeFigure1Supplement(subjIDs,saveSubDir)
+    makeFigure1Supplement(subjIDs,dirPth, opt,saveSubDir) % Average MEG headplot for all subjects
     
 else
     

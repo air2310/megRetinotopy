@@ -1,4 +1,4 @@
-function makeFigure1Supplement(subjIDs,saveSubDir)
+function makeFigure1Supplement(subjIDs,dirPth, opt,saveSubDir)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects).
 
@@ -19,8 +19,6 @@ for idxSubj = 1:numSub
     
     % Load paths with data files for this subject
     dirPth = loadPaths(subjIDs{idxSubj});
-    opt = getOpts('saveFig',1,'verbose',1, 'fullSizeMesh', 1);
-    
     
     varExpFile = dir(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','meanVarExpl.mat'));
     if ~isempty(varExpFile)
