@@ -20,6 +20,8 @@ opt.surfVisualize         = false;              % General: visualize surface mes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.makeAverageFig        = false;              % General: Plot average across subjects
 opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
+opt.regressionType        = 'WithOffset';       % General: 'NoOffset' = regress with only 1 free param (beta) or 'WithOffset' = use both beta and offset
+opt.seed                  = 1;                  % General: random number generator seed for reproducing results, can be an integer > 0  or 'shuffle' to get reset rng
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
@@ -113,9 +115,9 @@ elseif opt.mri.useBensonMaps
 end
 
 if opt.meg.useCoherentSpectrum
-    opt.subfolder             = [opt.subfolder '/coherentNoOffset'];
+    opt.subfolder             = [opt.subfolder '/coherent' opt.regressionType ];
 else
-    opt.subfolder             = [opt.subfolder '/incoherent'];
+    opt.subfolder             = [opt.subfolder '/incoherent' opt.regressionType ];
 end
 
 if strcmp(opt.headmodel, 'BEM')
