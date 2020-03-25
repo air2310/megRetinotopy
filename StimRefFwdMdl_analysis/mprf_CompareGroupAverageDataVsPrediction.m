@@ -1,74 +1,75 @@
-% mprf_CompareGroupAverageDataVsPrediction
-
-opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs',0); % see getOpts function for more options
-
-subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
-    'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
-
-nEpochs = 140;
-nSensors = 157;
-
-allPredictions = NaN(length(subjects), nEpochs, nSensors);
-allData        = NaN(length(subjects), nEpochs, nSensors);
+function [] = mprf_CompareGroupAverageDataVsPrediction(subjectIDs,dirPth, opt, saveSubDir)
 
 
-for subj = 1:length(subjects)
-    
-    subjectID = subjects{subj};
-    
-    dirPth = loadPaths(subjectID);
-    
-    % Load sensor predictions
-    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanPredResponse'));
-    
-    % Load beta weights and ref phases
-    %     load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'bestBetas_1'));
-    
-    % Load phase-referenced SSVEF data
-    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanPhRefAmp10Hz'));
-    
-    allPredictions(subj,:,:) = meanPredResponse;
-    allData(subj,:,:) = meanPhRefAmp10Hz;
-end
-
-
-
-
-groupAvePrediction = squeeze(nanmean(allPredictions,1));
-groupAveData       = squeeze(nanmean(allData,1));
-
-
-groupAveDataScaled = NaN(size(groupAvePrediction));
-t = 1:size(allData,2);
-
-
-saveSubDir = 'figureGroupAvePrediction';
+saveSubDir = [saveSubDir 'GroupAvePrediction'];
 saveDir = fullfile(dirPth.finalFig.savePthAverage,'figureSuperSubject',saveSubDir);
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
 
+nEpochs = 140;
+nSensors = 157;
 
+
+%% Concatenate data
+allPredictions = NaN(length(subjectIDs), nEpochs, nSensors);
+allData        = NaN(length(subjectIDs), nEpochs, nSensors);
+
+for subj = 1:length(subjectIDs)
+    
+    subjectID = subjectIDs{subj};
+    
+    dirPth = loadPaths(subjectID);
+    
+    % Load sensor predictions
+    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'predMEGResponseScaled'));
+    
+    % Load phase-referenced SSVEF data
+    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanPhRefAmp10Hz'));
+    
+    allPredictions(subj,:,:) = predMEGResponseScaled;
+    allData(subj,:,:) = meanPhRefAmp10Hz;
+end
+
+
+%% Predict group average data from group average predictions
+groupAvePrediction = squeeze(nanmean(allPredictions,1));
+groupAveData       = squeeze(nanmean(allData,1));
+
+
+groupAveDataScaled = NaN(size(groupAvePrediction));
+groupAvePredictionScaled = NaN(size(groupAvePrediction));
+timepoints = 1:size(allData,2);
 
 for s = 1:nSensors
     
     % Identify and remove nans
-    meanNanMask = isnan(groupAvePrediction(:,s));
-    thisGroupAvePredictionMasked = groupAvePrediction(~meanNanMask,s);
-    thisGroupAveDataMasked       = groupAveData(~meanNanMask,s);
+    meanNanMask = isnan(groupAveData(:,s));
+    thisGroupAvePredictionMasked = groupAvePrediction(~meanNanMask,s) .*10^14;
+    thisGroupAveDataMasked       = groupAveData(~meanNanMask,s) .*10^14;
     
     % Create predictions
-%     meanX = [ones(size(thisGroupAvePredictionMasked)) thisGroupAvePredictionMasked];
-    meanX = thisGroupAvePredictionMasked;
+    if strcmp(opt.regressionType, 'NoOffset')
+        meanX = thisGroupAvePredictionMasked;
+        
+        % Regress out predictions
+        meanB = meanX \ thisGroupAveDataMasked;
+        
+        % Compute scaled predictions with betas
+        groupAvePredictionScaled(~meanNanMask,s) =  meanX * meanB';
+        
+    else
+        meanX = [ones(size(thisGroupAvePredictionMasked,1),1), thisGroupAvePredictionMasked];
     
-    % Regress out predictions
-    meanB = meanX \ thisGroupAveDataMasked;
+        % Regress out predictions
+        meanB = meanX \ thisGroupAveDataMasked;
     
-    % Compute scaled predictions with betas
-    groupAvePredictionScaled(~meanNanMask,s) =  meanX * meanB';
+        % Compute scaled predictions with betas
+        groupAvePredictionScaled(~meanNanMask,s) =  thisGroupAvePredictionMasked * meanB(2) + meanB(1);
+    end
     
     % Compute coefficient of determination:
-    groupVarExpl(s) = 1 - (var(thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)) ...
+    groupVarExpl(s) = 1 - (nanvar(thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)) ...
         ./ var(thisGroupAveDataMasked));
     
 end
@@ -86,20 +87,29 @@ c.TickDirection = 'out';
 c.TickLength = [0.010 0.010];
 c.FontSize = 12;
 
-figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_zeroblankpred',opt.fNamePostFix)),[],0,'.',1);
-figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_zeroblankpred',opt.fNamePostFix)),[],[1 300],'.',1);
+figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s',opt.fNamePostFix, opt.regressionType)),[],0,'.',1);
+figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s',opt.fNamePostFix, opt.regressionType)),[],[1 300],'.',1);
+
+
+%% Plot time series
+
+load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'megStimConditions.mat'), 'triggers');
+
+% Define time scale
+[nEpochs, nSensors] = size(meanPhRefAmp10Hz);
+epochLengthSeconds = diff(opt.meg.epochStartEnd);
+t = (0:nEpochs-1) .* epochLengthSeconds;
+
+% Define blink and blank blocks
+blinkIdx = (triggers.stimConditions(1:length(t))==20);
+blankIdx = (triggers.stimConditions(1:length(t))==10);
+blink_t = t(blinkIdx);
+blank_t = t(blankIdx);
 
 
 % Plot individual sensor time series
 fH2 = figure(2); set(fH2, 'Position', [1000,420,1269,918]);
 for s = 1:nSensors
-    clf,
-    plot(t, zeros(size(t)), 'k'); hold on;
-    plot(t, groupAveData(:,s), 'ko:', 'LineWidth',2);
-    plot(t, groupAvePredictionScaled(:,s), 'r-', 'LineWidth',2);
-    title(sprintf('Group average sensor %d, var expl %1.2f', s, groupVarExpl(s)));
-    set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
-    xlabel('Time (s)'); ylabel('Phase-referenced 10 Hz SSVEF response (fT)');
     
     % Compute y limits
     tmp_yl = max(abs([min(groupAveData(:,s)), max(groupAveData(:,s))])).*10^14;
@@ -110,14 +120,37 @@ for s = 1:nSensors
     end
     ylim(yl); xlim([0, max(t)])
     
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_sensor_%d_%s_zeroblankpred',s, opt.fNamePostFix)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_sensor_%d_%s_zeroblankpred',s, opt.fNamePostFix)),[],[1 300],'.',1);
+    clf, 
+    groupAveData(blinkIdx,s) = NaN;
+    
+      % Plot the blank and blink periods
+    for bt = 1:length(blink_t)
+        patch([blink_t(bt),blink_t(bt)+epochLengthSeconds blink_t(bt)+epochLengthSeconds blink_t(bt)],[yl(1),yl(1),yl(2),yl(2)],[0.5 0.5 0.5],'FaceAlpha', 0.2, 'LineStyle','none');
+    end
+    
+    for bt = 1:length(blank_t)
+        patch([blank_t(bt),blank_t(bt)+epochLengthSeconds blank_t(bt)+epochLengthSeconds blank_t(bt)],[yl(1),yl(1),yl(2),yl(2)],[0.5 0.5 0.5],'FaceAlpha', 0.7, 'LineStyle','none');
+    end
+    hold on;
+    plot(t, zeros(size(timepoints)), 'k');
+    plot(t, groupAveData(:,s), 'ko:', 'LineWidth',3);
+    plot(t, groupAvePredictionScaled(:,s).*10^-14, '-', 'Color',[1 0.45 0.45], 'LineWidth',3);
+    ylim(yl); xlim([0, max(t)])
+    title(sprintf('Group average sensor %d, var expl %1.2f', s, groupVarExpl(s)));
+    set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010],'LineWidth',3); box off;
+    xlabel('Time (s)'); ylabel('Phase-referenced 10 Hz SSVEF response (fT)');
+    
+    l = findobj(gca, 'Type','Line');
+    legend(l([2,1]), {'Observed', 'Predicted'}, 'Location', 'NorthEastOutside', 'FontSize', 25); legend boxoff;
+    
+    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_sensor_%d_%s_%s',s, opt.fNamePostFix, opt.regressionType)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_sensor_%d_%s_%s',s, opt.fNamePostFix, opt.regressionType)),[],[1 300],'.',1);
     
 end
 
 % Plot individual subjects' time series on top of eachother + mean
-cmap = lines(length(subjects));
-figure(2); clf;
+cmap = lines(length(subjectIDs));
+fH3 = figure(3); set(fH3, 'Position', [1000,420,1269,918]);
 for s = 1:nSensors
     
     subplot(211); cla;
@@ -126,7 +159,7 @@ for s = 1:nSensors
     subplot(212); cla;
     plot(t, zeros(size(t)), 'k'); hold on;
     
-    for subj = 1:length(subjects)
+    for subj = 1:length(subjectIDs)
         subplot(211)
         plot(t, squeeze(allPredictions(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
         
@@ -135,7 +168,7 @@ for s = 1:nSensors
     end
     
     subplot(211);
-    plot(t, groupAvePrediction(:,s), 'r', 'LineWidth',4);
+    plot(t, groupAvePredictionScaled(:,s).*10^-14, 'r', 'LineWidth',4);
     title(sprintf('Individual predictions sensor %d', s));
     set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
     xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
@@ -147,7 +180,7 @@ for s = 1:nSensors
     xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
       
     
-    figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_zeroblankpred',s, opt.fNamePostFix)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_zeroblankpred',s, opt.fNamePostFix)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_%s',s, opt.fNamePostFix,opt.regressionType)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_%s',s, opt.fNamePostFix, opt.regressionType)),[],[1 300],'.',1);
     
 end
