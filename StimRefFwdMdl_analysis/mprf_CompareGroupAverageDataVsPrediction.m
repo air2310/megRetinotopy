@@ -1,8 +1,7 @@
 function [] = mprf_CompareGroupAverageDataVsPrediction(subjectIDs,dirPth, opt, saveSubDir)
 
 
-saveSubDir = [saveSubDir 'GroupAvePrediction'];
-saveDir = fullfile(dirPth.finalFig.savePthAverage,'figureSuperSubject',saveSubDir);
+saveDir = fullfile(dirPth.finalFig.savePthAverage,saveSubDir, 'GroupAvePrediction');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
 end
