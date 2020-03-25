@@ -1,4 +1,4 @@
-function [phRefAmp10Hz, bestBetas, bestRefPhase] = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGResponse, dirPth, opt)
+function [phRefAmp10Hz, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(megData, predMEGResponse, dirPth, opt)
 % Wrapper for function to compute phase referenced amplitude from
 % preprocessed MEG data and predicted MEG responses from cortical surface
 %
@@ -20,10 +20,16 @@ function [phRefAmp10Hz, bestBetas, bestRefPhase] = mprf_MEGPhaseReferenceDataWra
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
-% check for folders in case we save figures
+% Check for folders in case we save figures or data
 if opt.saveFig
-     if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
-         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
+    if ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase'),'dir')
+        mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase')); end
+end
+
+if opt.saveData
+    if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
+        mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'));
+    end
 end
 
 % Check dimensions with loaded pRF data, and set the number of iterations
@@ -31,42 +37,40 @@ iter  = checkNumberOfIterations(predMEGResponse, opt, 'MEGPhaseRef');
 nIter = length(iter);
 
 % Keep a copy of all responses
-predMEGResponseAll = predMEGResponse; 
+predMEGResponseAll = predMEGResponse;
 
-% Allocate space
-[nTimePoints, nEpochs, nRuns, nSensors] = size(megData);
+% Get data dimensions
+[~, nEpochs, nRuns, nSensors] = size(megData); 
 
-if  opt.meg.useCoherentSpectrum
-    phRefAmp10Hz = NaN(nEpochs, 2, nSensors, nIter); % only two runs as output, since it will be split half
-    
-    % Get leave in 9 / leave out group of 10 runs
-    tmp = randperm(nRuns);
-    runGroup{1} = tmp(1:9);
-    runGroup{2} = tmp(10:nRuns);
-    
-else
-    phRefAmp10Hz = NaN(nEpochs, nRuns, nSensors, nIter);
-end
+% Get leave in 9 / leave out group of 10 runs
+tmp = randperm(nRuns);
+runGroup{1} = tmp(1:9);
+runGroup{2} = tmp(10:nRuns);
 
-    
+
 % loop over dimensions, if necessary
 for ii = 1:nIter
     
-    fprintf('(%s): Starting phase-reference computation for iteration %d/%d.. \n', mfilename, ii, nIter)
+    fprintf('(%s): Starting phase-reference computation for iteration %d/%d.\n', mfilename, ii, nIter)
     
     % Select new prf parameters, if they vary in size or position
     predMEGResponse = predMEGResponseAll(:,:,ii);
     
     % Get phase-referenced steady state MEG responses for this iteration
-    [phRefAmp10Hz(:,:,:,ii), bestRefPhase, maxVarExplVal, bestBetas] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth);
+    [phRefAmp10Hz(:,:,:,ii), bestRefPhase(:,:,:,ii), maxVarExplVal, bestBetas(:,:,:,ii), bestOffsets(:,:,:,ii)] = mprf_MEGPhaseReferenceData(megData, predMEGResponse, runGroup, opt, dirPth);
     
-    
+
     %% Debug figures
-    if opt.verbose       
+    if opt.verbose
         
         % Visualize the mean reference phase across sensors
         fH1 = figure(1); clf;
-        megPlotMap(circularavg(squeeze(bestRefPhase),[],1), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
+        if numel(size(bestRefPhase))>3
+            bestRefPhaseToPlot = bestRefPhase(:,:,:,ii);
+        else
+            bestRefPhaseToPlot = bestRefPhase;
+        end
+        megPlotMap(circularavg(squeeze(bestRefPhaseToPlot),[],1), [0 2*pi],[], 'hsv','Mean Ref phase across 19 runs of MEG data', [],[],'interpmethod', 'nearest')
         
         % Visualize the variance explained for every run across sensors
         fH2 = figure(2); clf; set(fH2, 'Position', [17,578,1543,760]);
@@ -92,7 +96,7 @@ for ii = 1:nIter
         fH3 = figure(3);
         for s = 1:nSensors
             clf;
-            mprf_polarplot(ones(size(bestRefPhase,2),1),bestRefPhase(1,:,s));
+            mprf_polarplot(ones(size(bestRefPhaseToPlot,2),1),bestRefPhaseToPlot(1,:,s));
             title(sprintf('Best xval reference phases for 19 runs, sensor %d - mean r^2: %1.2f',s,nanmean(maxVarExplVal(1,:,s),2)));
             drawnow;
             if opt.saveFig
@@ -101,22 +105,21 @@ for ii = 1:nIter
             end
         end
     end % opt.verbose
-
-    % save betas corresponding to the highest variance explained per iteration
-    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp',sprintf('bestBetas_%d', ii)),'bestBetas','-v7.3');
-
-
-end
+    
+end % iterations
 
 
 % Remove last dimension out, if not used
 phRefAmp10Hz = squeeze(phRefAmp10Hz);
-
-
+bestBetas    = squeeze(bestBetas);
+bestOffsets  = squeeze(bestOffsets);
+bestRefPhase = squeeze(bestRefPhase);
 
 if opt.saveData
-    if ~exist(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp'), 'dir')
-        mkdir(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp')); end
+    % save betas corresponding to the highest variance explained per iteration
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','bestBetas'),'bestBetas','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','bestOffsets'),'bestOffsets','-v7.3');
+    save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','bestRefPhase'),'bestRefPhase','-v7.3');   
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','runGroup'),'runGroup','-v7.3');
     save(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','phaseReferencedMEGData'),'phRefAmp10Hz','-v7.3');
 end
