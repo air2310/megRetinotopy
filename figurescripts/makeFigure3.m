@@ -1,29 +1,20 @@
-function makeFigure3(subjID,sensorsToAverage)
+function makeFigure3(dirPth, opt, sensorsToAverage)
 % Function to make that plots the effect of scaling the original pRF
 % sizes (sigma).
 
-
-% Load paths with data files for this subject
-dirPth = loadPaths(subjID);
-
-% Set options
-opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', 'size'); % see getOpts function for more options
-
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveDir = fullfile(pth, 'finalfig', 'figure3');
+    saveSubDir = ['figure3_' opt.regressionType];
+    saveDir = fullfile(pth, 'finalfig', saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
 end
 
-if opt.fullSizeMesh
-    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
-else
-    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_size','coherent','pred_resp', 'meanVarExpl'));
-end
-varexpl = varexpl.meanVarExpl;
+% Load variance explained
+load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
 
+% Get range of permutations
 range   = opt.vary.size;
 
 % What sensors are we averaging?
@@ -36,21 +27,21 @@ if strcmp(sensorsToAverage, 'allPosterior')
     sensorLoc = (ypos<0 & xpos<1);
 elseif strcmp(sensorsToAverage, 'top10')
     % Get top 10 sensors
-    tmp = varexpl;
+    tmp = meanVarExpl;
     tmp(isnan(tmp))=0;
     [val,idx] = sort(tmp,2,'descend');
     sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
 end
 
 % Plot data for sensors over the back of the head
-dataToPlot = varexpl(:,sensorLoc);
+dataToPlot = meanVarExpl(:,sensorLoc);
 
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746], 'Name', 'Vary pRF size');
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF size');
 
 % Plot mean with shaded error bar using 'patch' function
 lo = 100.*(mean_varexpl - ci_varexpl);
@@ -80,25 +71,21 @@ rows = 3;
 cols = round(length(range)/rows)+1;
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
 
-%clim = max(varexpl(range==1,:));
+%clim = max(meanVarExpl(range==1,:));
 clim = 0.45;
 %interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
-    meshDataToPlot = varexpl(ii,:);
+    meshDataToPlot = meanVarExpl(ii,:);
     
     % Get subplot
-    %subplot(rows, cols, ii);
+    subplot(rows, cols, ii);
     
     megPlotMap(meshDataToPlot,[0 0.45],fH2,'parula',...
         sprintf('%1.2fx',range(ii)),[],[],'interpmethod',interpmethod);
     
-     if opt.saveFig
-        fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
-        print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varySizeMeshes%s_%s_%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, ii)), '-dpng');       
-    end
 end
 
 
@@ -110,18 +97,14 @@ end
 
 %%
 if opt.saveFig
-    [pth, folder] = fileparts(dirPth.model.saveFigPth);
-    saveDir = fullfile(pth, 'finalfig', 'figure3');
-    if ~exist(saveDir, 'dir')
-        mkdir(saveDir);
-    end
+
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
     
-    set(fH1,'Units','Inches');
-    pos = get(fH1,'Position');
-    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+%     set(fH1,'Units','Inches');
+%     pos = get(fH1,'Position');
+%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
-%    print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     if strcmp(sensorsToAverage, 'top10')
         print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     end

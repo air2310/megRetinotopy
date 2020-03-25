@@ -1,17 +1,13 @@
-function makeFigure2(subjID, sensorsToAverage)
+function makeFigure2(dirPth, opt, sensorsToAverage)
 % Function to make Figure 2 from manuscript, plotting variance explained by
 % the model as a function of polar angle rotations around the fovea of the 
 % original estimated pRF centers.
 
-% Load paths with data files for this subject
-dirPth = loadPaths(subjID);
-
-% Set options
-opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', 'position'); % see getOpts function for more options
 
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveDir = fullfile(pth, 'finalfig', 'figure2');
+    saveSubDir = ['figure2_' opt.regressionType];
+    saveDir = fullfile(pth, 'finalfig', saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
@@ -19,12 +15,7 @@ end
 
 
 % Load variance explained file
-if opt.fullSizeMesh
-    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','FSMesh', 'pred_resp', 'meanVarExpl'));
-else
-    varexpl = load(fullfile(dirPth.model.saveDataPth, 'vary_position','coherent','pred_resp', 'meanVarExpl'));
-end
-varexpl = varexpl.meanVarExpl;
+load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
 
 % Define the range of rotations
 range   = opt.vary.position;
@@ -39,32 +30,33 @@ if strcmp(sensorsToAverage, 'allPosterior')
     sensorLoc = (ypos<0 & xpos<1);
 elseif strcmp(sensorsToAverage, 'top10')
     % Get top 10 sensors
-    tmp = varexpl;
+    tmp = meanVarExpl;
     tmp(isnan(tmp))=0;
     [~,idx] = sort(tmp,2,'descend');
     sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
 end
 
 % Plot data for sensors over the back of the head
-dataToPlot = varexpl(:,sensorLoc);
+dataToPlot = meanVarExpl(:,sensorLoc);
 
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1000, 592, 838, 746], 'Name', 'Vary pRF position');
 
 % Plot mean with shaded error bar using 'patch' function
 lo = 100.*(mean_varexpl - ci_varexpl);
 hi = 100.*(mean_varexpl + ci_varexpl);
 color = [0.5 0.5 0.5];
-err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
-hold on;
-plot(range,100.*mean_varexpl,'r','Linewidth',3);
 
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF position');
+err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
+hold all;
+plot(range,100.*mean_varexpl,'r','Linewidth',3);
+plot(range, zeros(size(range)), 'k')
 % Add labels and make pretty
-yl = [0 45];
+yl = [-30 30];
 if max(100.*mean_varexpl)>yl(2)
     yl = [0 max(100.*mean_varexpl)+5];
 end
@@ -81,25 +73,21 @@ rows = 2;
 cols = round(length(range)/rows);
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
 
-%clim = max(varexpl(range==0,:));
+%clim = max(meanVarExpl(range==0,:));
 clim = 0.45;
 %interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
-    meshDataToPlot = varexpl(ii,:);
-    
+    meshDataToPlot = meanVarExpl(ii,:);
+        
     % Get subplot
-    %subplot(rows, cols, ii);
+    fH2 = figure(2); hold all;
+    subplot(rows, cols, ii);
     
     megPlotMap(meshDataToPlot,[0 clim],fH2,'parula',...
         range(ii),[],[],'interpmethod',interpmethod);
-    
-    if opt.saveFig
-        fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
-        print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s_%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, ii)), '-dpng');       
-    end
 
 end
 
@@ -110,19 +98,23 @@ if strcmp(sensorsToAverage, 'top10')
 end
 
 if opt.saveFig
-    [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveDir = fullfile(pth, 'finalfig', 'figure2');
-    if ~exist(saveDir, 'dir')
-        mkdir(saveDir);
-    end
+
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
-
-    set(fH1,'Units','Inches');
-    pos = get(fH1,'Position');
-    set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+    
+%     set(fH1,'Units','Inches');
+%     pos = get(fH1,'Position');
+%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
     print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+    
+    figure(fH1);
+    figurewrite(fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
 
- %  print(fH2, fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+    figure(fH2);
+    figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
+    fprintf('\n saving figure 1D in %s',saveDir);
+    
     if strcmp(sensorsToAverage, 'top10')
         print(fH3, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     end

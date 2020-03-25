@@ -50,8 +50,15 @@ end
 % Go back to root
 cd(mprf_rootPath)
 
+regressionType = 'WithOffset';
+fullSizeMesh   = 1;
+headmodel      = 'OS';
+verbose        = 1;
+saveFig        = 1;
+
 % Set options
-opt = getOpts('verbose', 1, 'saveFig',1, 'headmodel', 'OS','fullSizeMesh',1);
+opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
+                'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
 
 %% Figure 1. Time series (1A) and MEG head plot (1B)
 if any(intersect(whichFigure,1))
@@ -64,22 +71,26 @@ end
 %% Figure 2. Position range line plot and headplots for every position range
 if any(intersect(whichFigure,2))
     
-    opt = getOpts('perturbOrigPRFs', 'position', 'headmodel', 'OS', 'fullSizeMesh',1);
+    opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
+        'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
+        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
     
     if plotAverage
-        makeFigure2AverageSubject(opt,sensorsToAverage, summaryMetric);
+        makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
     else
-        makeFigure2(dirPth,opt,sensorsToAverage);
+        makeFigure2(dirPth, opt, sensorsToAverage);
     end
 end
 
 %% Figure 3. Size range line plot and headplots for every size range
 if any(intersect(whichFigure,3))
     
-    opt = getOpts('perturbOrigPRFs', 'size', 'headmodel', 'OS', 'fullSizeMesh',1);
+    opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
+        'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
+        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
     
     if plotAverage
-        makeFigure3AverageSubject(opt,sensorsToAverage, summaryMetric);
+        makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);
     else
         makeFigure3(dirPth,opt,sensorsToAverage);
     end
