@@ -197,7 +197,7 @@ for epoch = 1:size(xyVel,1)
         fprintf('%d rejected for close spacing\n', numSacs - size(sac,1));
         fprintf('%d saccades detected\n', size(sac,1));
         
-        % Saved detected saccades into variable called 's'
+        % Saved detected saccades into variable called 'sAll'
         sAll.sacsRaw(epoch)          = {sacRaw};
         sAll.sacs(epoch)             = {sac};
         sAll.sacDetectRadius(epoch)  = {radius};
