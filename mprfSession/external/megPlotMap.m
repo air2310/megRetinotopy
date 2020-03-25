@@ -24,7 +24,10 @@ if length(sensor_data) < 157 || length(sensor_data) > 157
     
     % Otherwise it is the Yokogawa dataset, which we might have to clip
 elseif length(sensor_data) >= 157
+    
     % Define plotting options
+    cfg.outline = [];
+    cfg.mask = []; %'convex';
     cfg.layout = ft_prepare_layout(cfg, data_hdr); 
 end
 
