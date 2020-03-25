@@ -156,7 +156,7 @@ ave = nanmean(BootStrappedData,1);
 fH3 = figure(3); clf; set(gcf,'Position',[1, 592, 838, 746]);
 plot(range,ave,'r','Linewidth',5); hold on;
 plot(range,zeros(size(ave)),'k','Linewidth',1); 
-patch([range, fliplr(range)], [lo, fliplr(hi)],[1 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
+patch([range, fliplr(range)], [lo, fliplr(hi)],[0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
