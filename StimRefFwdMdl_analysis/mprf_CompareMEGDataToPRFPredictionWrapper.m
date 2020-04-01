@@ -1,4 +1,4 @@
-function [predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, bestBetas, bestOffsets, dirPth, opt)
+function [predMEGResponseToCompare,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phRefAmp10Hz, predMEGResponse, bestBetas, bestOffsets, dirPth, opt)
 % Function to compare phase referenced steady-state data MEG data to
 % predicted MEG responses from MRI prfs
 %
@@ -36,6 +36,8 @@ nIter = length(iter);
 % Keep a copy of all responses
 predMEGResponseAll = predMEGResponse;
 phRefAmp10HzAll    = phRefAmp10Hz;
+bestBetasAll       = bestBetas;
+bestOffsetsAll     = bestOffsets;
 
 % Allocate space
 if opt.meg.useCoherentSpectrum
@@ -55,22 +57,16 @@ meanVarExpl      = NaN(nIter, nSensors);
 % loop over dimensions, if necessary
 for ii = 1:nIter
     fprintf('.%d/%d',ii,nIter);
-    % Select prf parameters of current iteration, scale with appropiate
-    % betas and then average across all runs
-    nRuns = length(runGroup{1})+length(runGroup{2});
-    weights = [length(runGroup{1}) length(runGroup{2})]./nRuns;
-    predMEGResponseScaled1 = predMEGResponseAll(:,:,ii) .*bestBetas(1,:,ii) + bestOffsets(1,:,ii);
-    predMEGResponseScaled2 = predMEGResponseAll(:,:,ii) .*bestBetas(2,:,ii) + bestOffsets(2,:,ii);
     
-    predMEGResponseScaled = nansum(cat(3,weights(1).*predMEGResponseScaled1,weights(2).*predMEGResponseScaled2),3);
-
-    % Get corresponding phase referenced data
-    phRefAmp10Hz           = phRefAmp10HzAll(:,:,:,ii);
+    % Get data for this iteration
+    predMEGResponse = predMEGResponseAll(:,:,ii);
+    phRefAmp10Hz    = phRefAmp10HzAll(:,:,:,ii);
+    bestBetas       = bestBetasAll(:,:,ii);
+    bestOffsets     = bestOffsetsAll(:,:,ii);
     
-    [meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
-        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponseScaled);
-    
-    
+    % Compare prediction to data
+    [predMEGResponseScaled(:,:,ii), meanVarExpl(ii,:), meanPhRefAmp10Hz(:,:,ii)] = ...
+        mprf_CompareMEGDataToPredictionFromMRIPRFs(phRefAmp10Hz, predMEGResponse, bestBetas, bestOffsets, runGroup, opt);
     
     
     %% Plot summary figures
@@ -105,7 +101,7 @@ for ii = 1:nIter
             sprintf('Mean phase-ref MEG data and predicted response from pRF %d %s %s %s', ii, ttlPostFix{2},ttlPostFix{3},ttlPostFix{4}));
         
         for tt = 1:length(top10)
-            subplot(5,2,tt); plot(t, zeros(size(t)), 'k'); hold on; 
+            subplot(5,2,tt); plot(t, zeros(size(t)), 'k'); hold on;
             plot(t, meanPhRefAmp10Hz(:,top10(tt),ii), 'ko-', 'LineWidth',2);
             plot(t, predMEGResponseScaled(:,top10(tt)), 'r', 'LineWidth',4);
             title(sprintf('Sensor %d, var expl: %1.2f',top10(tt), ve(tt)))
@@ -152,7 +148,7 @@ end
 fprintf('..Done!\n');
 
 % Remove last dimension out, if not used
-predMEGResponseScaled  = squeeze(predMEGResponseScaled);
+predMEGResponseToCompare  = squeeze(predMEGResponseScaled);
 meanVarExpl            = squeeze(meanVarExpl);
 
 if opt.saveData
