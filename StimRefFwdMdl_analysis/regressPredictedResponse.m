@@ -6,7 +6,7 @@ if nargin < 3
 else
     regressionType = varargin{2};
 end
-    
+
 
 % Get design matrix
 if strcmp(regressionType, 'NoOffset')
@@ -19,13 +19,13 @@ end
 [B,~,~,~,stats] = regress(data,X);
 
 if strcmp(regressionType, 'NoOffset')
-    betas   = B(1);
     offsets = [];
+    betas   = B(1);
 elseif strcmp(regressionType, 'WithOffset')
     offsets = B(1);
-    betas = B(2);
+    betas   = B(2);
 end
-    
+
 varexpl = stats(1);
 
 
