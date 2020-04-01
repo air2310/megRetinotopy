@@ -1,4 +1,4 @@
-function makeFigure1(subjID, dirPth, opt, plotAverage)
+function makeFigure1(dirPth, opt)
 % Wrapper function to generate figures 4 A, B and C for the paper.
 
 % INPUTS:
@@ -13,17 +13,6 @@ if ~exist(fullfile(dirPth.finalFig.savePth,saveSubDir),'dir')
     mkdir(fullfile(dirPth.finalFig.savePth,saveSubDir));
 end
 
-if plotAverage
-    
-    subjIDs = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058', ...
-        'wlsubj068', 'wlsubj070', 'wlsubj081', 'wlsubj106', ...
-        'wlsubj109', 'wlsubj111'};
-    
-    mprf_CompareGroupAverageDataVsPrediction(subjIDs, dirPth, opt, saveSubDir)
-    
-    makeFigure1Supplement(subjIDs,dirPth, opt,saveSubDir) % Average MEG headplot for all subjects
-    
-else
     
     % Plot variance explained by model prediction on a mesh for individual
     % subject
@@ -31,6 +20,5 @@ else
     
     % Plot 10 MEG time series with pRF prediction for individual subject
     makeFigure1B(dirPth,opt,saveSubDir);
-end
-
+    
 end

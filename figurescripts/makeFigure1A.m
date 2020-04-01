@@ -20,8 +20,8 @@ load(fullfile(varexpl.folder,varexpl.name),'meanVarExpl');
 
 % Set colormap limits
 clims = [0 0.45];
-%clims = [0 max(meanVarExpl)];
-interpMethod = 'nearest';
+clims = [0 max(meanVarExpl)];
+interpMethod = 'v4'; % choose 'v4' or 'nearest'
 
 % Plot it!
 fH1 = figure; clf;
@@ -34,15 +34,10 @@ c.TickDirection = 'out';
 c.TickLength = [0.010 0.010];
 c.FontSize = 12;
 
-
 if opt.saveFig
-    
-%     set(fH1,'Units','Inches');
-%     pos = get(fH1,'Position');
-%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
+    fprintf('\n(%s): Saving figure 1A in %s\n',mfilename, saveDir);
     figurewrite(fullfile(saveDir, sprintf('Mean_variance_explained_%s_%s', opt.fNamePostFix, interpMethod)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('Mean_variance_explained_%s_%s', opt.fNamePostFix, interpMethod)),[], [1 300],'.',1);
-    fprintf('\n(%s): Saving figure 1A in %s\n',mfilename, saveDir);
 end
 
 end

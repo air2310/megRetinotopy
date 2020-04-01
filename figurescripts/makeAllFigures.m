@@ -63,9 +63,18 @@ opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ..
 %% Figure 1. Time series (1A) and MEG head plot (1B)
 if any(intersect(whichFigure,1))
     
-    % Figure 1. Time series (1A) and MEG head plot (1B)
-    makeFigure1(subjID, dirPth, opt, plotAverage);
+    if plotAverage    
+        % Average subjects predictions and data separately before fitting
+        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt)
+        
+        % Plot MEG headplots for 10 subjects separately
+        makeFigure1Supplement(dirPth, opt) 
+
+    else
     
+        % Figure 1. Time series (1A) and MEG head plot (1B)
+        makeFigure1(dirPth, opt);
+    end
 end
 
 %% Figure 2. Position range line plot and headplots for every position range
