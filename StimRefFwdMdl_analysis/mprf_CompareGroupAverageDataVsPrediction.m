@@ -1,6 +1,10 @@
-function [] = mprf_CompareGroupAverageDataVsPrediction(subjectIDs,dirPth, opt, saveSubDir)
+function [] = mprf_CompareGroupAverageDataVsPrediction(dirPth, opt)
 
+subjIDs = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058', ...
+        'wlsubj068', 'wlsubj070', 'wlsubj081', 'wlsubj106', ...
+        'wlsubj109', 'wlsubj111'};
 
+saveSubDir = ['figure1_' opt.regressionType];
 saveDir = fullfile(dirPth.finalFig.savePthAverage,saveSubDir, 'GroupAvePrediction');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);
@@ -11,12 +15,12 @@ nSensors = 157;
 
 
 %% Concatenate data
-allPredictions = NaN(length(subjectIDs), nEpochs, nSensors);
-allData        = NaN(length(subjectIDs), nEpochs, nSensors);
+allPredictions = NaN(length(subjIDs), nEpochs, nSensors);
+allData        = NaN(length(subjIDs), nEpochs, nSensors);
 
-for subj = 1:length(subjectIDs)
+for subj = 1:length(subjIDs)
     
-    subjectID = subjectIDs{subj};
+    subjectID = subjIDs{subj};
     
     dirPth = loadPaths(subjectID);
     
@@ -68,8 +72,8 @@ for s = 1:nSensors
     end
     
     % Compute coefficient of determination:
-    groupVarExpl(s) = 1 - (nanvar(thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)) ...
-        ./ var(thisGroupAveDataMasked));
+    groupVarExpl(s) = 1 - (sum( (thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)).^2) ...
+        ./ sum(thisGroupAveDataMasked.^2));
     
 end
 
@@ -148,7 +152,7 @@ for s = 1:nSensors
 end
 
 % Plot individual subjects' time series on top of eachother + mean
-cmap = lines(length(subjectIDs));
+cmap = lines(length(subjIDs));
 fH3 = figure(3); set(fH3, 'Position', [1000,420,1269,918]);
 for s = 1:nSensors
     
@@ -158,7 +162,7 @@ for s = 1:nSensors
     subplot(212); cla;
     plot(t, zeros(size(t)), 'k'); hold on;
     
-    for subj = 1:length(subjectIDs)
+    for subj = 1:length(subjIDs)
         subplot(211)
         plot(t, squeeze(allPredictions(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
         
