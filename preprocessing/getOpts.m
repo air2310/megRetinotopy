@@ -21,6 +21,7 @@ opt.subfolder             = 'original';         % General: Create subfolder to s
 opt.makeAverageFig        = false;              % General: Plot average across subjects
 opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
 opt.regressionType        = 'WithOffset';       % General: 'NoOffset' = regress with only 1 free param (beta) or 'WithOffset' = use both beta and offset
+opt.recomputeFinalPredictionBetas = true;       % General: if true, recompute the scale factor beta for the prediction by refitting the phase-ref data.
 opt.seed                  = 1;                  % General: random number generator seed for reproducing results, can be an integer > 0  or 'shuffle' to get reset rng
 
 % --- MEG Preproc ---
@@ -109,15 +110,19 @@ opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d_%s', ...
 
 % check in case additional original analyses are performed, we want to save those results separately
 if opt.roi.onlyV123WangAtlas
-    opt.subfolder             = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
+    opt.subfolder = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
 elseif opt.mri.useBensonMaps
-    opt.subfolder             = 'original/BensonMaps'; % add results to extra folder to not override 
+    opt.subfolder = 'original/BensonMaps'; % add results to extra folder to not override 
 end
 
 if opt.meg.useCoherentSpectrum
-    opt.subfolder             = [opt.subfolder '/coherent' opt.regressionType ];
+    opt.subfolder = [opt.subfolder '/coherent' opt.regressionType ];
 else
-    opt.subfolder             = [opt.subfolder '/incoherent' opt.regressionType ];
+    opt.subfolder = [opt.subfolder '/incoherent' opt.regressionType ];
+end
+
+if opt.recomputeFinalPredictionBetas
+    opt.subfolder = [opt.subfolder 'RecompFinalBeta'];
 end
 
 if strcmp(opt.headmodel, 'BEM')
