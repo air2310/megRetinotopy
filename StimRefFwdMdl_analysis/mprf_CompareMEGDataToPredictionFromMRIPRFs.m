@@ -34,6 +34,9 @@ predMEGResponseScaled = NaN(size(predMEGResponse));
 if opt.recomputeFinalPredictionBetas
     for s = 1:nSensors
         [beta, offset, ~] = regressPredictedResponse(meanPhRefAmp10Hz(:,s), predMEGResponse(:,s), 'regressionType', opt.regressionType);
+        if isempty(offset)
+            offset = 0;
+        end
         
         predMEGResponseScaled(:,s) = predMEGResponse(:,s) .*beta + offset;
         
