@@ -7,7 +7,7 @@ function makeFigure1(dirPth, opt)
 
 % Check if the folder to save the final figures exists, else create one
 
-saveSubDir = ['figure1_' opt.regressionType];
+saveSubDir = ['figure1_' opt.subfolder];
 
 if ~exist(fullfile(dirPth.finalFig.savePth,saveSubDir),'dir')
     mkdir(fullfile(dirPth.finalFig.savePth,saveSubDir));

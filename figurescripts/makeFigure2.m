@@ -6,7 +6,7 @@ function makeFigure2(dirPth, opt, sensorsToAverage)
 
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveSubDir = ['figure2_' opt.regressionType];
+    saveSubDir = ['figure2_' opt.subfolder];
     saveDir = fullfile(pth, 'finalfig', saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);

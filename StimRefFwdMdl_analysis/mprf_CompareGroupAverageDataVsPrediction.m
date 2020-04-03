@@ -4,7 +4,7 @@ subjIDs = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058', ...
         'wlsubj068', 'wlsubj070', 'wlsubj081', 'wlsubj106', ...
         'wlsubj109', 'wlsubj111'};
 
-saveSubDir = ['figure1_' opt.regressionType];
+saveSubDir = ['figure1_' opt.subfolder];
 saveDir = fullfile(dirPth.finalFig.savePthAverage,saveSubDir, 'GroupAvePrediction');
 if ~exist(saveDir,'dir')
     mkdir(saveDir);

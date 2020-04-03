@@ -10,7 +10,7 @@ end
 
 % Make folder to save figures
 if opt.saveFig
-    saveSubDir = ['figure2_' opt.regressionType];
+    saveSubDir = ['figure2_' opt.subfolder];
     saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);

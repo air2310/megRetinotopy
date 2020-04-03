@@ -2,7 +2,7 @@ function makeFigure1Supplement(dirPth, opt)
 % Function to create figure 1A (MEG head plot showing the variance
 % explained values for individual subjects).
 
-saveSubDir = ['figure1_' opt.regressionType];
+saveSubDir = ['figure1_' opt.subfolder];
 
 if ~exist(fullfile(dirPth.finalFig.savePth,saveSubDir),'dir')
     mkdir(fullfile(dirPth.finalFig.savePth,saveSubDir));
@@ -19,7 +19,7 @@ nSub   = length(subjIDs);
 varExplAllSubj = nan(nSub,nChans);
 
 % Plotting params
-maxClim      = true;
+maxClim      = false;
 interpMethod =  'nearest';
 
 fH1 = figure; clf; set(gcf,'Position',[1000, 651, 1500, 687]);
