@@ -1,4 +1,4 @@
-function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summaryMetric)
+function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summaryMetric, opt)
 % Wrapper function for make manuscript figures for MEG Retinotopy project.
 % Allows to plot all figures at once, or just a single one, for any
 % subject, or the average across subjects
@@ -47,18 +47,25 @@ if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
     summaryMetric = 'meanVE';
 end
 
+if ~exist('opt', 'var') || isempty(opt)
+    
+    fullSizeMesh   = 1;
+    headmodel      = 'OS';
+    verbose        = 1;
+    saveFig        = 1;
+    regressionType = 'NoOffset';
+    recomputeFinalPredictionBetas = false;
+    
+    % Set options
+    opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
+                'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
+end
+
 % Go back to root
 cd(mprf_rootPath)
 
-regressionType = 'WithOffset';
-fullSizeMesh   = 1;
-headmodel      = 'OS';
-verbose        = 1;
-saveFig        = 1;
 
-% Set options
-opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
-                'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
+
 
 %% Figure 1. Time series (1A) and MEG head plot (1B)
 if any(intersect(whichFigure,1))
