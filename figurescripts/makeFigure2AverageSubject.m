@@ -113,7 +113,7 @@ for s = 1:length(subjects)
     plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
     plot([0 0], [min(yl), max(yl)], 'k');
 
-    set(gca,'TickDir', 'out'); xlabel('Position (deg)');
+    set(gca,'TickDir', 'out'); xlabel('Rotation angle (deg)');
     set(gca,'XTick', range([1 5 9]),'XTickLabel',rad2deg(range([1 5 9])), 'YLim', yl, 'XLim', [range(1),range(end)]);
     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
     title(sprintf('S%d', s));
@@ -133,7 +133,7 @@ plot([0 0], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Rotation angle from original pRF position (deg)');
 set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(averageDataToPlot), yl(2)], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');
@@ -168,7 +168,7 @@ plot([0 0], [min(lo), max(hi)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Rotation angle from original pRF position (deg)');
 set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');

@@ -61,7 +61,7 @@ if min(100.*mean_varexpl)<yl(1)
 end
 
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Scale factor');
 set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');

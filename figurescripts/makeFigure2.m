@@ -61,7 +61,7 @@ if min(100.*mean_varexpl)<yl(1)
     yl = [min(100.*mean_varexpl)-5 yl(2)];
 end
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Rotation angle (deg)');
 set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Variance explained by modelfit: Vary Position');

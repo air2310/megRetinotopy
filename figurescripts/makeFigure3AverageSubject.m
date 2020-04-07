@@ -114,7 +114,7 @@ for s = 1:length(subjects)
     plot([1 1], [min(yl), max(yl)], 'k');
 
     set(gca,'TickDir', 'out');
-    xlabel('Position (deg)');
+    xlabel('Scale factor');
     set(gca,'XTick', range([1 8 19]),'XTickLabel',range([1 8 19]), 'YLim', yl, 'XLim', [range(1),range(end)]);
     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
     title(sprintf('S%d', s));
@@ -134,7 +134,7 @@ plot([1 1], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Scale factor of original pRF size');
 set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
@@ -168,7 +168,7 @@ plot([1 1], [min(lo), max(hi)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Position (deg)');
+xlabel('Scale factor of original pRF size');
 set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
