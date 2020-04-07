@@ -3,7 +3,6 @@ function makeFigure2(dirPth, opt, sensorsToAverage)
 % the model as a function of polar angle rotations around the fovea of the 
 % original estimated pRF centers.
 
-
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
     saveSubDir = ['figure2_' opt.subfolder];
@@ -12,7 +11,6 @@ if opt.saveFig
         mkdir(saveDir);
     end
 end
-
 
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -44,7 +42,6 @@ mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1.96 .* se_varexpl;
 
-
 % Plot mean with shaded error bar using 'patch' function
 lo = 100.*(mean_varexpl - ci_varexpl);
 hi = 100.*(mean_varexpl + ci_varexpl);
@@ -56,9 +53,12 @@ hold all;
 plot(range,100.*mean_varexpl,'r','Linewidth',3);
 plot(range, zeros(size(range)), 'k')
 % Add labels and make pretty
-yl = [-30 30];
+yl = [0 50];
 if max(100.*mean_varexpl)>yl(2)
     yl = [0 max(100.*mean_varexpl)+5];
+end
+if min(100.*mean_varexpl)<yl(1)
+    yl = [min(100.*mean_varexpl)-5 yl(2)];
 end
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
@@ -73,21 +73,22 @@ rows = 2;
 cols = round(length(range)/rows);
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
 
-%clim = max(meanVarExpl(range==0,:));
-clim = 0.45;
-%interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
+clim = yl;
+%interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
-    meshDataToPlot = meanVarExpl(ii,:);
+    meshDataToPlot = meanVarExpl(ii,:).*100;
         
     % Get subplot
     fH2 = figure(2); hold all;
     subplot(rows, cols, ii);
     
-    megPlotMap(meshDataToPlot,[0 clim],fH2,'parula',...
+    megPlotMap(meshDataToPlot,clim,fH2,'parula',...
         range(ii),[],[],'interpmethod',interpmethod);
+    c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
+    pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
 
 end
 
