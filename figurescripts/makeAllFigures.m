@@ -54,11 +54,19 @@ if ~exist('opt', 'var') || isempty(opt)
     verbose        = 1;
     saveFig        = 1;
     regressionType = 'NoOffset';
-    recomputeFinalPredictionBetas = false;
+    recomputeFinalPredictionBetas = true;
     
     % Set options
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
                 'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
+else
+    fullSizeMesh   = opt.fullSizeMesh;
+    headmodel      = opt.headmodel;
+    verbose        = opt.verbose;
+    saveFig        = opt.saveFig;
+    regressionType = opt.regressionType;
+    recomputeFinalPredictionBetas = opt.recomputeFinalPredictionBetas;
+    
 end
 
 % Go back to root
@@ -89,7 +97,8 @@ if any(intersect(whichFigure,2))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
+        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, ...
+        'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
     
     if plotAverage
         makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
@@ -103,7 +112,8 @@ if any(intersect(whichFigure,3))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType);
+        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, ...
+         'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
     
     if plotAverage
         makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);
