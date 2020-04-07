@@ -74,7 +74,14 @@ for s = 1:length(subjects)
     meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
-        yl = [-20 45];
+        yl = [0 60];
+        % Rescale if subjects fall outside ylimit
+        if max(dataToPlot(:))>yl(2)
+            yl = [yl(1) max(dataToPlot(:))+10];
+        end
+        if min(dataToPlot(:))<yl(1)
+            yl = [-50 yl(2)];
+        end
         yLabel = 'Variance explained (%)';
     elseif strcmp(summaryMetric, 'percentChangeVE')
         percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
@@ -88,13 +95,11 @@ for s = 1:length(subjects)
         yLabel = 'Z-scored variance explained (%)';
     end
     
-    
     % Compute mean and standard error of variance explained across selected sensors
     figure(fH1);
     plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
     
     % We will also plot all individual subjects
-    
     figure(fH2);
     subplot(2,5,s);
     
@@ -106,7 +111,8 @@ for s = 1:length(subjects)
     
     err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
     plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
-    
+    plot([1 1], [min(yl), max(yl)], 'k');
+
     set(gca,'TickDir', 'out');
     xlabel('Position (deg)');
     set(gca,'XTick', range([1 8 19]),'XTickLabel',range([1 8 19]), 'YLim', yl, 'XLim', [range(1),range(end)]);
@@ -120,19 +126,11 @@ end
 
 % Average/SE/CI across subjects
 averageDataToPlot = nanmean(dataToPlot,1);
-% averageSubjectSE = nanstd(dataToPlot) ./ sqrt(length(subjects));
-% averageSubjectCI = 1.96.* averageSubjectSE;
 
-
-% % Plot shaded error bar using 'patch' function
-% lo = averageSubjectVarExpl - averageSubjectCI;
-% hi = averageSubjectVarExpl + averageSubjectCI;
-%
-% err = patch([range, fliplr(range)], [lo', fliplr(hi')], colorPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
-
-% Plot mean
+% Plot mean on figure with individual lines
 figure(fH1);
 plot(range,averageDataToPlot,'r','Linewidth',6);
+plot([1 1], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
@@ -143,25 +141,35 @@ title('Variance explained by modelfit: Vary Size');
 ylabel(yLabel);
 box off;
 
-% Figure 3 with bootstrapping data across subjects
-% Bootstrap with 1000 iterations
-BootStrappedData = bootstrp(1000, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
+%% Figure 3 with bootstrapping data across subjects
+% Bootstrap average variance explained across subjects with 10,000 iterations
+nBoot = 10000;
+BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
 pct1 = 100 * 0.05/2;
 pct2 = 100 - pct1;
 lo = prctile(BootStrappedData,pct1); % 2.5 percentile
 hi = prctile(BootStrappedData,pct2); % 97.5 percentile
+
+% Get p value from bootstrapped data
+origIdx = find(range==1);
+[~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
+peakBelowOrigPRF = sum(peakIdx<origIdx);
+p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
+fprintf('Mean below original pRF size of %dx bootstrapped p value: %1.3f \n',nBoot, p)
+
 % Average of bootstrapped data
-ave = nanmean(BootStrappedData,1);
+aveBoot = nanmean(BootStrappedData,1);
 
 fH3 = figure(3); clf; set(gcf,'Position',[1, 592, 838, 746]);
-plot(range,ave,'r','Linewidth',5); hold on;
-plot(range,zeros(size(ave)),'k','Linewidth',1); 
-patch([range, fliplr(range)], [lo, fliplr(hi)],[0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
+plot(range,zeros(size(aveBoot)),'k','Linewidth',1); hold on;
+patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
+plot(range,aveBoot,'r','Linewidth',5); 
+plot([1 1], [min(lo), max(hi)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Position (deg)');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), 30], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Variance explained by modelfit: Vary Size');
 ylabel(yLabel);
