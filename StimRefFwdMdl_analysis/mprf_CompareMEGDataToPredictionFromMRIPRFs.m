@@ -20,15 +20,15 @@ function [predMEGResponseScaled, meanVarExpl, meanPhRefAmp10Hz] = ...
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
 
-% Take mean across 19 runs
+% Take mean across run groups
 meanPhRefAmp10Hz = squeeze(nanmean(phRefAmp10Hz,2));
 
 % Check dimensions
-[~, nSensors] = size(meanPhRefAmp10Hz);
+[nEpochs, nSensors] = size(meanPhRefAmp10Hz);
 
 % Preallocate space
 meanVarExpl           = NaN(1,nSensors);
-predMEGResponseScaled = NaN(size(predMEGResponse));
+predMEGResponseScaled = NaN(nEpochs,nSensors);
 
 % Get predicted response that explains most variance from mean response
 if opt.recomputeFinalPredictionBetas
