@@ -52,9 +52,12 @@ hold on;
 plot(range,100.*mean_varexpl,'r','Linewidth',3);
 
 % Add labels and make pretty
-yl = [0 45];
+yl = [0 50];
 if max(100.*mean_varexpl)>yl(2)
     yl = [0 max(100.*mean_varexpl)+5];
+end
+if min(100.*mean_varexpl)<yl(1)
+    yl = [min(100.*mean_varexpl)-5 yl(2)];
 end
 
 set(gca,'TickDir', 'out');
@@ -71,20 +74,21 @@ rows = 3;
 cols = round(length(range)/rows)+1;
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
 
-%clim = max(meanVarExpl(range==1,:));
-clim = 0.45;
+clim = yl;
 %interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
-    meshDataToPlot = meanVarExpl(ii,:);
+    meshDataToPlot = meanVarExpl(ii,:).*100;
     
     % Get subplot
     subplot(rows, cols, ii);
     
-    megPlotMap(meshDataToPlot,[0 0.45],fH2,'parula',...
+    megPlotMap(meshDataToPlot,clim,fH2,'parula',...
         sprintf('%1.2fx',range(ii)),[],[],'interpmethod',interpmethod);
+    c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
+    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
     
 end
 
