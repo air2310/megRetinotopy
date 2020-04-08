@@ -43,10 +43,11 @@ predMEGResponseAll = predMEGResponse;
 [~, nEpochs, nRuns, nSensors] = size(megData); 
 
 % Get leave in 9 / leave out group of 10 runs
-tmp = randperm(nRuns);
-runGroup{1} = tmp(1:9);
-runGroup{2} = tmp(10:nRuns);
-
+% tmp = randperm(nRuns);
+% runGroup{1} = tmp(1:9);
+% runGroup{2} = tmp(10:nRuns);
+runGroup{1} = 1:2:nRuns;
+runGroup{2} = 2:2:nRuns;
 
 % loop over dimensions, if necessary
 for ii = 1:nIter
