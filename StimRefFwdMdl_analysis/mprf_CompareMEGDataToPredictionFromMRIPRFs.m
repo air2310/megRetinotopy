@@ -42,7 +42,7 @@ if opt.recomputeFinalPredictionBetas
         
         % Compute coefficient of determination:
         meanVarExpl(s) = 1 - (  sum( (meanPhRefAmp10Hz(:,s) - predMEGResponseScaled(:,s)).^2, 'omitnan') ...
-            ./ sum(meanPhRefAmp10Hz(:,s).^2, 'omitnan'));
+            ./ sum((meanPhRefAmp10Hz(:,s)-nanmean(meanPhRefAmp10Hz(:,s))).^2, 'omitnan') );
     end
     
     
@@ -60,7 +60,7 @@ else
     
         % Compute coefficient of determination:
         meanVarExpl(s) = 1 - (  sum( (meanPhRefAmp10Hz(:,s) - predMEGResponseScaled(:,s)).^2, 'omitnan') ...
-            ./ sum(meanPhRefAmp10Hz(:,s).^2, 'omitnan'));
+            ./ sum((meanPhRefAmp10Hz(:,s)-nanmean(meanPhRefAmp10Hz(:,s))).^2, 'omitnan') );
     end
     
 end

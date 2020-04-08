@@ -73,7 +73,7 @@ for s = 1:nSensors
     
     % Compute coefficient of determination:
     groupVarExpl(s) = 1 - (sum( (thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)).^2) ...
-        ./ sum(thisGroupAveDataMasked.^2));
+        ./ sum((thisGroupAveDataMasked - nanmean(thisGroupAveDataMasked)).^2));
     
 end
 
