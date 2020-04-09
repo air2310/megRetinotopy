@@ -7,24 +7,26 @@ rng('default') % reset to default is sometimes needed before setting specific
 % rng(1)
 
 regressionTypes = {'NoOffset', 'WithOffset'};
-rBetaFlags = 1; % [0, 1];
-for rt = length(regressionTypes)
+refitBetas      = [false, true];
+
+for rt = 1:length(regressionTypes)
       regressionType = regressionTypes{rt};
     
-    for rb = 1:length(rBetaFlags)
-        recomputeBetaFlag = rBetaFlags(rb);
+    for rb = 1:length(refitBetas)
+        recomputeBetaFlag = refitBetas(rb);
         
         
-        % Original with offset and recompute betas
-        opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', false, ...
+        % With fMRI pRF parameters
+        opt = getOpts('saveFig', true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs', false, ...
             'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options          
+        
         for s = 1:length(subjects)
             subjID = subjects{s};
             mprf_main(subjID, opt);
         end
         
-        % Size
-        opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs','size', ...
+        % With altered pRF size
+        opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','size', ...
             'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
         for s = 1:length(subjects)
             subjID = subjects{s};
@@ -32,8 +34,8 @@ for rt = length(regressionTypes)
             close all
         end
         
-        % Position
-        opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs','position', ...
+        % With rorated pRF position
+        opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','position', ...
             'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
         for s = 1:length(subjects)
             subjID = subjects{s};
@@ -59,8 +61,8 @@ end
 for rt = 1:length(regressionTypes)
     regressionType = regressionTypes{rt};
     
-    for rb = 1:length(rBetaFlags)
-        recomputeBetaFlag = rBetaFlags(rb);
+    for rb = 1:length(refitBetas)
+        recomputeBetaFlag = refitBetas(rb);
         
         
 %         Make figures
