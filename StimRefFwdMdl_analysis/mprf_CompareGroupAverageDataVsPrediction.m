@@ -82,7 +82,7 @@ end
 clims = [0 max(groupVarExpl)];
 fH1 = figure; clf;
 megPlotMap(groupVarExpl,clims,fH1, 'parula', ...
-    'Average Group Fit Variance Explained', [],[]);
+    'Average Group Fit Variance Explained', [],[], 'interpMethod', 'v4');
 c = colorbar;
 c.Location = 'eastoutside';
 c.Box = 'off';
@@ -92,6 +92,19 @@ c.FontSize = 12;
 
 figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s',opt.fNamePostFix, opt.regressionType)),[],0,'.',1);
 figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s',opt.fNamePostFix, opt.regressionType)),[],[1 300],'.',1);
+
+fH1 = figure; clf;
+megPlotMap(groupVarExpl,clims,fH1, 'parula', ...
+    'Average Group Fit Variance Explained', [],[], 'interpMethod', 'nearest');
+c = colorbar;
+c.Location = 'eastoutside';
+c.Box = 'off';
+c.TickDirection = 'out';
+c.TickLength = [0.010 0.010];
+c.FontSize = 12;
+
+figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s_nearest',opt.fNamePostFix, opt.regressionType)),[],0,'.',1);
+figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_%s_nearest',opt.fNamePostFix, opt.regressionType)),[],[1 300],'.',1);
 
 
 %% Plot time series
