@@ -49,11 +49,9 @@ for n = 1:nIter
             amp1_mn = amp1_mn(~isnan(amp1_mn));
             amp2_mn = amp2_mn(~isnan(amp2_mn));
         end
-        
-        CoD = @(data,prediction) (1 - (var(data - prediction, 'omitnan') ./ var(data, 'omitnan')));
-        
-        varexpl1 = CoD(amp1_mn'.*10^14, amp2_mn'.*10^14);
-        varexpl2 = CoD(amp2_mn'.*10^14, amp1_mn'.*10^14);
+                
+        varexpl1 = computeCoD(amp1_mn'.*10^14, amp2_mn'.*10^14);
+        varexpl2 = computeCoD(amp2_mn'.*10^14, amp1_mn'.*10^14);
 %  
 %         allVarExpl(1,n,s) = varexpl1;
 %         allVarExpl(2,n,s) = varexpl2;
@@ -65,6 +63,6 @@ end
 
 splitHalfAmpReliability = nanmedian(allVarExpl_mn,1);
 
-save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpReliability');
+save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'pred_resp', 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpReliability');
 
 return
