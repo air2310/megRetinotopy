@@ -30,9 +30,8 @@ for s = 1:length(subjects)
     dirPth = loadPaths(subjID);
     
     % Load data files for this subject
-    load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'refphase', 'splitHalfAmpReliability.mat'), 'splitHalfAmpReliability');
+    load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpReliability');
     allSubjectData(s,:) = splitHalfAmpReliability;
-    
     
     % Plot split half amplitude reliability
     subplot(2,5,s);
@@ -48,9 +47,6 @@ end
         figurewrite(fullfile(saveDir, sprintf('Figure4_S%d_SSVEFReliability_All_%s',  opt.fNamePostFix,interpMethod)),[],0,'.',1);
         fprintf('\n saving figure XX: Individual Subject SSVEF reliability in %s',saveDir);
     end
-    
-
-
 
 % Plot split half amplitude reliability
 figure(fH2); clf;
