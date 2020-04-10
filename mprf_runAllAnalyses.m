@@ -65,7 +65,7 @@ for rt = 1:length(addOffsetParam)
     offset = addOffsetParam{rt};
     
     for rb = 1:length(refitGainParam)
-        recomputeBetaFlag = refitGainParam(rb);
+        refitGain = refitGainParam(rb);
         
         
 %         Make figures
