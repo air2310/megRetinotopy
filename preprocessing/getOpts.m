@@ -20,8 +20,8 @@ opt.surfVisualize         = false;              % General: visualize surface mes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.makeAverageFig        = false;              % General: Plot average across subjects
 opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
-opt.regressionType        = 'WithOffset';       % General: 'NoOffset' = regress with only 1 free param (beta) or 'WithOffset' = use both beta and offset
-opt.recomputeFinalPredictionBetas = true;       % General: if true, recompute the scale factor beta for the prediction by refitting the phase-ref data.
+opt.addOffsetParam        = true;               % General: if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
+opt.refitGainParam        = true;               % General: if true, recompute the gain factor for the prediction by refitting the phase-ref data.
 opt.seed                  = 1;                  % General: random number generator seed for reproducing results, can be an integer > 0  or 'shuffle' to get reset rng
 
 % --- MEG Preproc ---
@@ -116,12 +116,18 @@ elseif opt.mri.useBensonMaps
 end
 
 if opt.meg.useCoherentSpectrum
-    opt.subfolder = [opt.subfolder '/coherent' opt.regressionType ];
+    opt.subfolder = [opt.subfolder '/coherent'];
 else
-    opt.subfolder = [opt.subfolder '/incoherent' opt.regressionType ];
+    opt.subfolder = [opt.subfolder '/incoherent'];
 end
 
-if opt.recomputeFinalPredictionBetas
+if opt.addOffsetParam
+    opt.subfolder = [opt.subfolder 'WithOffset'];
+else
+    opt.subfolder = [opt.subfolder 'NoOffset'];
+end
+
+if opt.refitGainParam
     opt.subfolder = [opt.subfolder 'RecompFinalBeta'];
 end
 
