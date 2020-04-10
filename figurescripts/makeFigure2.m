@@ -40,7 +40,7 @@ dataToPlot = meanVarExpl(:,sensorLoc);
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
-ci_varexpl   = 1.96 .* se_varexpl;
+ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
 
 % Plot mean with shaded error bar using 'patch' function
 lo = 100.*(mean_varexpl - ci_varexpl);
@@ -73,7 +73,7 @@ rows = 2;
 cols = round(length(range)/rows);
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
 
-clim = yl;
+clim = [0 50];
 %interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 

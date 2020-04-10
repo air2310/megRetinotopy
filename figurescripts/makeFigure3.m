@@ -39,7 +39,8 @@ dataToPlot = meanVarExpl(:,sensorLoc);
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
-ci_varexpl   = 1.96 .* se_varexpl;
+ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
+
 
 fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF size');
 
@@ -74,7 +75,7 @@ rows = 3;
 cols = round(length(range)/rows)+1;
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
 
-clim = yl;
+clim = [0 50];
 %interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
 interpmethod = []; % using the default 'v4' interpolation
 

@@ -105,7 +105,7 @@ for s = 1:length(subjects)
     
     % Plot mean with shaded error bar using 'patch' function
     se   = 100.*nanstd(thisSubjectSensorData,0,2) ./ sqrt(size(thisSubjectSensorData,2));
-    ci   = 1.96 .* se;
+    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
     lo = dataToPlot(s,:) - ci';
     hi = dataToPlot(s,:) + ci';
     
@@ -145,10 +145,10 @@ box off;
 % Bootstrap with 10,000 iterations
 nBoot = 10000;
 BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
-pct1 = 100 * 0.05/2;
+pct1 = 100 * (0.32/2);
 pct2 = 100 - pct1;
-lo = prctile(BootStrappedData,pct1); % 2.5 percentile
-hi = prctile(BootStrappedData,pct2); % 97.5 percentile
+lo = prctile(BootStrappedData,pct1); % 16th percentile
+hi = prctile(BootStrappedData,pct2); % 84th percentile
 
 % Get p value from bootstrapped data
 origIdx = find(range==0);
