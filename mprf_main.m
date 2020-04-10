@@ -20,7 +20,7 @@ function mprf_main(subjID, opt)
 %   3.2: Predict response for MEG stimulus at MEG sensor level (multiply
 %           with gain matrix)
 %   3.3: Computing phase referenced amplitude from preprocessed MEG data 
-%           and predicted MEG responses from cortical surface
+%           and predicted MEG responses
 %
 % DEPENDENCIES:
 % 1. Preprocessing steps:
