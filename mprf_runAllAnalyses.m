@@ -1,24 +1,27 @@
+% mprf_runAllAnalysis.m
+% 
+% Master script to run 4 types of analyses in the MEG retinotopy project.
+% The script runs the modelfits with either 2 free parameters (reference
+% phase and gain, 'NoOffset') or 3 free parameters (reference phase, gain
+% and offset, 'WithOffset')
+
 % Define all subjects
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'}; %
 
-% reset random number generator seed for reproducibility
-rng('default') % reset to default is sometimes needed before setting specific
-% rng(1)
+addOffsetParam  = [false, true];
+refitGainParam  = [false, true];
 
-regressionTypes = {'NoOffset', 'WithOffset'};
-refitBetas      = [false, true];
-
-for rt = 1:length(regressionTypes)
-      regressionType = regressionTypes{rt};
+for rt = 1:length(addOffsetParam)
+      offset = addOffsetParam{rt};
     
-    for rb = 1:length(refitBetas)
-        recomputeBetaFlag = refitBetas(rb);
+    for rb = 1:length(refitGainParam)
+        refitGain = refitGainParam(rb);
         
         
         % With fMRI pRF parameters
         opt = getOpts('saveFig', true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs', false, ...
-            'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options          
+            'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options          
         
         for s = 1:length(subjects)
             subjID = subjects{s};
@@ -27,7 +30,7 @@ for rt = 1:length(regressionTypes)
         
         % With altered pRF size
         opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','size', ...
-            'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
+            'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options
         for s = 1:length(subjects)
             subjID = subjects{s};
             mprf_main(subjID, opt);
@@ -36,7 +39,7 @@ for rt = 1:length(regressionTypes)
         
         % With rorated pRF position
         opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','position', ...
-            'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
+            'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options
         for s = 1:length(subjects)
             subjID = subjects{s};
             mprf_main(subjID, opt);
@@ -46,7 +49,7 @@ for rt = 1:length(regressionTypes)
         
 %       % Scramble
 %       opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs','scramble', ...
-%           'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
+%           'addOffsetParam', addOffsetParam, 'refitGainParam', refitGain); % see getOpts function for more options
 %       for s = 1:length(subjects)
 %           subjID = subjects{s};
 %           mprf_main(subjID, opt);
@@ -58,16 +61,16 @@ end
 
 
 %% Visualize all types of analyses
-for rt = 1:length(regressionTypes)
-    regressionType = regressionTypes{rt};
+for rt = 1:length(addOffsetParam)
+    offset = addOffsetParam{rt};
     
-    for rb = 1:length(refitBetas)
-        recomputeBetaFlag = refitBetas(rb);
+    for rb = 1:length(refitGainParam)
+        recomputeBetaFlag = refitGainParam(rb);
         
         
 %         Make figures
         opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', false,...
-            'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeBetaFlag); % see getOpts function for more options
+            'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options
         
         for s = 1:length(subjects)
             subjID = subjects{s};

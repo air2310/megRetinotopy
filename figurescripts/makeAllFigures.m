@@ -49,23 +49,23 @@ end
 
 if ~exist('opt', 'var') || isempty(opt)
     
-    fullSizeMesh   = 1;
+    fullSizeMesh   = true;
     headmodel      = 'OS';
-    verbose        = 1;
-    saveFig        = 1;
-    regressionType = 'NoOffset';
-    recomputeFinalPredictionBetas = true;
+    verbose        = true;
+    saveFig        = true;
+    addOffsetParam = true;  % if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
+    refitGainParam = true;
     
     % Set options
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
-                'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, 'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
+                'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, 'refitGainParam', refitGainParam);
 else
     fullSizeMesh   = opt.fullSizeMesh;
     headmodel      = opt.headmodel;
     verbose        = opt.verbose;
     saveFig        = opt.saveFig;
-    regressionType = opt.regressionType;
-    recomputeFinalPredictionBetas = opt.recomputeFinalPredictionBetas;
+    addOffsetParam = opt.addOffsetParam;
+    refitGainParam = opt.refitGainParam;
     
 end
 
@@ -97,8 +97,8 @@ if any(intersect(whichFigure,2))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, ...
-        'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
+        'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
+        'refitGainParam', refitGainParam);
     
     if plotAverage
         makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
@@ -112,8 +112,8 @@ if any(intersect(whichFigure,3))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'regressionType', regressionType, ...
-         'recomputeFinalPredictionBetas', recomputeFinalPredictionBetas);
+        'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
+         'refitGainParam', refitGainParam);
     
     if plotAverage
         makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);

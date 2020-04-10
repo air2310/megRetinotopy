@@ -105,7 +105,7 @@ if opt.meg.useCoherentSpectrum
                 phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz{split}(~currentnans{split}), ph10Hz{split}(~currentnans{split}), thisRefPhase);
                 
                 % Regress prediction from phase referenced 10 Hz MEG response
-                [B, offset, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans{split},s), 'regressionType', opt.regressionType);
+                [B, offset, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans{split},s), 'addOffsetParam', opt.addOffsetParam);
                 
                 if ~isempty(offset)
                     offsets(rp,split,s) = offset;
@@ -179,7 +179,7 @@ else % if using incoherent spectrum (then start with FFT before averaging)
                 phRef10Hz = rescaleAmpsWithRefPhase(trainingRunsAverage_amp10Hz, trainingRunsAverage_ph10Hz, thisRefPhase);
                 
                 % Regress prediction from phase referenced 10 Hz MEG response
-                [B, offset, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,s), 'regressionType', opt.regressionType);
+                [B, offset, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,s), 'addOffsetParam', opt.addOffsetParam);
                 
                 if ~isempty(offset); offsets(rp,testRun,s) = offset; end
                 betas(rp,testRun,s)   = B;

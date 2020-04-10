@@ -26,7 +26,7 @@ function [predMEGResponseToCompare,meanVarExpl] = mprf_CompareMEGDataToPRFPredic
 fprintf('(%s): Compare MEG data to predictions from fMRI.', mfilename)
 
 % Load run group order
-load(fullfile(dirPth.model.saveDataPth,opt.subfolder,'pred_resp','runGroup'),'runGroup')
+runGroup = getRunGroups(19);
 
 % Check dimensions with loaded pRF data, and set the number of iterations
 iter  = checkNumberOfIterations([{phRefAmp10Hz},{predMEGResponse}], opt, 'prfMEGPredvsData');

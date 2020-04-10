@@ -101,10 +101,6 @@ end
 if opt.saveFig
 
     fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
-    
-%     set(fH1,'Units','Inches');
-%     pos = get(fH1,'Position');
-%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
     print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     
     figure(fH1);

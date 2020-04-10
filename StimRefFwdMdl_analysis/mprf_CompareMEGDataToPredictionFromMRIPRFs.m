@@ -31,18 +31,17 @@ meanVarExpl           = NaN(1,nSensors);
 predMEGResponseScaled = NaN(nEpochs,nSensors);
 
 % Get predicted response that explains most variance from mean response
-if opt.recomputeFinalPredictionBetas
+if opt.refitGainParam
     for s = 1:nSensors
-        [beta, offset, ~] = regressPredictedResponse(meanPhRefAmp10Hz(:,s), predMEGResponse(:,s), 'regressionType', opt.regressionType);
+        [beta, offset, ~] = regressPredictedResponse(meanPhRefAmp10Hz(:,s), predMEGResponse(:,s), 'addOffsetParam', opt.addOffsetParam);
         if isempty(offset)
             offset = 0;
         end
         
         predMEGResponseScaled(:,s) = predMEGResponse(:,s) .*beta + offset;
         
-        % Compute coefficient of determination:
-        meanVarExpl(s) = 1 - (  sum( (meanPhRefAmp10Hz(:,s) - predMEGResponseScaled(:,s)).^2, 'omitnan') ...
-            ./ sum((meanPhRefAmp10Hz(:,s)-nanmean(meanPhRefAmp10Hz(:,s))).^2, 'omitnan') );
+        % Compute coefficient of determination (R2):
+        meanVarExpl(s) = computeCoD(meanPhRefAmp10Hz(:,s),predMEGResponseScaled(:,s));
     end
     
     
@@ -59,8 +58,8 @@ else
         predMEGResponseScaled(:,s) = nansum(cat(3,weights(1).*predMEGResponseScaled1,weights(2).*predMEGResponseScaled2),3);
     
         % Compute coefficient of determination:
-        meanVarExpl(s) = 1 - (  sum( (meanPhRefAmp10Hz(:,s) - predMEGResponseScaled(:,s)).^2, 'omitnan') ...
-            ./ sum((meanPhRefAmp10Hz(:,s)-nanmean(meanPhRefAmp10Hz(:,s))).^2, 'omitnan') );
+        meanVarExpl(s) = computeCoD(meanPhRefAmp10Hz(:,s),predMEGResponseScaled(:,s));
+
     end
     
 end

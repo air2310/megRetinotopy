@@ -36,12 +36,15 @@ end
 
 
 %% Predict group average data from group average predictions
+
+% Take the average across subjects
 groupAvePrediction = squeeze(nanmean(allPredictions,1));
 groupAveData       = squeeze(nanmean(allData,1));
 
-
-groupAveDataScaled = NaN(size(groupAvePrediction));
+% Preallocate space
 groupAvePredictionScaled = NaN(size(groupAvePrediction));
+
+% Define timepoints
 timepoints = 1:size(allData,2);
 
 for s = 1:nSensors
@@ -52,16 +55,8 @@ for s = 1:nSensors
     thisGroupAveDataMasked       = groupAveData(~meanNanMask,s) .*10^14;
     
     % Create predictions
-    if strcmp(opt.regressionType, 'NoOffset')
-        meanX = thisGroupAvePredictionMasked;
+    if opt.addOffsetParam
         
-        % Regress out predictions
-        meanB = meanX \ thisGroupAveDataMasked;
-        
-        % Compute scaled predictions with betas
-        groupAvePredictionScaled(~meanNanMask,s) =  meanX * meanB';
-        
-    else
         meanX = [ones(size(thisGroupAvePredictionMasked,1),1), thisGroupAvePredictionMasked];
     
         % Regress out predictions
@@ -69,11 +64,18 @@ for s = 1:nSensors
     
         % Compute scaled predictions with betas
         groupAvePredictionScaled(~meanNanMask,s) =  thisGroupAvePredictionMasked * meanB(2) + meanB(1);
+    else
+        meanX = thisGroupAvePredictionMasked;
+        
+        % Regress out predictions
+        meanB = meanX \ thisGroupAveDataMasked;
+        
+        % Compute scaled predictions with betas
+        groupAvePredictionScaled(~meanNanMask,s) =  meanX * meanB';
     end
     
     % Compute coefficient of determination:
-    groupVarExpl(s) = 1 - (sum( (thisGroupAveDataMasked - groupAvePredictionScaled(~meanNanMask,s)).^2) ...
-        ./ sum((thisGroupAveDataMasked - nanmean(thisGroupAveDataMasked)).^2));
+    groupVarExpl(s) = computeCoD(thisGroupAveDataMasked,groupAvePredictionScaled(~meanNanMask,s));
     
 end
 

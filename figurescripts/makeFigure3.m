@@ -89,8 +89,7 @@ for ii = 1:length(range)
     megPlotMap(meshDataToPlot,clim,fH2,'parula',...
         sprintf('%1.2fx',range(ii)),[],[],'interpmethod',interpmethod);
     c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
-    
+    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])   
 end
 
 
@@ -100,20 +99,13 @@ if strcmp(sensorsToAverage, 'top10')
     fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
 end
 
-%%
 if opt.saveFig
-
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
-    
-%     set(fH1,'Units','Inches');
-%     pos = get(fH1,'Position');
-%     set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)]);
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
     if strcmp(sensorsToAverage, 'top10')
         print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     end
-
 end
 
 

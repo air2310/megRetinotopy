@@ -2,28 +2,28 @@ function [betas, offsets, varexpl] = regressPredictedResponse(data, prediction, 
 
 % check inputs
 if nargin < 3
-    regressionType = 'NoOffset';
+    addOffsetParam = false;
 else
-    regressionType = varargin{2};
+    addOffsetParam = varargin{2};
 end
 
 
 % Get design matrix
-if strcmp(regressionType, 'NoOffset')
-    X = prediction; % do not model offset, because we assume that a blank stimulus should give a 0 response across trials.
-elseif strcmp(regressionType, 'WithOffset')
+if addOffsetParam
     X = [ones(size(prediction)), prediction];
+else
+    X = prediction; % do not model offset, because we assume that a blank stimulus should give a 0 response across trials.
 end
 
 % Regress prediction from phase referenced 10 Hz MEG response
 [B,~,~,~,stats] = regress(data,X);
 
-if strcmp(regressionType, 'NoOffset')
-    offsets = [];
-    betas   = B(1);
-elseif strcmp(regressionType, 'WithOffset')
+if addOffsetParam
     offsets = B(1);
     betas   = B(2);
+else
+    offsets = [];
+    betas   = B(1);
 end
 
 varexpl = stats(1);
