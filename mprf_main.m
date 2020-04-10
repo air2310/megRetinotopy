@@ -165,7 +165,7 @@ end
 
 predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.stim, dirPth, opt);
 
-% 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
+%% 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
 %       inputs (1) predicted surface responses (on BS or FS surface)
 %                   (epochs x vertices)
@@ -174,19 +174,24 @@ predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.sti
 
 predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, dirPth, opt);
 
-% 3.3 Computing phase referenced amplitude from preprocessed MEG data 
+%% 3.3 Computing phase referenced amplitude from preprocessed MEG data 
 % and predicted MEG responses from cortical surface
-%   	inputs (1) preprocessed MEG data (time x epochs x run x sensors)
-%              (2) predicted MEG responses (epochs x sensors)
-%       output - Phase referenced MEG time series (sensors x epochs)
+%   	inputs  (1) preprocessed MEG data (time x epochs x run x sensors)
+%               (2) predicted MEG responses (epochs x sensors)
+%       outputs (1) phase-referenced MEG time series (sensors x run group x epochs)
+%               (2) bestBetas (1 x run group x sensors)
+%               (3) bestRefPhase (1 x run group x sensors)
+%               (4) bestOffsets (1 x run group x sensors)
+
 
 [phaseRefMEGResponse, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
 % 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       inputs (1) Phase referenced MEG time series (sensors x time)
 %              (2) predicted MEG sensor responses from MRI prfs
-%       outputs(1) modelfit to mean phase-referenced MEG data,
-%              (2) variance explained per MEG sensor 
+%       outputs(1) modelfit to mean phase-referenced MEG data, scaled by
+%                  gain (and if requested, with offset)
+%              (2) averaged variance explained per MEG sensor
 
 [predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, bestBetas, bestOffsets, dirPth, opt);
 
