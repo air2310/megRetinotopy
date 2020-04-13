@@ -63,7 +63,7 @@ cd(mprf_rootPath)
 if ~exist('opt', 'var') || isempty(opt,'var')
     opt = getOpts('saveFig', true,'verbose', true, 'fullSizeMesh', true, ...
         'perturbOrigPRFs', false, 'addOffsetParam', false, ...
-        'refitGainParam', refitGain);
+        'refitGainParam', false);
 end
 
 fprintf('(%s): Starting analysis of subject %s, using %s\n', mfilename, subjID, regexprep(opt.subfolder,'/',' '));
@@ -199,7 +199,6 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %               (2) bestBetas               (1 x run group x sensors)
 %               (3) bestRefPhase            (1 x run group x sensors)
 %               (4) bestOffsets             (1 x run group x sensors)
-
 
 [phaseRefMEGResponse, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
