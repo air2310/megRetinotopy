@@ -51,8 +51,10 @@ groupAveData       = squeeze(nanmean(allData,1));
 % Preallocate space
 groupAvePredictionScaled = NaN(nEpochs, nSensors, nrVariations);
 groupVarExpl             = NaN(nSensors, nrVariations);
+
 % Define timepoints
 timepoints = 1:size(allData,2);
+femtoScaleFactor = 10^14;
 
 for v = 1:nrVariations
     
@@ -60,8 +62,8 @@ for v = 1:nrVariations
         
         % Identify and remove nans
         meanNanMask = isnan(groupAveData(:,s,v));
-        thisGroupAvePredictionMasked = groupAvePrediction(~meanNanMask,s,v) .*10^14;
-        thisGroupAveDataMasked       = groupAveData(~meanNanMask,s,v) .*10^14;
+        thisGroupAvePredictionMasked = groupAvePrediction(~meanNanMask,s,v) .*femtoScaleFactor;
+        thisGroupAveDataMasked       = groupAveData(~meanNanMask,s,v) .*femtoScaleFactor;
         
         % Create predictions
         if opt.addOffsetParam
