@@ -13,7 +13,7 @@ addOffsetParam  = [false, true];
 refitGainParam  = [false, true];
 
 for rt = 1:length(addOffsetParam)
-      offset = addOffsetParam{rt};
+      offset = addOffsetParam(rt);
     
     for rb = 1:length(refitGainParam)
         refitGain = refitGainParam(rb);
@@ -48,7 +48,7 @@ for rt = 1:length(addOffsetParam)
         
         
 %       % Scramble
-%       opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs','scramble', ...
+%       opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','scramble', ...
 %           'addOffsetParam', addOffsetParam, 'refitGainParam', refitGain); % see getOpts function for more options
 %       for s = 1:length(subjects)
 %           subjID = subjects{s};
@@ -62,14 +62,14 @@ end
 
 %% Visualize all types of analyses
 for rt = 1:length(addOffsetParam)
-    offset = addOffsetParam{rt};
+    offset = addOffsetParam(rt);
     
     for rb = 1:length(refitGainParam)
         refitGain = refitGainParam(rb);
         
         
-%         Make figures
-        opt = getOpts('saveFig',1,'verbose',0, 'fullSizeMesh', 1, 'perturbOrigPRFs', false,...
+        % Make individual subject figures
+        opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs', false,...
             'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options
         
         for s = 1:length(subjects)
@@ -77,8 +77,8 @@ for rt = 1:length(addOffsetParam)
             close all; makeAllFigures(subjID, 1:3, 'top10', false, 'meanVE', opt);
         end
         
-%         Make average figure
-        close all; makeAllFigures('wlsubj004', 1:3, 'top10', true, 'meanVE', opt);
+        % Make average figures
+        close all; makeAllFigures('wlsubj004', 1:4, 'top10', true, 'meanVE', opt);
     end
 end
 
