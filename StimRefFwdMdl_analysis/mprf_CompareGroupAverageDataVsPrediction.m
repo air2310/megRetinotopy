@@ -109,10 +109,10 @@ if ~opt.vary.perturbOrigPRFs
     c.TickDirection = 'out';
     c.TickLength = [0.010 0.010];
     c.FontSize = 12;
-
+    
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d',opt.fNamePostFix, opt.addOffsetParam)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d',opt.fNamePostFix, opt.addOffsetParam)),[],[1 300],'.',1);
-
+    
     fH1 = figure; clf;
     megPlotMap(groupVarExpl,clims,fH1, 'parula', ...
         'Average Group Fit Variance Explained', [],[], 'interpmethod', 'nearest');
@@ -122,16 +122,16 @@ if ~opt.vary.perturbOrigPRFs
     c.TickDirection = 'out';
     c.TickLength = [0.010 0.010];
     c.FontSize = 12;
-
+    
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_nearest',opt.fNamePostFix, opt.addOffsetParam)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_nearest',opt.fNamePostFix, opt.addOffsetParam)),[],[1 300],'.',1);
-
+    
 else
     if strcmp(opt.vary.perturbOrigPRFs,'position')
         range = opt.vary.position;
         origIdx = find(range==0);
         for l = 1:length(range)
-            subplotLabels{l} = sprintf('%d deg', rad2deg(range(l)));            
+            subplotLabels{l} = sprintf('%d deg', rad2deg(range(l)));
         end
         xLabels = 'Rotation angle (deg)';
         xScale = 'linear';
@@ -162,7 +162,7 @@ else
     end
     
     figure(99); clf;
-    dataToPlot = 100.*mean(groupVarExpl(sensorLoc,:));    
+    dataToPlot = 100.*mean(groupVarExpl(sensorLoc,:));
     % Plot mean with shaded error bar using 'patch' function
     se   = 100.*nanstd(groupVarExpl(sensorLoc,:)) ./ sqrt(size(groupVarExpl(sensorLoc,:),1));
     ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
@@ -171,7 +171,7 @@ else
     
     plot([range(origIdx) range(origIdx)],[min(lo), max(hi)], 'k');  hold on;
     plot([range(1), range(end)], [0 0], 'k');
-    err = patch([range, fliplr(range)], [lo, fliplr(hi)], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':'); 
+    err = patch([range, fliplr(range)], [lo, fliplr(hi)], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
     plot(range,dataToPlot,'Color', 'r', 'Linewidth',2); hold on;
     
     set(gca,'TickDir', 'out', 'YLim', [min(lo), max(hi)], 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
@@ -182,47 +182,47 @@ else
     
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],[1 300],'.',1);
-
+    
     
     % Plot var explained map
     clims = [0 0.5];
-    fH1 = figure(1); clf; drawnow; set(fH1, 'Position', [1000,420,1269,918]); 
+    fH1 = figure(1); clf; drawnow; set(fH1, 'Position', [1000,420,1269,918]);
     fH2 = figure(2); clf; drawnow; set(fH2, 'Position', [1000,420,1269,918]);
     
     for ii = 1:nrVariations
         
-    figure(fH1); subplot(2,ceil(nrVariations/2),ii)
-    megPlotMap(groupVarExpl(:,ii)',clims,fH1, 'parula', ...
-        subplotLabels{ii}, [],[], 'interpMethod', 'v4');
-    c = colorbar;
-    c.Location = 'eastoutside';
-    c.Box = 'off';
-    c.TickDirection = 'out';
-    c.TickLength = [0.010 0.010];
-    c.FontSize = 12;
-    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])   
-
-    figure(fH2); subplot(3,ceil(nrVariations/3),ii)
-    megPlotMap(groupVarExpl(:,ii)',clims,fH2, 'parula', ...
-        subplotLabels{ii}, [],[], 'interpmethod', 'nearest');
-    c = colorbar;
-    c.Location = 'eastoutside';
-    c.Box = 'off';
-    c.TickDirection = 'out';
-    c.TickLength = [0.010 0.010];
-    c.FontSize = 12;
-    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])   
-
+        figure(fH1); subplot(2,ceil(nrVariations/2),ii)
+        megPlotMap(groupVarExpl(:,ii)',clims,fH1, 'parula', ...
+            subplotLabels{ii}, [],[], 'interpMethod', 'v4');
+        c = colorbar;
+        c.Location = 'eastoutside';
+        c.Box = 'off';
+        c.TickDirection = 'out';
+        c.TickLength = [0.010 0.010];
+        c.FontSize = 12;
+        pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
+        
+        figure(fH2); subplot(3,ceil(nrVariations/3),ii)
+        megPlotMap(groupVarExpl(:,ii)',clims,fH2, 'parula', ...
+            subplotLabels{ii}, [],[], 'interpmethod', 'nearest');
+        c = colorbar;
+        c.Location = 'eastoutside';
+        c.Box = 'off';
+        c.TickDirection = 'out';
+        c.TickLength = [0.010 0.010];
+        c.FontSize = 12;
+        pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
+        
     end
     
     figure(fH1)
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],[1 300],'.',1);
-
+    
     figure(fH2)
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s_nearest',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s_nearest',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],[1 300],'.',1);
-
+    
 end
 
 %% Plot time series
