@@ -39,7 +39,6 @@ opt.meg.flickerFreq           = 10;             % MEG Experiment info: Stim freq
 opt.meg.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 opt.meg.useCoherentSpectrum   = true;           % MEG Data for prf model: Use the coherent spectrum (average before FFT), instead of the incoherent spectrum (average after FFT)
 
-
 % --- MRI pRF model ---
 opt.mri.eccThresh             = [0 10];         % MRI prf model: only use eccentricities that fall within the stimulus (20 deg in diameter)
 opt.mri.varExplThresh         = [0.1 inf];      % MRI prf model: Remove low variance explained vertices
