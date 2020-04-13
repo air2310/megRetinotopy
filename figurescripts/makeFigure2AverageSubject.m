@@ -57,12 +57,18 @@ for s = 1:length(subjects)
     load(fullfile(dirPthThisSubject.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
     varexpl(s,:,:) = meanVarExpl;
     
-    if strcmp(sensorsToAverage, 'top10')
+    if strcmp(sensorsToAverage, 'top10') || strcmp(sensorsToAverage, 'top5')
         % Get top 10 sensors
         tmp = squeeze(varexpl(s,:,:));
+        tmp(tmp<0)=NaN;
         tmp(isnan(tmp))=0;
-        [~,idx] = sort(tmp,2,'descend');
-        sensorLoc{s} = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
+        [val,idx] = sort(tmp,2,'descend');
+        if strcmp(sensorsToAverage, 'top10')
+            sensorsToPlot = 10;
+        else
+            sensorsToPlot = 5;
+        end
+        sensorLoc{s}  = unique(idx(:,1:sensorsToPlot)); % selecting union of top 10 sensors from all iterations
     elseif strcmp(sensorsToAverage, 'allPosterior')
         sensorLoc{s} = (ypos<0 & xpos<1);
     end
