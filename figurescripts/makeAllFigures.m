@@ -53,12 +53,13 @@ if ~exist('opt', 'var') || isempty(opt)
     headmodel      = 'OS';
     verbose        = true;
     saveFig        = true;
-    addOffsetParam = true;  % if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
-    refitGainParam = true;
+    addOffsetParam = false;  % if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
+    refitGainParam = false;
     
     % Set options
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
-                'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, 'refitGainParam', refitGainParam);
+                    'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
+                    'refitGainParam', refitGainParam);
 else
     fullSizeMesh   = opt.fullSizeMesh;
     headmodel      = opt.headmodel;
@@ -66,7 +67,6 @@ else
     saveFig        = opt.saveFig;
     addOffsetParam = opt.addOffsetParam;
     refitGainParam = opt.refitGainParam;
-    
 end
 
 % Go back to root
@@ -80,7 +80,7 @@ if any(intersect(whichFigure,1))
     
     if plotAverage    
         % Average subjects predictions and data separately before fitting
-        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt)
+        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 1)
         
         % Plot MEG headplots for 10 subjects separately
         makeFigure1Supplement(dirPth, opt) 
@@ -102,6 +102,9 @@ if any(intersect(whichFigure,2))
     
     if plotAverage
         makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
+        
+        % Average subjects predictions and data separately before fitting
+        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 2, sensorsToAverage)
     else
         makeFigure2(dirPth, opt, sensorsToAverage);
     end
@@ -117,6 +120,9 @@ if any(intersect(whichFigure,3))
     
     if plotAverage
         makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);
+        
+        % Average subjects predictions and data separately before fitting
+        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 3, sensorsToAverage)
     else
         makeFigure3(dirPth,opt,sensorsToAverage);
     end
