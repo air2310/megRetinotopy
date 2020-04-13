@@ -13,12 +13,6 @@ cd(projDir)
 % down)
 addpath(genpath('./analysis'))
 addpath(genpath('./figurescripts'))
-addpath(genpath('./Devel'))
-addpath(genpath('./MEG_analysis'))
-addpath(genpath('./mprfSession'))
-addpath(genpath('./MRI_analysis'))
 addpath(genpath('./preprocessing'))
-addpath(genpath('./Server_analysis'))
-addpath(genpath('./StimRefFwdMdl_analysis'))
 
 return
