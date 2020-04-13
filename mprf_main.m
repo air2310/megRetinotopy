@@ -53,18 +53,18 @@ function mprf_main(subjID, opt)
 
 %% 0. Load paths
 
-% Load paths with data files for this subject
-dirPth = loadPaths(subjID);
-
-% Go back to root
-cd(mprf_rootPath)
-
 % Set options if not defined (see getOpts function for more options)
 if ~exist('opt', 'var') || isempty(opt,'var')
     opt = getOpts('saveFig', true,'verbose', true, 'fullSizeMesh', true, ...
         'perturbOrigPRFs', false, 'addOffsetParam', false, ...
         'refitGainParam', false);
 end
+
+% Load paths with data files for this subject
+dirPth = loadPaths(subjID);
+
+% Go back to root
+cd(mprf_rootPath)
 
 fprintf('(%s): Starting analysis of subject %s, using %s\n', mfilename, subjID, regexprep(opt.subfolder,'/',' '));
 
