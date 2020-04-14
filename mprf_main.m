@@ -31,12 +31,13 @@ function mprf_main(subjID, opt)
 %
 %
 % %%% DEPENDENCIES %%%
-% A. Preprocessing steps:
-%   A1: FreeSurfer's auto-segmentation (v6?)
-%   A2: preprocessing of raw MRI data into preprocessed nifti's (i.e. MRI
+% A. MRI preprocessing steps:
+%   A1: FreeSurfer's auto-segmentation of structural MRI data (v6?)
+%   A2: preprocessing of raw functional MRI data into preprocessed nifti's (i.e. MRI
 %       distortion correction w/ fsl top-up)
-%   A3: Running pRF model in mrVista (voxel space) to get Gray Retinotopy modelfits
-%   A4: Having Wang et al. (2015) atlas in subject's FreeSurfer directory
+%   A3: Running pRF model in mrVista (voxel space) to get Gray retinotopy modelfits
+%   A4: Apply probabilistic visual ROI atals by Wang et al. (2015) to
+%        subject's anatomy in FreeSurfer directory
 %
 % B. External MATLAB Toolboxes:
 % - Brainstorm (v??)
@@ -44,7 +45,7 @@ function mprf_main(subjID, opt)
 % - VistaSoft (v??)
 % - meg_utils (v??)
 %
-% Add all with the ToolboxToolbox:
+% Add all to path with the ToolboxToolbox:
 %   tbUse('retmeg')
 %
 %
