@@ -38,6 +38,7 @@ opt.meg.fs                    = 1000;           % MEG Sensor info: Sample rate (
 opt.meg.flickerFreq           = 10;             % MEG Experiment info: Stim freq (Hz)
 opt.meg.epochStartEnd         = [0.15 (0.15+1.1)]; % MEG Experiment info: Epoch length (s), first 150 ms are blank, one epoch length = 1.100 s,
 opt.meg.useCoherentSpectrum   = true;           % MEG Data for prf model: Use the coherent spectrum (average before FFT), instead of the incoherent spectrum (average after FFT)
+opt.meg.doSplitHalfReliability= false;          % MEG amplitude split half correlation (1000x computed).
 
 % --- MRI pRF model ---
 opt.mri.eccThresh             = [0 10];         % MRI prf model: only use eccentricities that fall within the stimulus (20 deg in diameter)

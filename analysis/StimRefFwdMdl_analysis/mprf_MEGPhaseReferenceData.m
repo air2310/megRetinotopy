@@ -257,8 +257,10 @@ fprintf('(%s) Done!\n',mfilename)
 
 if ~opt.vary.perturbOrigPRFs
     
-    % Compute split half reliability of SSVEF amplitude halves
-    [splitHalfAmpReliability,splitHalfAmpCorrelation] = mprf_ComputeSplitHalfReliability(dirPth, opt, megData, freqIdx);
+    if opt.meg.doSplitHalfReliability % takes a long time, we default is set to false. See also 's_splithalfR_allSubjects.m'
+        % Compute split half reliability of SSVEF amplitude halves
+        [splitHalfAmpReliability,splitHalfAmpCorrelation] = mprf_ComputeSplitHalfReliability(dirPth, opt, megData, freqIdx);
+    end
     
     if opt.verbose
         
