@@ -1,11 +1,11 @@
-function splitHalfAmpReliability = mprf_ComputeSplitHalfReliability(dirPth, opt, megData,freqIdx)
+function [splitHalfAmpReliability,splitHalfAmpCorrelation] = mprf_ComputeSplitHalfReliability(dirPth, opt, megData,freqIdx)
 
 % Check dimensions of MEG data
-[~, ~, nRuns, nSensors] = size(megData);
+[~, nEpochs, nRuns, nSensors] = size(megData);
 nIter = 1000;
 
-% Pre-allocate space
-allVarExpl    =  NaN(2, nIter, nSensors);
+% Pre-allocate space'
+allCorrRho_mn =  NaN(nIter, nSensors);
 allVarExpl_mn =  NaN(nIter, nSensors);
 
 for n = 1:nIter
@@ -50,19 +50,26 @@ for n = 1:nIter
             amp2_mn = amp2_mn(~isnan(amp2_mn));
         end
                 
-        varexpl1 = computeCoD(amp1_mn'.*10^14, amp2_mn'.*10^14);
-        varexpl2 = computeCoD(amp2_mn'.*10^14, amp1_mn'.*10^14);
-%  
-%         allVarExpl(1,n,s) = varexpl1;
-%         allVarExpl(2,n,s) = varexpl2;
+        varexpl1 = computeCoD(amp1_mn', amp2_mn');
+        varexpl2 = computeCoD(amp2_mn', amp1_mn');
+        
+        if sum(isnan(amp1_mn))~=nEpochs
+            rho1 =  corr(amp1_mn(~isnan(amp1_mn))', amp2_mn(~isnan(amp2_mn))');
+            rho2 =  corr(amp2_mn(~isnan(amp2_mn))', amp1_mn(~isnan(amp1_mn))');
+        else
+            rho1 = NaN;
+            rho2 = NaN;
+        end
         
         allVarExpl_mn(n,s) = nanmean([varexpl1,varexpl2]);
-            
+        allCorrRho_mn(n,s) = nanmean([rho1, rho2]);
     end
 end
 
 splitHalfAmpReliability = nanmedian(allVarExpl_mn,1);
+splitHalfAmpCorrelation = nanmedian(allCorrRho_mn,1);
 
-save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'pred_resp', 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpReliability');
+
+save(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'pred_resp', 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpReliability', 'splitHalfAmpCorrelation');
 
 return
