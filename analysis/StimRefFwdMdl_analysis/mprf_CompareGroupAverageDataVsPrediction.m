@@ -68,21 +68,21 @@ for v = 1:nrVariations
         % Create predictions
         if opt.addOffsetParam
             
-            meanX = [ones(size(thisGroupAvePredictionMasked,1),1), thisGroupAvePredictionMasked];
+            groupAveX = [ones(size(thisGroupAvePredictionMasked,1),1), thisGroupAvePredictionMasked];
             
             % Regress out predictions
-            meanB = meanX \ thisGroupAveDataMasked;
+            groupFitBeta = groupAveX \ thisGroupAveDataMasked;
             
             % Compute scaled predictions with betas
-            groupAvePredictionScaled(~meanNanMask,s,v) =  thisGroupAvePredictionMasked * meanB(2) + meanB(1);
+            groupAvePredictionScaled(~meanNanMask,s,v) =  thisGroupAvePredictionMasked * groupFitBeta(2) + groupFitBeta(1);
         else
-            meanX = thisGroupAvePredictionMasked;
+            groupAveX = thisGroupAvePredictionMasked;
             
             % Regress out predictions
-            meanB = meanX \ thisGroupAveDataMasked;
+            groupFitBeta = groupAveX \ thisGroupAveDataMasked;
             
             % Compute scaled predictions with betas
-            groupAvePredictionScaled(~meanNanMask,s,v) =  meanX * meanB';
+            groupAvePredictionScaled(~meanNanMask,s,v) =  groupAveX * groupFitBeta';
         end
         
         % Compute coefficient of determination:
