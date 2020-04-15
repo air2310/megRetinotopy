@@ -264,25 +264,26 @@ if ~opt.vary.perturbOrigPRFs
     
     if opt.verbose
         
-        % Plot split half amplitude reliability
-        fH1 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH1, 'hot', ...
-            'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
-        c = colorbar; c.Location='eastoutside';
-        
-        % Plot split half amplitude reliability
-        fH2 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
-            'Mean split half reliability of SSVEF amplitudes');
-        c = colorbar; c.Location='eastoutside';
-        
-        if opt.saveFig
-            figure(fH1)
-            figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-                'splitHalfAmplitudeReliability'),[],0,'.',1);
-            figure(fH2)
-            figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
-                'splitHalfAmplitudeReliability_interp'),[],0,'.',1);
+        if opt.meg.doSplitHalfReliability
+            % Plot split half amplitude reliability
+            fH1 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH1, 'hot', ...
+                'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
+            c = colorbar; c.Location='eastoutside';
+            
+            % Plot split half amplitude reliability
+            fH2 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
+                'Mean split half reliability of SSVEF amplitudes');
+            c = colorbar; c.Location='eastoutside';
+            
+            if opt.saveFig
+                figure(fH1)
+                figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+                    'splitHalfAmplitudeReliability'),[],0,'.',1);
+                figure(fH2)
+                figurewrite(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'refphase', ...
+                    'splitHalfAmplitudeReliability_interp'),[],0,'.',1);
+            end
         end
-        
         
         fH2 = figure(1); clf; set(gcf, 'Position',  [1000, 651, 1285, 687]);
         t = 1:size(phRefAmp10Hz,1);
