@@ -203,7 +203,7 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 
 [phaseRefMEGResponse, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
 
-% 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
+%% 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       INPUTS  (1) Phase referenced MEG time series     (sensors x run groups x epochs)
 %               (2) predicted MEG sensor responses from MRI prfs
 %                                                        (epochs x sensors)
