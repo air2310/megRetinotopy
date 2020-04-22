@@ -47,6 +47,11 @@ hvol = rmSelect(hvol,1,rm_model);
 % below. Otherwise, the pRF parameters will be averaged with a lot of
 % zeros:
 ve0mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
+if strcmp(dirPth.subjID, 'wlsubj106')
+    b = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
+    thresh96 = prctile(b, 96);
+    largeBetas = b>thresh96;
+end
 
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
@@ -95,7 +100,8 @@ for nn = 1:length(params)
     % data that we use to smooth and store for further analyses:
     if strcmpi(cur_param,'beta')
         tmp = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
-        prf_par_exp.(cur_param) = squeeze(tmp);  
+        tmp(largeBetas) = NaN;
+        prf_par_exp.(cur_param) = squeeze(tmp);
     else 
         prf_par_exp.(cur_param) = rmGet(hvol.rm.retinotopyModels{1},cur_param);
     end
