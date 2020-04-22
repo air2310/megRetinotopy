@@ -21,15 +21,6 @@ function prf = loadpRFsfromSurface(prfParams, prfSurfPath, opt)
 
 % Check files in folder and remove empty files
 d = dir(fullfile(prfSurfPath, '*'));
-% for ii = 1:length(d)
-%     if d(ii).bytes<1
-%         emptyFile(ii) = 1; %#ok<AGROW>
-%     else
-%         emptyFile(ii) = 0; %#ok<AGROW>
-%     end
-% end
-% 
-% d(find(emptyFile)) = []; %#ok<FNDSB>
 
 % Display prf parameters
 if opt.verbose
@@ -66,7 +57,7 @@ for idx = 1:length(prfParams)
             end
             
         case {'mask', 'V123mask'} % Make roi mask (original file: NaN = outside mask, 0 = inside mask)
-            prf.roimask = ~isnan(theseData);
+            prf.roimask = (theseData>0);
             
             % Benson maps don't have variance explained map, so we just use the
             % same vertices as the roi mask
@@ -90,7 +81,7 @@ for idx = 1:length(prfParams)
                 'x_smoothed_scramble.mgz', 'y_smoothed_scramble.mgz', 'sigma_smoothed_scramble.mgz', ...
                 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz', 'recomp_beta_scramble.mgz'}
             fn = strsplit(prfParams{idx}, '.');
-            prf.(fn{1}) = theseData;
+            prf.(fn{1}) = theseData; % EK: shouldn't we mask as well?
     end
 end
 
