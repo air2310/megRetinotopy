@@ -51,54 +51,82 @@ predSurfResponse = NaN(length(t),size(prf.roimask,1),nIter);
 
 
 %% loop over dimensions, if necessary
-for ii = iter
+for ii = 1:nIter
+    
     fprintf('.')
     % Select new prf parameters, if they vary in size or position
     if strcmp(opt.vary.perturbOrigPRFs,'position')
-        prf.x_smoothed_vary         = prfAll.x_smoothed_vary(:,ii);
-        prf.y_smoothed_vary         = prfAll.y_smoothed_vary(:,ii);
-        
+        if opt.mri.useSmoothedData
+            prf.x_smoothed_vary     = prfAll.x_smoothed_vary(:,ii);
+            prf.y_smoothed_vary     = prfAll.y_smoothed_vary(:,ii);
+        else
+            prf.x_vary              = prfAll.x_vary(:,ii);
+            prf.y_vary              = prfAll.y_vary(:,ii);
+        end
     elseif strcmp(opt.vary.perturbOrigPRFs,'size')
-        prf.sigma_smoothed_vary     = prfAll.sigma_smoothed_vary(:,ii);
-        
+        if opt.mri.useSmoothedData
+            prf.sigma_smoothed_vary = prfAll.sigma_smoothed_vary(:,ii);
+        else
+            prf.sigma_vary          = prfAll.sigma_vary(:,ii);
+        end
     elseif strcmp(opt.vary.perturbOrigPRFs,'scramble')
-        prf.x_smoothed_scramble     = prfAll.x_smoothed_scramble(:,ii);
-        prf.y_smoothed_scramble     = prfAll.y_smoothed_scramble(:,ii);
-        prf.sigma_smoothed_scramble = prfAll.sigma_smoothed_scramble(:,ii);
-        prf.recomp_beta_scramble    = prfAll.recomp_beta_scramble(:,ii); 
+        if opt.mri.useSmoothedData
+            prf.x_smoothed_scramble     = prfAll.x_smoothed_scramble(:,ii);
+            prf.y_smoothed_scramble     = prfAll.y_smoothed_scramble(:,ii);
+            prf.sigma_smoothed_scramble = prfAll.sigma_smoothed_scramble(:,ii);
+            prf.recomp_beta_scramble    = prfAll.recomp_beta_scramble(:,ii);
+        else
+            prf.x_scramble          = prfAll.x_scramble(:,ii);
+            prf.y_scramble          = prfAll.y_scramble(:,ii);
+            prf.sigma_scramble      = prfAll.sigma_scramble(:,ii);
+            prf.beta_scramble       = prfAll.beta_scramble(:,ii);
+        end
     end
     
     % MAIN FUNCTION: Get predicted response from prf data
-    predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim); 
-   
-    if ii==iter(1)
-        md = nanmedian(nanmedian(predSurfResponse(:,:,ii),2));
-        varSurfResp = nanvar(predSurfResponse(:,:,ii),[],1);
-        exclOrigVerts   = (varSurfResp > md.*opt.mri.predSurfVarThresh(2));
-        predSurfResponse(:,exclOrigVerts,ii) = NaN;
-    else
-        predSurfResponse(:,exclOrigVerts,ii) = NaN;
-    end
+    predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim);
 end
 
+% Check original location if perturbing prfs, we need this iteration to 
+% base off the variance mask
+if strcmp(opt.vary.perturbOrigPRFs,'position')
+    origPRFidx = find(opt.vary.position==0);
+elseif strcmp(opt.vary.perturbOrigPRFs,'size')
+    origPRFidx = find(opt.vary.size==1);
+elseif strcmp(opt.vary.perturbOrigPRFs,'scramble')
+    origPRFidx = 1;
+else
+    origPRFidx = 1;
+end
+
+% Check for outliers in variance
+origPRFPredSurfResponse = predSurfResponse(:,:,origPRFidx);
+nanvertices   = isnan(origPRFPredSurfResponse(3,:));
+prctThresh    = prctile(nanvar(origPRFPredSurfResponse(:,~nanvertices)),90);
+varSurfResp   = nanvar(origPRFPredSurfResponse,[],1);
+exclOrigVerts = (varSurfResp > prctThresh);
+
+predSurfResponse(:,exclOrigVerts,:) = NaN;
+
 fprintf('.Done!\n');
+
 %% Plot predicted response BS surface
 if opt.verbose
     if opt.saveFig && ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'),'dir')
-         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse')); 
+        mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'));
     end
     
-    figure(1), set(gcf, 'Position', [652   784   908   554], 'Color', 'w'); 
+    figure(1), set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
     for ii = 1:nIter
         clf;
         plot(t,predSurfResponse(:,:,ii));
         title(sprintf('Predicted response to retinotopy stim using pRFs from cortex, %d', ii))
         xlabel('Time (s)'); ylabel('Predicted vertex response (a.u.)');
         set(gca, 'FontSize', 14, 'TickDir','out'); box off
-    
+        
         if opt.saveFig
             print(fullfile(dirPth.model.saveFigPth, opt.subfolder, ...
-             'predSurfResponse', sprintf('predPRFResponseFromSurface%s_%d', opt.fNamePostFix, ii)), '-dpng')
+                'predSurfResponse', sprintf('predPRFResponseFromSurface%s_%d', opt.fNamePostFix, ii)), '-dpng')
         end
     end
 end
@@ -115,7 +143,7 @@ end
 
 % Create video of responses with stimulus on the side
 if (opt.verbose && any(~opt.vary.perturbOrigPRFs))
-%    makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt); 
+    %    makeSurfResponseMovie(predSurfResponse, stim, dirPth, opt);
 end
 
 
