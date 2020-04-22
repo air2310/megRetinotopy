@@ -43,7 +43,7 @@ opt.meg.doSplitHalfReliability= false;          % MEG amplitude split half corre
 % --- MRI pRF model ---
 opt.mri.eccThresh             = [0 10];         % MRI prf model: only use eccentricities that fall within the stimulus (20 deg in diameter)
 opt.mri.varExplThresh         = [0.1 inf];      % MRI prf model: Remove low variance explained vertices
-opt.mri.betaPrctileThresh     = [0 100];        % MRI prf model: Remove beta outliers by only taking data between 0 and xxth percentile
+opt.mri.betaPrctileThresh     = [0 99.72];      % MRI prf model: Remove beta outliers by only taking data between 0 and xxth percentile
 opt.mri.useSmoothedData       = true;           % MRI prf model: Use smoothed surface data or not
 opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 opt.mri.predSurfVarThresh     = [0 500];        % MRI prf model: if the variance of a predicted vertex response response is x1 times smaller or x2 times bigger than median, remove this response 
