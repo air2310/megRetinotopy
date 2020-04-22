@@ -329,13 +329,13 @@ print(fH7, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 % Beta histogram
 %-----------------------
 fH8 = figure(8); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080], 'Name','Beta')
-% maxBeta = prctile(prfROIData.allROIs.beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
+maxBeta = prctile(prfROIData.allROIs.beta,[opt.mri.betaPrctileThresh(1) opt.mri.betaPrctileThresh(2)]);
 
 for roiIdx = 1:numRois
     subplot(nrows,ncols,roiIdx);
     dataToPlot = prfROIData.(roiName{roiIdx}).beta;
-%     betaMask = dataToPlot<maxBeta(2);
-    hist(dataToPlot,nbins)
+    betaMask = dataToPlot<maxBeta(2);
+    hist(dataToPlot(betaMask),nbins)
     title(roiName{roiIdx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
@@ -352,7 +352,8 @@ fH9 = figure(9); clf; set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]
 for roiIdx = 1:numRois
     subplot(nrows,ncols,roiIdx);
     dataToPlot = prfROIData.(roiName{roiIdx}).recomp_beta;
-    hist(dataToPlot,nbins)
+    betaMask = dataToPlot<maxBeta(2);
+    hist(dataToPlot(betaMask),nbins)
     title(roiName{roiIdx})
     h = findobj(gca,'Type','patch');
     h.FaceColor = [0 0.5 0.5];
