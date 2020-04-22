@@ -1,12 +1,7 @@
 function [betas, offsets, varexpl] = regressPredictedResponse(data, prediction, varargin)
 
 % check inputs
-if nargin < 3
-    addOffsetParam = false;
-else
-    addOffsetParam = varargin{2};
-end
-
+addOffsetParam = varargin{2};
 
 % Get design matrix
 if addOffsetParam
