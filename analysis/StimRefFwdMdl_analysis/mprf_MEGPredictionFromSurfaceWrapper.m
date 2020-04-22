@@ -101,10 +101,9 @@ end
 
 % Check for outliers in variance
 origPRFPredSurfResponse = predSurfResponse(:,:,origPRFidx);
-nanvertices   = isnan(origPRFPredSurfResponse(3,:));
-prctThresh    = prctile(nanvar(origPRFPredSurfResponse(:,~nanvertices)),90);
 varSurfResp   = nanvar(origPRFPredSurfResponse,[],1);
-exclOrigVerts = (varSurfResp > prctThresh);
+mdVariance    = nanmedian(varSurfResp(varSurfResp>0));
+exclOrigVerts = (varSurfResp > opt.mri.predSurfVarThresh(2)*mdVariance);
 
 predSurfResponse(:,exclOrigVerts,:) = NaN;
 
