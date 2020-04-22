@@ -63,7 +63,7 @@ mmPerVox = viewGet(hvol,'mmpervox');
 % rois.
 hemis = {'lh','rh'};
 
-prfDataFile = dir(fullfile(prfDatamrVistaMatDir,'*.mat'));
+prfDataFile = dir(fullfile(prfDatamrVistaMatDir,'exported_prf_params.mat'));
 load(fullfile(prfDatamrVistaMatDir,prfDataFile.name),'prf_par_exp');
 
 % Loop over all the parameters stored in the exported data file:
