@@ -51,12 +51,12 @@ for idx = 1:length(prfParams)
             
             % Check variance explained by pRF model and make mask if requested
             if any(opt.mri.varExplThresh)
-                prf.vemask = ((prf.varexplained > opt.mri.varExplThresh(1)) & (prf.varexplained < opt.mri.varExplThresh(2)));
+                prf.vemask = ((prf.varexplained >= opt.mri.varExplThresh(1)) & (prf.varexplained < opt.mri.varExplThresh(2)));
             else % If not, make mask with all ones
                 prf.vemask = true(size(prf.varexplained));
             end
             
-        case {'mask', 'V123mask'} % Make roi mask (original file: NaN = outside mask, 0 = inside mask)
+        case {'mask', 'V123mask'} % Make roi mask (original file: 0 = outside mask, 1 = inside mask)
             prf.roimask = (theseData>0);
             
             % Benson maps don't have variance explained map, so we just use the
