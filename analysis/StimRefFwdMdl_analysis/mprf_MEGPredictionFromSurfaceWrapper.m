@@ -47,7 +47,7 @@ stim.im(:,blinkIm) = NaN;
 t = (0:size(stim.im,2)-1) .* diff(opt.meg.epochStartEnd);
 
 % Allocate space
-predSurfResponse = NaN(length(t),size(prf.roimask,1),nIter);
+predSurfResponse = NaN(length(t),size(prf.varexplained,1),nIter);
 
 
 %% loop over dimensions, if necessary
@@ -101,9 +101,9 @@ end
 
 % Check for outliers in variance
 origPRFPredSurfResponse = predSurfResponse(:,:,origPRFidx);
-varSurfResp   = nanvar(origPRFPredSurfResponse,[],1);
-mdVariance    = nanmedian(varSurfResp(varSurfResp>0));
-exclOrigVerts = (varSurfResp > opt.mri.predSurfVarThresh(2)*mdVariance);
+maxSurfResp   = max(origPRFPredSurfResponse,[],'omitnan');
+grand_median  = nanmedian(maxSurfResp(maxSurfResp>0));
+exclOrigVerts = (maxSurfResp > opt.mri.predSurfVarThresh(2)*grand_median);
 
 predSurfResponse(:,exclOrigVerts,:) = NaN;
 
