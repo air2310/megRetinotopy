@@ -55,7 +55,7 @@ function mprf_main(subjID, opt)
 %% 0. Load paths
 
 % Set options if not defined (see getOpts function for more options)
-if ~exist('opt', 'var') || isempty(opt,'var')
+if ~exist('opt', 'var') || isempty(opt)
     opt = getOpts('saveFig', true,'verbose', true, 'fullSizeMesh', true, ...
         'perturbOrigPRFs', false, 'addOffsetParam', false, ...
         'refitGainParam', false);
