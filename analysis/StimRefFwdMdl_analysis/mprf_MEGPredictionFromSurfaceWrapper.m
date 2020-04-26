@@ -100,12 +100,13 @@ else
 end
 
 % Check for outliers in variance
-origPRFPredSurfResponse = predSurfResponse(:,:,origPRFidx);
-maxSurfResp   = max(origPRFPredSurfResponse,[],'omitnan');
-grand_median  = nanmedian(maxSurfResp(maxSurfResp>0));
-exclOrigVerts = (maxSurfResp > opt.mri.predSurfVarThresh(2)*grand_median);
-
-predSurfResponse(:,exclOrigVerts,:) = NaN;
+if opt.mri.predSurfMaxThresh(2)
+    origPRFPredSurfResponse = predSurfResponse(:,:,origPRFidx);
+    maxSurfResp   = max(origPRFPredSurfResponse,[],'omitnan');
+    grand_median  = nanmedian(maxSurfResp(maxSurfResp>0));
+    exclOrigVerts = (maxSurfResp > opt.mri.predSurfMaxThresh(2)*grand_median);
+    predSurfResponse(:,exclOrigVerts,:) = NaN;
+end
 
 fprintf('.Done!\n');
 
