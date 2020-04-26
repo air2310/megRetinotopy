@@ -3,7 +3,10 @@ function beta_out = mprfRecomputeBetas(stim, sigma, X, Y, mresp)
 beta_out = nan(size(sigma));
 
 fprintf('(%s): Recomputing betas:\n', mfilename)
-figure; xlabel('time (TRs)'); ylabel('Unnormalized response (betas)');
+figure; hold all;
+title('Recomputed pRF responses with smoothed data')
+xlabel('time (TRs)'); 
+ylabel('Response (% BOLD)');
 box off
 
 for n = 1:1000:length(sigma)
@@ -31,10 +34,15 @@ for n = 1:1000:length(sigma)
     
     beta_out(n:end_idx) = mresp(n:end_idx) ./max(tmp);
     
-    plot(nanmean(tmp,2)); hold on;
+    prfResp(:,n:end_idx) = tmp.*beta_out(n:end_idx);
     
     
 end
+
+[~, idx] = max(beta_out);
+plot(prfResp(:, 1:100:end)); hold all;
+plot(prfResp(:, idx), 'r', 'LineWidth', 10);
+drawnow;
 
 fprintf('Done\n');
 
