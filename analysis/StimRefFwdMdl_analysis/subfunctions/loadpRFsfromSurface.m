@@ -31,6 +31,16 @@ end
 % Create a new struct to add prf data
 prf = struct();
 
+% Find X and Y prf parameters
+filenameX = ['pial.' prfParams{cellfind(regexp(prfParams, '\<x'))}];
+filenameY = ['pial.' prfParams{cellfind(regexp(prfParams, '\<y'))}];
+
+x0_tmp = read_curv(fullfile(prfSurfPath,filenameX));
+y0_tmp = read_curv(fullfile(prfSurfPath,filenameY));
+[~,eccen] = cart2pol(x0_tmp,y0_tmp);
+prf.eccenmask = (eccen<=opt.mri.eccThresh(2));
+
+
 for idx = 1:length(prfParams)
     
     % Load prf params
@@ -42,7 +52,7 @@ for idx = 1:length(prfParams)
     else
         theseData = read_curv(fullfile(prfSurfPath,param.name));
     end
-    
+
     switch prfParams{idx}
         
         case 'varexplained'
@@ -68,13 +78,13 @@ for idx = 1:length(prfParams)
                 thresh = prctile(theseData, opt.mri.betaPrctileThresh);
                 betamask = ((theseData > thresh(1)) & (theseData < thresh(2)));
                 theseData(~betamask) = NaN;
-                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
+                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask & prf.eccenmask);
             else
-                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
+                prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask & prf.eccenmask);
             end
             
         case {'x_smoothed', 'x', 'y_smoothed', 'y', 'sigma_smoothed', 'sigma'}
-            prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask);
+            prf.(prfParams{idx}) = theseData(prf.vemask & prf.roimask & prf.eccenmask);
             
         case {'x_vary.mgz', 'y_vary.mgz', 'sigma_vary.mgz', ...
                 'x_smoothed_vary.mgz', 'y_smoothed_vary.mgz', 'sigma_smoothed_vary.mgz', ...
