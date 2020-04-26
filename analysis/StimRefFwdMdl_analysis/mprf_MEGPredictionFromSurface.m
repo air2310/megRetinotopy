@@ -24,7 +24,7 @@ sigma = prf.(fn{cellfind(regexp(fn, '\<sigma'))});
 beta  = prf.(fn{cellfind(regexp(fn, 'beta'))});
 
 % Preallocate space
-predResponseAllVertices = NaN(size(stim.im,2), size(prf.vemask,1));
+predResponseAllVertices = NaN(size(stim.im,2), size(prf.varexplained,1));
 
 % Build RFs from prf surface parameters that fall within the stimulus aperture (stim locations x vertices)
 RF = rfGaussian2d(stim.X, stim.Y, sigma, sigma, false, x0, y0);
@@ -37,7 +37,7 @@ RF = rfGaussian2d(stim.X, stim.Y, sigma, sigma, false, x0, y0);
 predResponse = bsxfun(@times, stim.im' * RF, beta');
 
 % Only output the predicted response for vertices within masks
-predResponseAllVertices(:, prf.vemask & prf.roimask) = predResponse;
+predResponseAllVertices(:, prf.vemask & prf.roimask & prf.eccenmask) = predResponse;
 
 
 return
