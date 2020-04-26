@@ -1,4 +1,4 @@
-function meg_stim = loadMRIStimulus(s)
+function meg_stim = loadMRIStimulus(dirPth, opt)
 
 % subfunction of loadStim, to specifically prepare the MRI stimulus
 
@@ -9,7 +9,7 @@ xRange         = [];
 yRange         = [];
 
 % Get MRI prf scan parameters from file
-prfParams = load(s.PRFParams.pth);
+prfParams = load(dirPth.fmri.vistaGrayFitFile);
 
 % [EK]: Apparently we only take the pixels that fall within the square
 % window mask (im_conv). We don't need the im_unconv and we also don't need
