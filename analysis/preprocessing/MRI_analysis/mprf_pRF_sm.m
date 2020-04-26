@@ -43,15 +43,11 @@ hvol = viewSet(hvol,'curdt',data_type);
 rm_model = dirPth.fmri.vistaGrayFitFile;
 hvol = rmSelect(hvol,1,rm_model);
 
-% Mask to exclude unreliable voxels (i.e. VE == 0) from the smoothing
+% Mask to exclude unreliable voxels (i.e. VE < 0.10) from the smoothing
 % below. Otherwise, the pRF parameters will be averaged with a lot of
 % zeros:
-ve0mask = rmGet(hvol.rm.retinotopyModels{1},'varexplained') > 0;
-if strcmp(dirPth.subjID, 'wlsubj106')
-    b = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
-    thresh96 = prctile(b, 96);
-    largeBetas = b>thresh96;
-end
+ve = rmGet(hvol.rm.retinotopyModels{1},'varexplained');
+ve10mask = ((ve >= opt.mri.varExplThresh(1)) & (ve < opt.mri.varExplThresh(2)));
 
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
@@ -100,10 +96,10 @@ for nn = 1:length(params)
     % data that we use to smooth and store for further analyses:
     if strcmpi(cur_param,'beta')
         tmp = rmGet(hvol.rm.retinotopyModels{1},'bcomp1');
-        tmp(largeBetas) = NaN;
         prf_par_exp.(cur_param) = squeeze(tmp);
-    else 
-        prf_par_exp.(cur_param) = rmGet(hvol.rm.retinotopyModels{1},cur_param);
+    else
+        tmp = rmGet(hvol.rm.retinotopyModels{1},cur_param);
+        prf_par_exp.(cur_param) = squeeze(tmp);
     end
     
     % current parameter's NIFTI file:
@@ -122,7 +118,7 @@ for nn = 1:length(params)
             % reconstructing the pRF, multiplying it with the stimulus and
             % it's beta, and taking the maximum response from the
             % predicted time series
-            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),ve0mask);
+            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),ve10mask);
                  
             % Store the maximum responses as a nifti file: 
             hvol = viewSet(hvol,'map',{maxresp});
@@ -130,7 +126,7 @@ for nn = 1:length(params)
             mprfCheckParameterNiftiAlignment(cls, fname);
             
              % Smooth the maximum responses on the cortical surface
-            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, ve0mask);
+            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, ve10mask);
             
             % Export smoothed maximum responses as a nifti:
             hvol = viewSet(hvol,'map',{maxresp_smoothed});
@@ -144,6 +140,7 @@ for nn = 1:length(params)
             % responses by the maximum response given the stimulus and
             % smoothed pRF parameters:
             recomp_beta = mprfRecomputeBetas(rm_stim,sigma_smooth,x0_smooth,y0_smooth,maxresp_smoothed);
+            recomp_beta(isinf(recomp_beta))=NaN;
             
             % Store as nifti:
             fname = fullfile(prf_data_mrVNif,'recomp_beta.nii.gz');
@@ -157,7 +154,7 @@ for nn = 1:length(params)
         case {'x','y','sigma'}
             
             % Smooth the current paramter:
-            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, ve0mask);
+            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, ve10mask);
             
             % Export smoothed data as nifti:
             fname = fullfile(prf_data_mrVNif,[cur_param '_smoothed.nii.gz']);
@@ -218,6 +215,8 @@ for ii = 1:length(types)
     mprfCheckParameterNiftiAlignment(cls, fname);
 
 end
+
+
 
 % Save smoothed prf parameters
 fname = fullfile(prf_data_mrVmat,'exported_prf_params.mat');
