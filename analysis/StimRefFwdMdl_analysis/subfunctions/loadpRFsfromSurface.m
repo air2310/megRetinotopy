@@ -35,10 +35,22 @@ prf = struct();
 filenameX = ['pial.' prfParams{cellfind(regexp(prfParams, '\<x'))}];
 filenameY = ['pial.' prfParams{cellfind(regexp(prfParams, '\<y'))}];
 
-x0_tmp = read_curv(fullfile(prfSurfPath,filenameX));
-y0_tmp = read_curv(fullfile(prfSurfPath,filenameY));
-[~,eccen] = cart2pol(x0_tmp,y0_tmp);
-prf.eccenmask = (eccen<=opt.mri.eccThresh(2));
+if regexp(filenameX, '.mgz', 'ONCE')
+    if opt.mri.useSmoothedData
+        x0_tmp = read_curv(fullfile(prfSurfPath,'pial.x_smoothed'));
+        y0_tmp = read_curv(fullfile(prfSurfPath,'pial.y_smoothed'));
+    else
+        x0_tmp = read_curv(fullfile(prfSurfPath,'pial.x'));
+        y0_tmp = read_curv(fullfile(prfSurfPath,'pial.y'));
+    end
+    [~,eccen] = cart2pol(x0_tmp,y0_tmp);
+    prf.eccenmask = (eccen<=opt.mri.eccThresh(2));
+else
+    x0_tmp = read_curv(fullfile(prfSurfPath,filenameX));
+    y0_tmp = read_curv(fullfile(prfSurfPath,filenameY));
+    [~,eccen] = cart2pol(x0_tmp,y0_tmp);
+    prf.eccenmask = (eccen<=opt.mri.eccThresh(2));
+end
 
 
 for idx = 1:length(prfParams)
@@ -91,7 +103,7 @@ for idx = 1:length(prfParams)
                 'x_smoothed_scramble.mgz', 'y_smoothed_scramble.mgz', 'sigma_smoothed_scramble.mgz', ...
                 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz', 'recomp_beta_scramble.mgz'}
             fn = strsplit(prfParams{idx}, '.');
-            prf.(fn{1}) = theseData; % EK: shouldn't we mask as well?
+            prf.(fn{1}) = theseData; % no mask needed, since they are created from masked data
     end
 end
 
