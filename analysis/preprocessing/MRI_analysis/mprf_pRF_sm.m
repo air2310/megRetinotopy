@@ -47,7 +47,9 @@ hvol = rmSelect(hvol,1,rm_model);
 % below. Otherwise, the pRF parameters will be averaged with a lot of
 % zeros:
 ve = rmGet(hvol.rm.retinotopyModels{1},'varexplained');
-ve10mask = ((ve >= opt.mri.varExplThresh(1)) & (ve < opt.mri.varExplThresh(2)));
+% ve10mask = ((ve >= opt.mri.varExplThresh(1)) & (ve < opt.mri.varExplThresh(2)));
+ve10mask = ve > 0;
+
 
 % We need these parameters from the pRF model
 params = {'sigma','x','y','varexplained','beta'};
