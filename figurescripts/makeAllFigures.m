@@ -9,7 +9,11 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summ
 %                         or 1:3 (default)
 %   sensorsToAverage    : what sensors to average when plotting variations
 %                         in size/position. 
-%                         Choose from 'allPosterior' (default) or 'top 10'
+%                         Choose from 'allPosterior' (default) or 'top10'
+%                         (union of top 10 across all iterations), 
+%                         'top10Positive' (only positive sensors at each
+%                         iteration), or 'top10reliable' use sensors with
+%                         highest split half correlation.
 %   plotAverage         : plot average across subjects (bool), default is
 %                         false. When true, individual subject plotting
 %                         will be ignored, so any subjectID can be used to
