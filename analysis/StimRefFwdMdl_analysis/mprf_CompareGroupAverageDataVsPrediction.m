@@ -147,34 +147,33 @@ else
         xScale = 'log';
     end
     
-    if strcmp(sensorsToAverage, 'top10') || strcmp(sensorsToAverage, 'top5')
-        % Get top 10 sensors
-        tmp = groupVarExpl;
-        tmp(tmp<0)=NaN;
-        tmp(isnan(tmp))=0;
-        [val,idx] = sort(tmp,1,'descend');
-        if strcmp(sensorsToAverage, 'top10')
-            sensorsToPlot = 10;
-        else
-            sensorsToPlot = 5;
+    % Select sensors to average
+    sensorLoc = selectSensorsToAverage(opt, dirPth, saveDir, groupVarExpl', sensorsToAverage);
+    
+    % Select data to plot
+    if strcmp(sensorsToAverage, 'top10Positive')
+        curSubjLocs = sensorLoc;
+        for ii = 1:size(curSubjLocs,1)
+            curSensorLoc = curSubjLocs(ii,:);
+            dataToPlot(ii,1:sum(~isnan(curSensorLoc))) = squeeze(groupVarExpl(curSensorLoc(~isnan(curSensorLoc)),ii));
         end
-        sensorLoc  = unique(idx(1:sensorsToPlot,:)); % selecting union of top 10 sensors from all iterations
-    elseif strcmp(sensorsToAverage, 'allPosterior')
-        sensorLoc = (ypos<0 & xpos<1);
+    else
+        dataToPlot = squeeze(groupVarExpl(sensorLoc,:))';
     end
     
-    figure(99); clf;
-    dataToPlot = 100.*mean(groupVarExpl(sensorLoc,:));
-    % Plot mean with shaded error bar using 'patch' function
-    se   = 100.*nanstd(groupVarExpl(sensorLoc,:)) ./ sqrt(size(groupVarExpl(sensorLoc,:),1));
-    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
-    lo = dataToPlot - ci;
-    hi = dataToPlot + ci;
     
-    plot([range(origIdx) range(origIdx)],[min(lo), max(hi)], 'k');  hold on;
+    figure(99); clf;
+    meandataToPlot = 100.*nanmean(dataToPlot, 2);
+    % Plot mean with shaded error bar using 'patch' function
+    se   = 100.*nanstd(dataToPlot, [],2) ./ sqrt(size(dataToPlot,2));
+    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
+    lo = meandataToPlot - ci;
+    hi = meandataToPlot + ci;
+    
+    plot([range(origIdx) range(origIdx)],[min(lo'), max(hi')], 'k');  hold on;
     plot([range(1), range(end)], [0 0], 'k');
-    err = patch([range, fliplr(range)], [lo, fliplr(hi)], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
-    plot(range,dataToPlot,'Color', 'r', 'Linewidth',2); hold on;
+    err = patch([range, fliplr(range)], [lo', fliplr(hi')], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
+    plot(range,meandataToPlot,'Color', 'r', 'Linewidth',2); hold on;
     
     set(gca,'TickDir', 'out', 'YLim', [min(lo), max(hi)], 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
     xlabel(xLabels);
@@ -182,8 +181,8 @@ else
     title('Group average fit');
     ylabel('Variance explained (%)'); box off;
     
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);
     
     
     % Plot var explained map
@@ -284,41 +283,41 @@ if ~opt.vary.perturbOrigPRFs
         
     end
     
-    % Plot individual subjects' time series on top of eachother + mean
-    cmap = lines(length(subjIDs));
-    fH4 = figure(4); set(fH4, 'Position', [1000,420,1269,918]);
-    for s = 1:nSensors
-        
-        subplot(211); cla;
-        plot(t, zeros(size(t)), 'k'); hold on;
-        
-        subplot(212); cla;
-        plot(t, zeros(size(t)), 'k'); hold on;
-        
-        for subj = 1:length(subjIDs)
-            subplot(211)
-            plot(t, squeeze(allPredictions(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
-            
-            subplot(212)
-            plot(t, squeeze(allData(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
-        end
-        
-        subplot(211);
-        plot(t, groupAvePredictionScaled(:,s).*10^-14, 'r', 'LineWidth',4);
-        title(sprintf('Individual predictions sensor %d', s));
-        set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
-        xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
-        
-        subplot(212)
-        plot(t, groupAveData(:,s), 'k', 'LineWidth',4);
-        title(sprintf('Individual data sensor %d', s));
-        set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
-        xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
-        
-        
-        figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_Offset%d',s, opt.fNamePostFix,opt.addOffsetParam)),[],0,'.',1);
-        figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_Offset%d',s, opt.fNamePostFix, opt.addOffsetParam)),[],[1 300],'.',1);
-        
-    end
+    %     % Plot individual subjects' time series on top of eachother + mean
+    %     cmap = lines(length(subjIDs));
+    %     fH4 = figure(4); set(fH4, 'Position', [1000,420,1269,918]);
+    %     for s = 1:nSensors
+    %
+    %         subplot(211); cla;
+    %         plot(t, zeros(size(t)), 'k'); hold on;
+    %
+    %         subplot(212); cla;
+    %         plot(t, zeros(size(t)), 'k'); hold on;
+    %
+    %         for subj = 1:length(subjIDs)
+    %             subplot(211)
+    %             plot(t, squeeze(allPredictions(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
+    %
+    %             subplot(212)
+    %             plot(t, squeeze(allData(subj,:,s)), '-', 'Color', cmap(subj,:), 'LineWidth',1);
+    %         end
+    %
+    %         subplot(211);
+    %         plot(t, groupAvePredictionScaled(:,s).*10^-14, 'r', 'LineWidth',4);
+    %         title(sprintf('Individual predictions sensor %d', s));
+    %         set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
+    %         xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
+    %
+    %         subplot(212)
+    %         plot(t, groupAveData(:,s), 'k', 'LineWidth',4);
+    %         title(sprintf('Individual data sensor %d', s));
+    %         set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010]); box off;
+    %         xlabel('Time (s)'); ylabel('Phase-ref 10 Hz SSVEF (fT)');
+    %
+    %
+    %         figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_Offset%d',s, opt.fNamePostFix,opt.addOffsetParam)),[],0,'.',1);
+    %         figurewrite(fullfile(saveDir, sprintf('IndivSubjectsData_sensor_%d_%s_Offset%d',s, opt.fNamePostFix, opt.addOffsetParam)),[],[1 300],'.',1);
+    %
+    %     end
     
 end

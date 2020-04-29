@@ -18,23 +18,17 @@ load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl
 range   = opt.vary.size;
 
 % What sensors are we averaging?
-if strcmp(sensorsToAverage, 'allPosterior')
-    % Get sensor locations in the back
-    load(which('meg160_example_hdr.mat'))
-    layout = ft_prepare_layout([],hdr);
-    xpos = layout.pos(1:157,1);
-    ypos = layout.pos(1:157,2);
-    sensorLoc = (ypos<0 & xpos<1);
-elseif strcmp(sensorsToAverage, 'top10')
-    % Get top 10 sensors
-    tmp = meanVarExpl;
-    tmp(isnan(tmp))=0;
-    [val,idx] = sort(tmp,2,'descend');
-    sensorLoc = unique(idx(:,1:10)); % selecting union of top 10 sensors from all iterations
-end
+sensorLoc = selectSensorsToAverage(opt, dirPth, saveDir, meanVarExpl, sensorsToAverage);
 
 % Plot data for sensors over the back of the head
-dataToPlot = meanVarExpl(:,sensorLoc);
+if strcmp(sensorsToAverage, 'top10Positive')
+    for ii = 1:size(sensorLoc,1)
+        curSensorLoc = sensorLoc(ii,:);
+        dataToPlot(ii,1:sum(~isnan(curSensorLoc))) = meanVarExpl(ii,curSensorLoc(~isnan(curSensorLoc)));
+    end
+else
+    dataToPlot = meanVarExpl(:,sensorLoc);
+end
 
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
@@ -51,15 +45,17 @@ color = [0.5 0.5 0.5];
 err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
 hold on;
 plot(range,100.*mean_varexpl,'r','Linewidth',3);
+plot(range, zeros(size(range)), 'k')
+plot([1 1], [-10 30], 'k')
 
 % Add labels and make pretty
-yl = [0 50];
-if max(100.*mean_varexpl)>yl(2)
-    yl = [0 max(100.*mean_varexpl)+5];
-end
-if min(100.*mean_varexpl)<yl(1)
-    yl = [min(100.*mean_varexpl)-5 yl(2)];
-end
+yl = [-10 30];
+% if max(100.*mean_varexpl)>yl(2)
+%     yl = [0 max(100.*mean_varexpl)+5];
+% end
+% if min(100.*mean_varexpl)<yl(1)
+%     yl = [min(100.*mean_varexpl)-5 yl(2)];
+% end
 
 set(gca,'TickDir', 'out');
 xlabel('Scale factor');

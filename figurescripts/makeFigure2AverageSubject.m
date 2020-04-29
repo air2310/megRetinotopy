@@ -29,12 +29,6 @@ range   = opt.vary.position;
 varexpl = NaN(length(subjects),length(range), 157);
 sensorLoc = cell(length(subjects),1);
 
-% Get sensor locations in the back
-load(which('meg160_example_hdr.mat'))
-layout = ft_prepare_layout([],hdr);
-xpos = layout.pos(1:157,1);
-ypos = layout.pos(1:157,2);
-
 % Figure for all subjects in one plot
 fH1   = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1, 592, 838, 746]);
 
@@ -57,24 +51,20 @@ for s = 1:length(subjects)
     load(fullfile(dirPthThisSubject.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
     varexpl(s,:,:) = meanVarExpl;
     
-    if strcmp(sensorsToAverage, 'top10') || strcmp(sensorsToAverage, 'top5')
-        % Get top 10 sensors
-        tmp = squeeze(varexpl(s,:,:));
-        tmp(tmp<0)=NaN;
-        tmp(isnan(tmp))=0;
-        [val,idx] = sort(tmp,2,'descend');
-        if strcmp(sensorsToAverage, 'top10')
-            sensorsToPlot = 10;
-        else
-            sensorsToPlot = 5;
-        end
-        sensorLoc{s}  = unique(idx(:,1:sensorsToPlot)); % selecting union of top 10 sensors from all iterations
-    elseif strcmp(sensorsToAverage, 'allPosterior')
-        sensorLoc{s} = (ypos<0 & xpos<1);
-    end
+    % What sensors are we averaging?
+    sensorLoc{s} = selectSensorsToAverage(opt, dirPth, saveDir, squeeze(varexpl(s,:,:)), sensorsToAverage);
     
-    % Plot data for sensors over the back of the head
-    thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
+    % Select those data corresponding to sensors
+    thisSubjectSensorData = NaN(size(sensorLoc{s}));
+    if strcmp(sensorsToAverage, 'top10Positive')
+        curSubjLocs = sensorLoc{s};
+        for ii = 1:size(curSubjLocs,1)
+            curSensorLoc = curSubjLocs(ii,:);
+            thisSubjectSensorData(ii,1:sum(~isnan(curSensorLoc))) = squeeze(varexpl(s,ii,curSensorLoc(~isnan(curSensorLoc))));
+        end
+    else
+        thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
+    end
     
     % Compute summary metrics of variance explained across selected sensors
     meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
@@ -118,7 +108,7 @@ for s = 1:length(subjects)
     err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
     plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
     plot([0 0], [min(yl), max(yl)], 'k');
-
+    
     set(gca,'TickDir', 'out'); xlabel('Rotation angle (deg)');
     set(gca,'XTick', range([1 5 9]),'XTickLabel',rad2deg(range([1 5 9])), 'YLim', yl, 'XLim', [range(1),range(end)]);
     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
@@ -169,7 +159,7 @@ aveBoot = nanmean(BootStrappedData,1);
 fH3 = figure(3); clf; set(gcf,'position',[66,1,1855,1001]);
 plot(range, zeros(size(aveBoot)), 'k', 'LineWidth', 1); hold on;
 patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
-plot(range,aveBoot,'r','Linewidth',5); 
+plot(range,aveBoot,'r','Linewidth',5);
 plot([0 0], [min(lo), max(hi)], 'k');
 
 % Add labels and make pretty

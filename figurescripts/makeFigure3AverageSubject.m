@@ -57,145 +57,142 @@ for s = 1:length(subjects)
     
     varexpl(s,:,:) = meanVarExpl;
     
-    if strcmp(sensorsToAverage, 'top10') || strcmp(sensorsToAverage, 'top5')
-        % Get top 10 sensors
-        tmp = squeeze(varexpl(s,:,:));
-        tmp(tmp<0)=NaN;
-        tmp(isnan(tmp))=0;
-        [val,idx] = sort(tmp,2,'descend');
-        if strcmp(sensorsToAverage, 'top10')
-            sensorsToPlot = 10;
-        else
-            sensorsToPlot = 5;
-        end
-        sensorLoc{s}  = unique(idx(:,1:sensorsToPlot)); % selecting union of top 10 sensors from all iterations
-    elseif strcmp(sensorsToAverage, 'allPosterior')
-        sensorLoc{s} = (ypos<0 & xpos<1);
-    end
+    % What sensors are we averaging?
+    sensorLoc{s} = selectSensorsToAverage(opt, dirPth, saveDir, squeeze(varexpl(s,:,:)), sensorsToAverage);
     
     % Plot data for sensors over the back of the head
-    thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
-    
-    % Compute summary metrics of variance explained across selected sensors
-    meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
-    if strcmp(summaryMetric, 'meanVE')
-        dataToPlot = meanSelectedSensors;
-        yl = [0 60];
-        % Rescale if subjects fall outside ylimit
-        if max(dataToPlot(:))>yl(2)
-            yl = [yl(1) max(dataToPlot(:))+10];
+    if strcmp(sensorsToAverage, 'top10Positive')
+        curSubjLocs = sensorLoc{s};
+        for ii = 1:size(curSubjLocs,1)
+            curSensorLoc = curSubjLocs(ii,:);
+            thisSubjectSensorData(ii,1:sum(~isnan(curSensorLoc))) = squeeze(varexpl(s,ii,curSensorLoc(~isnan(curSensorLoc))));
         end
-        if min(dataToPlot(:))<yl(1)
-            yl = [-50 yl(2)];
+    else
+        
+        thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
+    end
+        
+        % Compute summary metrics of variance explained across selected sensors
+        meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
+        
+        if strcmp(summaryMetric, 'meanVE')
+            dataToPlot = meanSelectedSensors;
+            yl = [0 60];
+            % Rescale if subjects fall outside ylimit
+            if max(dataToPlot(:))>yl(2)
+                yl = [yl(1) max(dataToPlot(:))+10];
+            end
+            if min(dataToPlot(:))<yl(1)
+                yl = [-50 yl(2)];
+            end
+            yLabel = 'Variance explained (%)';
+        elseif strcmp(summaryMetric, 'percentChangeVE')
+            percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
+            dataToPlot = percentdiff;
+            yl = [-100 100];
+            yLabel = 'Percent change variance explained (%)';
+        elseif strcmp(summaryMetric, 'zscoreVE')
+            zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
+            dataToPlot = zscoredVE;
+            yl = [-3 3];
+            yLabel = 'Z-scored variance explained (%)';
         end
-        yLabel = 'Variance explained (%)';
-    elseif strcmp(summaryMetric, 'percentChangeVE')
-        percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
-        dataToPlot = percentdiff;
-        yl = [-100 100];
-        yLabel = 'Percent change variance explained (%)';
-    elseif strcmp(summaryMetric, 'zscoreVE')
-        zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
-        dataToPlot = zscoredVE;
-        yl = [-3 3];
-        yLabel = 'Z-scored variance explained (%)';
+        
+        % Compute mean and standard error of variance explained across selected sensors
+        figure(fH1);
+        plot(range,meanSelectedSensors(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
+        
+        % We will also plot all individual subjects
+        figure(fH2);
+        subplot(2,5,s);
+        
+        % Plot mean with shaded error bar using 'patch' function
+        se   = 100.*nanstd(thisSubjectSensorData,[],2) ./ sqrt(size(thisSubjectSensorData,2));
+        ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
+        lo = dataToPlot(s,:) - ci';
+        hi = dataToPlot(s,:) + ci';
+        
+        err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
+        plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
+        plot([1 1], [min(yl), max(yl)], 'k');
+        
+        set(gca,'TickDir', 'out');
+        xlabel('Scale factor');
+        set(gca,'XTick', range([1 8 19]),'XTickLabel',range([1 8 19]), 'YLim', yl, 'XLim', [range(1),range(end)]);
+        set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
+        title(sprintf('S%d', s));
+        ylabel(yLabel);
+        box off;
+        
+        
     end
     
-    % Compute mean and standard error of variance explained across selected sensors
+    % Average/SE/CI across subjects
+    averageDataToPlot = nanmean(dataToPlot,1);
+    
+    % Plot mean on figure with individual lines
     figure(fH1);
-    plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
-    
-    % We will also plot all individual subjects
-    figure(fH2);
-    subplot(2,5,s);
-    
-    % Plot mean with shaded error bar using 'patch' function
-    se   = 100.*nanstd(thisSubjectSensorData,0,2) ./ sqrt(size(thisSubjectSensorData,2));
-    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
-    lo = dataToPlot(s,:) - ci';
-    hi = dataToPlot(s,:) + ci';
-    
-    err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
-    plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
+    plot(range,averageDataToPlot,'r','Linewidth',6);
     plot([1 1], [min(yl), max(yl)], 'k');
-
+    
+    % Add labels and make pretty
     set(gca,'TickDir', 'out');
-    xlabel('Scale factor');
-    set(gca,'XTick', range([1 8 19]),'XTickLabel',range([1 8 19]), 'YLim', yl, 'XLim', [range(1),range(end)]);
+    xlabel('Scale factor of original pRF size');
+    set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
-    title(sprintf('S%d', s));
+    title('Variance explained by modelfit: Vary Size');
     ylabel(yLabel);
     box off;
     
+    %% Figure 3 with bootstrapping data across subjects
+    % Bootstrap average variance explained across subjects with 10,000 iterations
+    nBoot = 10000;
+    BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
+    pct1 = 100 * (0.32/2);
+    pct2 = 100 - pct1;
+    lo = prctile(BootStrappedData,pct1); % 16th percentile
+    hi = prctile(BootStrappedData,pct2); % 84th percentile
     
-end
-
-% Average/SE/CI across subjects
-averageDataToPlot = nanmean(dataToPlot,1);
-
-% Plot mean on figure with individual lines
-figure(fH1);
-plot(range,averageDataToPlot,'r','Linewidth',6);
-plot([1 1], [min(yl), max(yl)], 'k');
-
-% Add labels and make pretty
-set(gca,'TickDir', 'out');
-xlabel('Scale factor of original pRF size');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
-set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
-title('Variance explained by modelfit: Vary Size');
-ylabel(yLabel);
-box off;
-
-%% Figure 3 with bootstrapping data across subjects
-% Bootstrap average variance explained across subjects with 10,000 iterations
-nBoot = 10000;
-BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
-pct1 = 100 * (0.32/2);
-pct2 = 100 - pct1;
-lo = prctile(BootStrappedData,pct1); % 16th percentile
-hi = prctile(BootStrappedData,pct2); % 84th percentile
-
-% Get p value from bootstrapped data
-origIdx = find(range==1);
-[~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
-peakBelowOrigPRF = sum(peakIdx<origIdx);
-p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
-fprintf('Mean below original pRF size of %dx bootstrapped p value: %1.3f \n',nBoot, p)
-
-% Average of bootstrapped data
-aveBoot = nanmean(BootStrappedData,1);
-
-fH3 = figure(3); clf; set(gcf,'Position',[1, 592, 838, 746]);
-plot(range,zeros(size(aveBoot)),'k','Linewidth',1); hold on;
-patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
-plot(range,aveBoot,'r','Linewidth',5); 
-plot([1 1], [min(lo), max(hi)], 'k');
-
-% Add labels and make pretty
-set(gca,'TickDir', 'out');
-xlabel('Scale factor of original pRF size');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
-set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
-title('Variance explained by modelfit: Vary Size');
-ylabel(yLabel);
-box off;
-
-% Save fig
-if opt.saveFig
+    % Get p value from bootstrapped data
+    origIdx = find(range==1);
+    [~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
+    peakBelowOrigPRF = sum(peakIdx<origIdx);
+    p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
+    fprintf('Mean below original pRF size of %dx bootstrapped p value: %1.3f \n',nBoot, p)
     
-    fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
-    print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    % Average of bootstrapped data
+    aveBoot = nanmean(BootStrappedData,1);
     
+    fH3 = figure(3); clf; set(gcf,'Position',[1, 592, 838, 746]);
+    plot(range,zeros(size(aveBoot)),'k','Linewidth',1); hold on;
+    patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
+    plot(range,aveBoot,'r','Linewidth',5);
+    plot([1 1], [min(lo), max(hi)], 'k');
     
-    print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
-    print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    % Add labels and make pretty
+    set(gca,'TickDir', 'out');
+    xlabel('Scale factor of original pRF size');
+    set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
+    set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
+    title('Variance explained by modelfit: Vary Size');
+    ylabel(yLabel);
+    box off;
     
-    print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
-    print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    % Save fig
+    if opt.saveFig
+        
+        fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
+        print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
+        print(fH1, fullfile(saveDir, sprintf('fig3a_AVERAGE_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+        
+        
+        print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
+        print(fH2, fullfile(saveDir, sprintf('fig3a_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+        
+        print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
+        print(fH3, fullfile(saveDir, sprintf('fig3a_BootStappedAVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+        
+        
+    end
     
-    
-end
-
-return
+    return
