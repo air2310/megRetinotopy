@@ -80,7 +80,7 @@ if any(intersect(whichFigure,1))
     
     if plotAverage    
         % Average subjects predictions and data separately before fitting
-        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 1)
+        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 1, sensorsToAverage)
         
         % Plot MEG headplots for 10 subjects separately
         makeFigure1Supplement(dirPth, opt) 
