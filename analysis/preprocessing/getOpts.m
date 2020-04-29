@@ -124,7 +124,7 @@ end
 if opt.addOffsetParam
     opt.subfolder = [opt.subfolder 'WithOffset'];
 else
-    opt.subfolder = [opt.subfolder 'NoOffset3'];
+    opt.subfolder = [opt.subfolder 'NoOffset'];
 end
 
 if opt.refitGainParam
