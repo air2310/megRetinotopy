@@ -72,31 +72,31 @@ for s = 1:length(subjects)
         thisSubjectSensorData = squeeze(varexpl(s,:,sensorLoc{s}));
     end
         
-        % Compute summary metrics of variance explained across selected sensors
-        meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
+    % Compute summary metrics of variance explained across selected sensors
+    meanSelectedSensors(s,:) = 100*nanmean(thisSubjectSensorData,2);
         
-        if strcmp(summaryMetric, 'meanVE')
-            dataToPlot = meanSelectedSensors;
-            yl = [0 60];
-            % Rescale if subjects fall outside ylimit
-            if max(dataToPlot(:))>yl(2)
-                yl = [yl(1) max(dataToPlot(:))+10];
-            end
-            if min(dataToPlot(:))<yl(1)
-                yl = [-50 yl(2)];
-            end
-            yLabel = 'Variance explained (%)';
-        elseif strcmp(summaryMetric, 'percentChangeVE')
-            percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
-            dataToPlot = percentdiff;
-            yl = [-100 100];
-            yLabel = 'Percent change variance explained (%)';
-        elseif strcmp(summaryMetric, 'zscoreVE')
-            zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
-            dataToPlot = zscoredVE;
-            yl = [-3 3];
-            yLabel = 'Z-scored variance explained (%)';
+    if strcmp(summaryMetric, 'meanVE')
+        dataToPlot = meanSelectedSensors;
+        yl = [0 60];
+        % Rescale if subjects fall outside ylimit
+        if max(dataToPlot(:))>yl(2)
+            yl = [yl(1) max(dataToPlot(:))+10];
         end
+        if min(dataToPlot(:))<yl(1)
+            yl = [-50 yl(2)];
+        end
+        yLabel = 'Variance explained (%)';
+    elseif strcmp(summaryMetric, 'percentChangeVE')
+        percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
+        dataToPlot = percentdiff;
+        yl = [-100 100];
+        yLabel = 'Percent change variance explained (%)';
+    elseif strcmp(summaryMetric, 'zscoreVE')
+        zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
+        dataToPlot = zscoredVE;
+        yl = [-3 3];
+        yLabel = 'Z-scored variance explained (%)';
+    end
         
         % Compute mean and standard error of variance explained across selected sensors
         figure(fH1);

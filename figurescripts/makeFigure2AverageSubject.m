@@ -45,17 +45,16 @@ for s = 1:length(subjects)
     
     subjectID = subjects{s};
     
-    dirPthThisSubject = loadPaths(subjectID);
+    dirPth = loadPaths(subjectID);
     
     % Load variance explained file
-    load(fullfile(dirPthThisSubject.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
+    load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
     varexpl(s,:,:) = meanVarExpl;
     
     % What sensors are we averaging?
     sensorLoc{s} = selectSensorsToAverage(opt, dirPth, saveDir, squeeze(varexpl(s,:,:)), sensorsToAverage);
     
     % Select those data corresponding to sensors
-    thisSubjectSensorData = NaN(size(sensorLoc{s}));
     if strcmp(sensorsToAverage, 'top10Positive')
         curSubjLocs = sensorLoc{s};
         for ii = 1:size(curSubjLocs,1)
