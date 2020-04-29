@@ -78,7 +78,7 @@ for rt = 1:length(addOffsetParam)
         end
         
         % Make average figures
-        close all; makeAllFigures('wlsubj004', 1:4, 'top10', true, 'meanVE', opt);
+        close all; makeAllFigures('wlsubj004', 1:3, 'top10', true, 'meanVE', opt);
     end
 end
 
