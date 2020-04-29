@@ -54,7 +54,7 @@ switch type
         sensorLoc = unique(idx(:,1:5));
         
     % Get top 10 sensors from splithalf reliability
-    case 'reliable10'
+    case 'top10reliable'
         load(fullfile(dirPth.model.saveDataPth, 'splitHalfAmpReliability1000'), 'splitHalfAmpCorrelation');
         splitHalfAmpCorrelation(isnan(splitHalfAmpCorrelation))=0;
         
@@ -63,19 +63,21 @@ switch type
         
 end
 
-if size(sensorLoc,2)>1
+if size(sensorLoc,1)>1
     for ii = 1:size(sensorLoc,1)
         fh = mprfPlotHeadLayout(sensorLoc(ii,~isnan(sensorLoc(ii,:))),0,[]);
         
         if opt.saveFig
-            print(gcf, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s_%d', dirPth.subjID, opt.fNamePostFix, type, ii)), '-dpdf');
+            if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
+            print(gcf, fullfile(saveDir, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s_%d', dirPth.subjID, opt.fNamePostFix, type, ii)), '-dpdf');
         end
         close(fh)
     end
 else 
-    fh = mprfPlotHeadLayout(sensorLoc',0,[]);
+    fh = mprfPlotHeadLayout(sensorLoc,0,[]);
     if opt.saveFig
-        print(gcf, fullfile(saveDir, sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type)), '-dpdf');
+        if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
+        print(gcf, fullfile(saveDir, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type)), '-dpdf');
     end
     
     close(fh)
