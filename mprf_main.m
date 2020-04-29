@@ -112,8 +112,8 @@ clear gainMtx data stim conditions
 
 %% 2. MRI data preprocessing
 % This section will:
-% 2.1 Smoothing pRF params in voxel space (and recompute beta's)
-% 2.2. Export pRF params to FreeSurfer mesh + get Wang et al visual rois
+% 2.1  Smoothing pRF params in voxel space (and recompute beta's)
+% 2.2  Export pRF params to FreeSurfer mesh + get Wang et al visual rois
 % 2.3  Export pRF to Brainstorm mesh (if opt.fullSizeMesh = false)
 
 % Get MRI data struct
@@ -137,28 +137,25 @@ if ~opt.skipMRIPreproc
     % mrVista gray nodes (i.e. voxels) --> mrVista gray nodes (i.e. voxels)
     mprf_pRF_sm(dirPth, opt);
     
-    % Get summary figures for pRF parameters before/after smoothing
-    if opt.verbose
-        mprf_pRF_sm_fig(dirPth, opt);
-        close all;
-    end
-    
     % 2.2 Get smoothed pRF params on FreeSurfer mid gray surface.
     % --> mrVista gray nodes (i.e. voxels) to FreeSurfer vertices
     mprf_pRF_sm_FS(dirPth,opt);
-    
-    % Get summary figures for pRF parameters on FreeSurfer surface
-    if opt.verbose
-        mprf_pRF_sm_FS_fig(dirPth,opt);
-        close all;
-    end
     
     % 2.3 Get smoothed pRF params and ROIs on Brainstorm pial surface.
     % --> Freesurfer vertices to downsampled Brainstorm vertices
     mprf_pRF_sm_FS_BS(subjID, dirPth,opt);
     
-    % Get summary figures for pRF parameters on Brainstorm surface
+    
     if opt.verbose
+        % Get summary figures for 2.1 pRF parameters before/after smoothing
+        mprf_pRF_sm_fig(dirPth, opt);
+        close all;
+        
+        % Get summary figures for 2.2 pRF parameters on FreeSurfer surface
+        mprf_pRF_sm_FS_fig(dirPth,opt);
+        close all;
+
+        % Get summary figures for 2.3 pRF parameters on Brainstorm surface
         mprf_pRF_sm_FS_BS_fig(dirPth,opt);
         close all;
     end
