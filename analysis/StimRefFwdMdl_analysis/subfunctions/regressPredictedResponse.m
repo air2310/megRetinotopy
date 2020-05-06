@@ -17,7 +17,7 @@ if addOffsetParam
     offsets = B(1);
     betas   = B(2);
 else
-    offsets = [];
+    offsets = 0;
     betas   = B(1);
 end
 

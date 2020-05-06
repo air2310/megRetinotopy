@@ -37,7 +37,7 @@ for rt = 1:length(addOffsetParam)
             close all
         end
         
-        % With rorated pRF position
+        % With rotated pRF position
         opt = getOpts('saveFig',true,'verbose',false, 'fullSizeMesh', true, 'perturbOrigPRFs','position', ...
             'addOffsetParam', offset, 'refitGainParam', refitGain); % see getOpts function for more options
         for s = 1:length(subjects)

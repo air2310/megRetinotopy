@@ -119,7 +119,8 @@ if opt.verbose
     figure(1), set(gcf, 'Position', [652   784   908   554], 'Color', 'w');
     for ii = 1:nIter
         clf;
-        plot(t,predSurfResponse(:,:,ii));
+        idx = var(predSurfResponse(:,:,ii), 'omitnan')>0;
+        plot(t,predSurfResponse(:,idx,ii));
         title(sprintf('Predicted response to retinotopy stim using pRFs from cortex, %d', ii))
         xlabel('Time (s)'); ylabel('Predicted vertex response (a.u.)');
         set(gca, 'FontSize', 14, 'TickDir','out'); box off

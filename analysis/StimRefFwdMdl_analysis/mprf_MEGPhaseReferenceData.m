@@ -95,8 +95,29 @@ if opt.meg.useCoherentSpectrum
         
         for split = 1:length(runGroup)
             
-            for rp = 1:length(phaseRange)
-                
+            x0 = pi;
+            A = amp10Hz{split}(~currentnans{split})';
+            P = ph10Hz{split}(~currentnans{split})';
+            pred = predMEGResponse(~currentnans{split},s);
+            options = optimset('Display','iter');
+            
+            if isempty(A)
+                B = NaN; refph = NaN; offset = NaN;
+            else
+                refph = fminsearch(@(x) ...
+                    phaseReferencedPrediction(x, pred, A, P, opt.addOffsetParam), x0,options);
+                phRef10Hz = rescaleAmpsWithRefPhase(A, P, refph);
+                [B, offset, ve] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', opt.addOffsetParam);
+                if B < 0, B = -B; refph = refph + pi; end
+            end
+            bestBetasLSQ(1,split, s)    = B;
+            bestRefPhaseLSQ(1,split, s) = mod(refph, 2*pi);
+            bestOffsetsLSQ(1,split, s)  = offset;
+            maxVarExplValLSQ(1,split, s)  = ve;
+
+
+             for rp = 1:length(phaseRange)
+               
                 % Get reference phase
                 thisRefPhase = phaseRange(rp);
                 
@@ -118,7 +139,7 @@ if opt.meg.useCoherentSpectrum
                     % set the ve=0 such that when maximum ve is checked
                     % only the one with positive beta will be selected
                     refPhase(rp,split,s) = thisRefPhase;
-                    varexpl(rp,split,s)  = 0;
+                    varexpl(rp,split,s)  = -inf;
                 else
                     refPhase(rp,split,s) = thisRefPhase;
                 end
@@ -206,6 +227,8 @@ bestBetas    = NaN(1,nSensors,size(varexpl,2));
 bestRefPhase = NaN(1,nSensors,size(varexpl,2));
 bestOffsets  = zeros(1,nSensors,size(varexpl,2));
 
+
+
 % Loop over group to make sure the indexing will be correct
 for rr = 1:size(varexpl,2)
     
@@ -253,6 +276,18 @@ warning on
 
 fprintf('(%s) Done!\n',mfilename)
 
+
+figure, 
+subplot(1,3,1)
+scatter(bestRefPhase(1,1,:), bestRefPhaseLSQ(1,2,:)); hold on
+scatter(bestRefPhase(1,2,:), bestRefPhaseLSQ(1,1,:)); hold off
+
+subplot(1,3,2)
+scatter(bestBetas(1,1,:), bestBetasLSQ(1,2,:)); hold on
+scatter(bestBetas(1,2,:), bestBetasLSQ(1,1,:)); hold off
+
+subplot(1,3,3)
+scatter(bestOffsets(:),  bestOffsetsLSQ(:))
 
 
 if ~opt.vary.perturbOrigPRFs
@@ -323,8 +358,23 @@ if ~opt.vary.perturbOrigPRFs
     end % verbose
 end % non vary PRF analysis only
 
+end
 
 
-return
 
-
+function [err, pred_out] = phaseReferencedPrediction(ref_phase, pred, A, P, hasOffset)
+   
+    disp(ref_phase)
+    phRef10Hz = rescaleAmpsWithRefPhase(A, P, ref_phase);
+    
+    [B, offset] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', hasOffset);
+   
+    pred_out = pred * B + offset;
+        
+    if isempty(A)
+        err = [];
+    else
+        err = sum((pred_out - phRef10Hz).^2);
+    end
+    
+end
