@@ -99,8 +99,8 @@ if opt.meg.useCoherentSpectrum
             A = amp10Hz{split}(~currentnans{split})';
             P = ph10Hz{split}(~currentnans{split})';
             pred = predMEGResponse(~currentnans{split},s);
-            options = optimset('Display','iter');
-            
+            options = optimset('Display','final');
+                        
             if isempty(A)
                 B = NaN; refph = NaN; offset = NaN;
             else
@@ -364,17 +364,21 @@ end
 
 function [err, pred_out] = phaseReferencedPrediction(ref_phase, pred, A, P, hasOffset)
    
-    disp(ref_phase)
+
     phRef10Hz = rescaleAmpsWithRefPhase(A, P, ref_phase);
     
     [B, offset] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', hasOffset);
    
     pred_out = pred * B + offset;
         
+    
+    
     if isempty(A)
         err = [];
     else
-        err = sum((pred_out - phRef10Hz).^2);
+        err = sum((pred_out - phRef10Hz).^2) / sum((phRef10Hz - mean(phRef10Hz)).^2);
     end
+    
+   % plot(ref_phase, err, 'o'); pause(.5);
     
 end
