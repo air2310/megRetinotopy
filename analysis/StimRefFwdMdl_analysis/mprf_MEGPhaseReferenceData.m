@@ -100,7 +100,7 @@ if opt.meg.useCoherentSpectrum
             P = ph10Hz{split}(~currentnans{split})';
             pred = predMEGResponse(~currentnans{split},s);
             options = optimset('Display','final');
-                        
+            
             if isempty(A)
                 B = NaN; refph = NaN; offset = NaN;
             else
@@ -110,41 +110,12 @@ if opt.meg.useCoherentSpectrum
                 [B, offset, ve] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', opt.addOffsetParam);
                 if B < 0, B = -B; refph = refph + pi; end
             end
-            bestBetasLSQ(1,split, s)    = B;
-            bestRefPhaseLSQ(1,split, s) = mod(refph, 2*pi);
-            bestOffsetsLSQ(1,split, s)  = offset;
-            maxVarExplValLSQ(1,split, s)  = ve;
-
-
-             for rp = 1:length(phaseRange)
-               
-                % Get reference phase
-                thisRefPhase = phaseRange(rp);
-                
-                % Rescale amplitudes with diff between reference phase and
-                % average phase of same run group
-                phRef10Hz = rescaleAmpsWithRefPhase(amp10Hz{split}(~currentnans{split}), ph10Hz{split}(~currentnans{split}), thisRefPhase);
-                
-                % Regress prediction from phase referenced 10 Hz MEG response
-                [B, offset, ve] = regressPredictedResponse(phRef10Hz', predMEGResponse(~currentnans{split},s), 'addOffsetParam', opt.addOffsetParam);
-                
-                if ~isempty(offset)
-                    offsets(rp,split,s) = offset;
-                end
-                betas(rp,split,s)   = B;
-                varexpl(rp,split,s) = ve;
-                
-                if B < 0
-                    % If regression results in a negative scale factor, then
-                    % set the ve=0 such that when maximum ve is checked
-                    % only the one with positive beta will be selected
-                    refPhase(rp,split,s) = thisRefPhase;
-                    varexpl(rp,split,s)  = -inf;
-                else
-                    refPhase(rp,split,s) = thisRefPhase;
-                end
-                
-            end % reference phase
+            
+            bestBetas(1,split, s)     = B;
+            bestRefPhase(1,split, s)  = mod(refph, 2*pi);
+            bestOffsets(1,split, s)   = offset;
+            maxVarExplVal(1,split, s) = ve;
+            
         end % split halves
     end % sensors
     
@@ -170,96 +141,50 @@ else % if using incoherent spectrum (then start with FFT before averaging)
     fprintf('(%s): Checking best reference phase for incoherent spectrum.\n', mfilename)
     fprintf('(%s): Using leave-one-out cross-validation.\n', mfilename)
     
-    for rp = 1:length(phaseRange)
+    
+    % Get test run (left-out run)
+    for split = 1:nRuns
+        fprintf('(%s): Runs in split half B: %s\n', mfilename, num2str(split))
         
-        % Get reference phase
-        thisRefPhase = phaseRange(rp);
+        % Get leftout runs
+        trainingRuns = setdiff(1:nRuns,split);
+        fprintf('(%s): Training runs: %s\n', mfilename, string(num2str(trainingRuns)))
         
-        % Get test run (left-out run)
-        for testRun = 1:nRuns
-            fprintf('(%s): Runs in split half B: %s\n', mfilename, num2str(testRun))
+        fprintf('Sensors:')
+        for s = 1:nSensors
+            fprintf('.%d',s)
             
-            % Get leftout runs
-            trainingRuns = setdiff(1:nRuns,testRun);
-            fprintf('(%s): Training runs: %s\n', mfilename, string(num2str(trainingRuns)))
+            currentnans = isnan(allAmp10Hz(:,trainingRuns,s))';
             
-            fprintf('Sensors:')
-            for s = 1:nSensors
-                fprintf('.%d',s)
-                
-                currentnans = isnan(allAmp10Hz(:,trainingRuns,s))';
-                
-                % Select current phase data from training runs
-                trainingRunsAverage_amp10Hz = mean(allAmp10Hz(~currentnans, trainingRuns, s),2); % (epochs x runs-1)
-                
-                % Get average phase across left out runs (epochs x 1)
-                trainingRunsAverage_ph10Hz = circularavg(allPh10Hz(~currentnans, trainingRuns, s), [], 2);
-                
-                % Rescale amplitudes with diff between reference phase and
-                % average phase of other runs
-                phRef10Hz = rescaleAmpsWithRefPhase(trainingRunsAverage_amp10Hz, trainingRunsAverage_ph10Hz, thisRefPhase);
-                
-                % Regress prediction from phase referenced 10 Hz MEG response
-                [B, offset, ve] = regressPredictedResponse(phRef10Hz, predMEGResponse(~currentnans,s), 'addOffsetParam', opt.addOffsetParam);
-                
-                if ~isempty(offset); offsets(rp,testRun,s) = offset; end
-                betas(rp,testRun,s)   = B;
-                varexpl(rp,testRun,s) = ve;
-                
-                if B < 0
-                    % If regression results in a negative scale factor, then
-                    % add pi to the reference phase
-                    refPhase(rp,testRun,s) = thisRefPhase;
-                    varexpl(rp,testRun,s)  = 0;
-                else
-                    refPhase(rp,testRun,s) = thisRefPhase;
-                end
-                
-            end % sensors
-        end % left out runs
-    end % reference phase
-end  % if opt.useCoherentSpectrum
+            % Select current ampl data from training runs
+            A = mean(allAmp10Hz(~currentnans, trainingRuns, s),2); % (epochs x runs-1)
+            
+            % Get average phase across left out runs (epochs x 1)
+            P = circularavg(allPh10Hz(~currentnans, trainingRuns, s), [], 2);
+            
+            x0 = pi;
+            pred = predMEGResponse(~currentnans,s);
+            options = optimset('Display','final');
+            
+            if isempty(A)
+                B = NaN; refph = NaN; offset = NaN;
+            else
+                refph = fminsearch(@(x) ...
+                    phaseReferencedPrediction(x, pred, A, P, opt.addOffsetParam), x0,options);
+                phRef10Hz = rescaleAmpsWithRefPhase(A, P, refph);
+                [B, offset, ve] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', opt.addOffsetParam);
+                if B < 0, B = -B; refph = refph + pi; end
+            end
+            bestBetas(1,split, s)     = B;
+            bestRefPhase(1,split, s)  = mod(refph, 2*pi);
+            bestOffsets(1,split, s)   = offset;
+            maxVarExplVal(1,split, s) = ve;
+        end % sensors
+        
+    end % split halves
+end % if opt.useCoherentSpectrum
 
-%% Get phase that gives max variance explained per run, per sensor
-
-% Allocate space
-bestBetas    = NaN(1,nSensors,size(varexpl,2));
-bestRefPhase = NaN(1,nSensors,size(varexpl,2));
-bestOffsets  = zeros(1,nSensors,size(varexpl,2));
-
-
-
-% Loop over group to make sure the indexing will be correct
-for rr = 1:size(varexpl,2)
-    
-    varexplRun  = squeeze(varexpl(:,rr,:));
-    betaRun     = squeeze(betas(:,rr,:));
-    refPhaseRun = squeeze(refPhase(:,rr,:));
-    
-    % Get max variance explained
-    [maxVEvalue, maxVEidx]  = max(varexplRun, [], 'omitnan');
-    
-    % Get nan sensors
-    nanIdx = isnan(maxVEvalue);
-    
-    maxVarExplIdx(rr,:,:) = maxVEidx;
-    maxVarExplVal(rr,:,:) = maxVEvalue;
-    
-    bestBetas(1,~nanIdx,rr)     = betaRun(maxVEidx(~nanIdx))';
-    bestRefPhase(1,~nanIdx,rr)  = refPhaseRun(maxVEidx(~nanIdx))';
-    
-    if ~isempty(offset)
-        offsetRun   = squeeze(offsets(:,rr,:));
-        bestOffsets(1,~nanIdx,rr)   = offsetRun(maxVEidx(~nanIdx))';
-    end
-    
-end
-
-maxVarExplIdx = permute(maxVarExplIdx, [2,1,3]);
-maxVarExplVal = permute(maxVarExplVal, [2,1,3]);
-bestBetas     = permute(bestBetas, [1,3,2]);
-bestRefPhase  = permute(bestRefPhase, [1,3,2]);
-bestOffsets   = permute(bestOffsets, [1,3,2]);
+%% Cross-validate phases,recompute phase-referenced amplitudes per sensor
 
 % rescale the original amplitudes and phase from MEG data with best
 % reference phase from other half or training data
@@ -269,25 +194,13 @@ if opt.meg.useCoherentSpectrum
     bestRefPhase = tmp;
     phRefAmp10Hz = rescaleAmpsWithRefPhase(allAmp10Hz, allPh10Hz, bestRefPhase);
 else
-    % not needed for the leave-one-out procedure
+    % not needed for the leave-one-out procedure, they are already
+    % cross-validated with the leave-one-out-procedure
     phRefAmp10Hz = rescaleAmpsWithRefPhase(allAmp10Hz, allPh10Hz, bestRefPhase);
 end
 warning on
 
 fprintf('(%s) Done!\n',mfilename)
-
-
-figure, 
-subplot(1,3,1)
-scatter(bestRefPhase(1,1,:), bestRefPhaseLSQ(1,2,:)); hold on
-scatter(bestRefPhase(1,2,:), bestRefPhaseLSQ(1,1,:)); hold off
-
-subplot(1,3,2)
-scatter(bestBetas(1,1,:), bestBetasLSQ(1,2,:)); hold on
-scatter(bestBetas(1,2,:), bestBetasLSQ(1,1,:)); hold off
-
-subplot(1,3,3)
-scatter(bestOffsets(:),  bestOffsetsLSQ(:))
 
 
 if ~opt.vary.perturbOrigPRFs
@@ -301,12 +214,12 @@ if ~opt.vary.perturbOrigPRFs
         
         if opt.meg.doSplitHalfReliability
             % Plot split half amplitude reliability
-            fH1 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH1, 'hot', ...
+            fH1 = figure; clf; megPlotMap(splitHalfAmpCorrelation,[0 max(splitHalfAmpCorrelation)],fH1, 'hot', ...
                 'Mean split half reliability of SSVEF amplitudes', [],[], 'interpmethod', 'nearest');
             c = colorbar; c.Location='eastoutside';
             
             % Plot split half amplitude reliability
-            fH2 = figure; clf; megPlotMap(splitHalfAmpReliability,[0 max(splitHalfAmpReliability)],fH2, 'hot', ...
+            fH2 = figure; clf; megPlotMap(splitHalfAmpCorrelation,[0 max(splitHalfAmpCorrelation)],fH2, 'hot', ...
                 'Mean split half reliability of SSVEF amplitudes');
             c = colorbar; c.Location='eastoutside';
             
@@ -331,7 +244,7 @@ if ~opt.vary.perturbOrigPRFs
             
             ax1 = subplot(2,1,1);
             plot(t, allAmp10Hz(:,1,s), 'r'); hold on; plot(t, allAmp10Hz(:,2,s), 'g');
-            xlabel('time points'); ylabel('Magnetic flux (T)'); 
+            xlabel('time points'); ylabel('Magnetic flux (T)');
             title(sprintf('Sensor %d amplitudes',s)); %, splithalf reliability %1.2f', s, splitHalfAmpReliability(s)));
             legend({'Amplitudes of split half 1', 'Amplitudes of split half 2'}); box off;
             set(ax1, 'TickDir', 'out', 'FontSize', 10)
@@ -363,22 +276,21 @@ end
 
 
 function [err, pred_out] = phaseReferencedPrediction(ref_phase, pred, A, P, hasOffset)
-   
 
-    phRef10Hz = rescaleAmpsWithRefPhase(A, P, ref_phase);
-    
-    [B, offset] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', hasOffset);
-   
-    pred_out = pred * B + offset;
-        
-    
-    
-    if isempty(A)
-        err = [];
-    else
-        err = sum((pred_out - phRef10Hz).^2) / sum((phRef10Hz - mean(phRef10Hz)).^2);
-    end
-    
-   % plot(ref_phase, err, 'o'); pause(.5);
-    
+% Get phase referenced data
+phRef10Hz = rescaleAmpsWithRefPhase(A, P, ref_phase);
+
+% Get phase referenced data
+[B, offset] = regressPredictedResponse(phRef10Hz, pred, 'addOffsetParam', hasOffset);
+
+% Get new model prediction, scaled with gain and offset
+pred_out = pred * B + offset;
+
+% Get error (SSres / SStot)
+if isempty(A)
+    err = [];
+else
+    err = sum((pred_out - phRef10Hz).^2) / sum((phRef10Hz - mean(phRef10Hz)).^2);
+end
+
 end
