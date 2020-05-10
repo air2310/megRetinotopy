@@ -99,7 +99,7 @@ if opt.meg.useCoherentSpectrum
             A = amp10Hz{split}(~currentnans{split})';
             P = ph10Hz{split}(~currentnans{split})';
             pred = predMEGResponse(~currentnans{split},s);
-            options = optimset('Display','final');
+            options = optimset('Display','off');
             
             if isempty(A)
                 B = NaN; refph = NaN; offset = NaN;
@@ -164,7 +164,7 @@ else % if using incoherent spectrum (then start with FFT before averaging)
             
             x0 = pi;
             pred = predMEGResponse(~currentnans,s);
-            options = optimset('Display','final');
+            options = optimset('Display','off');
             
             if isempty(A)
                 B = NaN; refph = NaN; offset = NaN;
