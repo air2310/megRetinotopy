@@ -48,7 +48,7 @@ hvol = rmSelect(hvol,1,rm_model);
 % zeros:
 ve = rmGet(hvol.rm.retinotopyModels{1},'varexplained');
 % ve10mask = ((ve >= opt.mri.varExplThresh(1)) & (ve < opt.mri.varExplThresh(2)));
-ve10mask = ve > 0;
+ve0mask = ve > 0;
 
 
 % We need these parameters from the pRF model
@@ -120,7 +120,7 @@ for nn = 1:length(params)
             % reconstructing the pRF, multiplying it with the stimulus and
             % it's beta, and taking the maximum response from the
             % predicted time series
-            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),ve10mask);
+            maxresp = mprfComputeMaximumResponse(rm_stim,sigma_us,x0,y0,prf_par_exp.(cur_param),ve0mask);
                  
             % Store the maximum responses as a nifti file: 
             hvol = viewSet(hvol,'map',{maxresp});
@@ -128,7 +128,7 @@ for nn = 1:length(params)
             mprfCheckParameterNiftiAlignment(cls, fname);
             
              % Smooth the maximum responses on the cortical surface
-            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, ve10mask);
+            [maxresp_smoothed, wConMat] = dhkGraySmooth(hvol,maxresp,[ ],wConMat, ve0mask);
             
             % Export smoothed maximum responses as a nifti:
             hvol = viewSet(hvol,'map',{maxresp_smoothed});
@@ -156,7 +156,7 @@ for nn = 1:length(params)
         case {'x','y','sigma'}
             
             % Smooth the current paramter:
-            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, ve10mask);
+            [tmp_sm_par, wConMat] = dhkGraySmooth(hvol,prf_par_exp.(cur_param),[ ],wConMat, ve0mask);
             
             % Export smoothed data as nifti:
             fname = fullfile(prf_data_mrVNif,[cur_param '_smoothed.nii.gz']);
