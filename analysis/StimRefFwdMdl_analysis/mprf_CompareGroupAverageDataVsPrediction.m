@@ -192,7 +192,7 @@ else
     
     for ii = 1:nrVariations
         
-        figure(fH1); subplot(2,ceil(nrVariations/2),ii)
+        figure(fH1); subplot(3,ceil(nrVariations/3),ii)
         megPlotMap(groupVarExpl(:,ii)',clims,fH1, 'parula', ...
             subplotLabels{ii}, [],[], 'interpMethod', 'v4');
         c = colorbar;
