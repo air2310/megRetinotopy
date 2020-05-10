@@ -77,13 +77,13 @@ for s = 1:length(subjects)
         
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
-        yl = [0 60];
+        yl = [-10 50];
         % Rescale if subjects fall outside ylimit
         if max(dataToPlot(:))>yl(2)
             yl = [yl(1) max(dataToPlot(:))+10];
         end
         if min(dataToPlot(:))<yl(1)
-            yl = [-50 yl(2)];
+            yl = [min(dataToPlot(:))-10 yl(2)];
         end
         yLabel = 'Variance explained (%)';
     elseif strcmp(summaryMetric, 'percentChangeVE')
@@ -114,6 +114,7 @@ for s = 1:length(subjects)
         
         err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
         plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
+        plot(range, zeros(size(dataToPlot(s,:))), 'k', 'LineWidth', 1);
         plot([1 1], [min(yl), max(yl)], 'k');
         
         set(gca,'TickDir', 'out');

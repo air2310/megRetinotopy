@@ -12,6 +12,12 @@ if opt.saveFig
     end
 end
 
+% Define plotting params
+color = [0.5 0.5 0.5];
+yl    = [-10 50];
+clim  = [0 50];
+interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
+
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
 
@@ -35,27 +41,18 @@ end
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
+lo           = 100.*(mean_varexpl - ci_varexpl);
+hi           = 100.*(mean_varexpl + ci_varexpl);
 
 % Plot mean with shaded error bar using 'patch' function
-lo = 100.*(mean_varexpl - ci_varexpl);
-hi = 100.*(mean_varexpl + ci_varexpl);
-color = [0.5 0.5 0.5];
-
 fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF position');
 err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
 hold all;
 plot(range,100.*mean_varexpl,'r','Linewidth',3);
 plot(range, zeros(size(range)), 'k')
-plot([0 0 ], [-10 30], 'k')
+plot([0 0 ], yl, 'k')
 
 % Add labels and make pretty
-yl = [-10 30];
-% if max(100.*mean_varexpl)>yl(2)
-%     yl = [0 max(100.*mean_varexpl)+5];
-% end
-% if min(100.*mean_varexpl)<yl(1)
-%     yl = [min(100.*mean_varexpl)-5 yl(2)];
-% end
 set(gca,'TickDir', 'out');
 xlabel('Rotation angle (deg)');
 set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
@@ -64,14 +61,10 @@ title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
 
 
-%% Plot meshes
+%% Plot meshes for each iteration
 rows = 2;
 cols = round(length(range)/rows);
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
-
-clim = [0 50];
-%interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
-interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
@@ -87,7 +80,6 @@ for ii = 1:length(range)
     pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
 
 end
-
 
 %% Save figures if requested
 if opt.saveFig

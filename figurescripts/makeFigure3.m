@@ -11,6 +11,12 @@ if opt.saveFig
     end
 end
 
+% Define plotting params
+color = [0.5 0.5 0.5];
+yl    = [-10 50];
+clim  = [0 50];
+interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
+
 % Load variance explained
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
 
@@ -34,29 +40,18 @@ end
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
 ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
-
-
-fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF size');
+lo           = 100.*(mean_varexpl - ci_varexpl);
+hi           = 100.*(mean_varexpl + ci_varexpl);
 
 % Plot mean with shaded error bar using 'patch' function
-lo = 100.*(mean_varexpl - ci_varexpl);
-hi = 100.*(mean_varexpl + ci_varexpl);
-color = [0.5 0.5 0.5];
+fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', 'Vary pRF size');
 err = patch([range, fliplr(range)], [lo', fliplr(hi')], color, 'FaceAlpha', 0.5, 'LineStyle',':');
 hold on;
 plot(range,100.*mean_varexpl,'r','Linewidth',3);
 plot(range, zeros(size(range)), 'k')
-plot([1 1], [-10 30], 'k')
+plot([1 1], yl, 'k')
 
 % Add labels and make pretty
-yl = [-10 30];
-% if max(100.*mean_varexpl)>yl(2)
-%     yl = [0 max(100.*mean_varexpl)+5];
-% end
-% if min(100.*mean_varexpl)<yl(1)
-%     yl = [min(100.*mean_varexpl)-5 yl(2)];
-% end
-
 set(gca,'TickDir', 'out');
 xlabel('Scale factor');
 set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
@@ -65,15 +60,10 @@ title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');
 
 
-
 %% Plot meshes
 rows = 3;
 cols = round(length(range)/rows)+1;
 fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
-
-clim = [0 50];
-%interpmethod = 'nearest'; % can also be 'v4' for smooth interpolation
-interpmethod = []; % using the default 'v4' interpolation
 
 for ii = 1:length(range)
     % Select data
@@ -88,20 +78,11 @@ for ii = 1:length(range)
     pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])   
 end
 
-
-%% Plot the sensors selected for averaging
-
-if strcmp(sensorsToAverage, 'top10')
-    fH3 = mprfPlotHeadLayout(sensorLoc',0,[]);
-end
-
+%% Save figures if requestsed
 if opt.saveFig
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
-    if strcmp(sensorsToAverage, 'top10')
-        print(fH3, fullfile(saveDir, sprintf('fig3b_%s_varySizeSensors%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
-    end
 end
 
 

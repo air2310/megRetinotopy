@@ -21,7 +21,6 @@ end
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
 
-
 % Define the range of rotations
 range   = opt.vary.position;
 
@@ -29,10 +28,11 @@ range   = opt.vary.position;
 varexpl = NaN(length(subjects),length(range), 157);
 sensorLoc = cell(length(subjects),1);
 
-% Figure for all subjects in one plot
+% Set up figures 
+% fH1: Figure for all subjects in one plot
 fH1   = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1, 592, 838, 746]);
 
-% Figure for all subjects plotted separately
+% fH2: Figure for all subjects plotted separately
 if  strcmp(summaryMetric, 'meanVE')
     sz = get(0, 'screensize');
     fH2 = figure; set(gcf,'Position', sz);
@@ -71,13 +71,13 @@ for s = 1:length(subjects)
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
         yLabel = 'Variance explained (%)';
-        yl = [0 60];
+        yl = [-10 50];
         % Rescale if subjects fall outside ylimit
         if max(dataToPlot(:))>yl(2)
             yl = [yl(1) max(dataToPlot(:))+10];
         end
         if min(dataToPlot(:))<yl(1)
-            yl = [-50 yl(2)];
+            yl = [min(dataToPlot(:))-10 yl(2)];
         end
     elseif strcmp(summaryMetric, 'percentChangeVE')
         percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
@@ -106,6 +106,7 @@ for s = 1:length(subjects)
     
     err = patch([range, fliplr(range)], [lo, fliplr(hi)], colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');  hold on;
     plot(range,dataToPlot(s,:),'Color', 'r', 'Linewidth',2); hold on;
+    plot(range, zeros(size(dataToPlot(s,:))), 'k', 'LineWidth', 1);
     plot([0 0], [min(yl), max(yl)], 'k');
     
     set(gca,'TickDir', 'out'); xlabel('Rotation angle (deg)');
