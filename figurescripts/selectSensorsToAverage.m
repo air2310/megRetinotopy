@@ -45,7 +45,7 @@ switch type
     case 'top10'
         meanVarExpl(isnan(meanVarExpl))=0;
         [~,idx] = sort(meanVarExpl,2,'descend');
-        sensorLoc = unique(idx(:,1:10));
+        sensorLoc = unique(idx(:,1:10))';
         
     % Selecting union of top 10 sensors from all iterations
     case 'top5'
@@ -76,8 +76,13 @@ if size(sensorLoc,1)>1
 else 
     fh = mprfPlotHeadLayout(sensorLoc,0,[]);
     if opt.saveFig
+        if cellfind(strsplit(saveDir, '/'), 'average')
+            fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', 'groupAverage', opt.fNamePostFix, type);
+        else
+            fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type);
+        end
         if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
-        print(gcf, fullfile(saveDir, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type)), '-dpdf');
+        print(gcf, fullfile(saveDir, 'sensorSelection', fname), '-dpng');
     end
     
     close(fh)
