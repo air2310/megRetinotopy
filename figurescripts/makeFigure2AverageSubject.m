@@ -39,12 +39,13 @@ if  strcmp(summaryMetric, 'meanVE')
     colorCIPatch = [0.5 0.5 0.5];
 end
 
+% Plotting params
 lineColorSat = repmat(linspace(0.3,0.9,10), [3 1]);
 
 for s = 1:length(subjects)
     
+    % Get subject name and directories
     subjectID = subjects{s};
-    
     dirPth = loadPaths(subjectID);
     
     % Load variance explained file
@@ -80,13 +81,11 @@ for s = 1:length(subjects)
             yl = [min(dataToPlot(:))-10 yl(2)];
         end
     elseif strcmp(summaryMetric, 'percentChangeVE')
-        percentdiff(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
-        dataToPlot = percentdiff;
+        dataToPlot(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
         yl = [-100 100];
         yLabel = 'Percent change variance explained (%)';
     elseif strcmp(summaryMetric, 'zscoreVE')
-        zscoredVE(s,:) = zscore(meanSelectedSensors(s,:));
-        dataToPlot = zscoredVE;
+        dataToPlot(s,:) = zscore(meanSelectedSensors(s,:));
         yl = [-3 3];
         yLabel = 'Z-scored variance explained (%)';
     end
@@ -100,7 +99,7 @@ for s = 1:length(subjects)
     
     % Plot mean with shaded error bar using 'patch' function
     se   = 100.*nanstd(thisSubjectSensorData,0,2) ./ sqrt(size(thisSubjectSensorData,2));
-    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.95 for 95%
+    ci   = 1 .* se; % use zsore=1 for 68% CI or zcore=1.96 for 95% CI
     lo = dataToPlot(s,:) - ci';
     hi = dataToPlot(s,:) + ci';
     
@@ -109,19 +108,19 @@ for s = 1:length(subjects)
     plot(range, zeros(size(dataToPlot(s,:))), 'k', 'LineWidth', 1);
     plot([0 0], [min(yl), max(yl)], 'k');
     
+    % Add labels and make pretty
     set(gca,'TickDir', 'out'); xlabel('Rotation angle (deg)');
     set(gca,'XTick', range([1 5 9]),'XTickLabel',rad2deg(range([1 5 9])), 'YLim', yl, 'XLim', [range(1),range(end)]);
     set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
     title(sprintf('S%d', s));
     ylabel(yLabel); box off;
     
-    
 end
 
-% Average/SE/CI across subjects
-averageDataToPlot          = nanmean(dataToPlot,1);
+%% Plot average across subjects on top of figure with individual lines
 
-% Plot mean
+averageDataToPlot = nanmean(dataToPlot,1);
+
 figure(fH1);
 plot(range,averageDataToPlot,'r','Linewidth',5); hold on;
 plot(range, zeros(size(averageDataToPlot)), 'k', 'LineWidth', 1);
@@ -175,10 +174,9 @@ box off;
 % Save fig
 if opt.saveFig
     
-    fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
+    fprintf('\n(%s): Saving Group and supplemental figure 2 in %s\n',mfilename, saveDir);
     print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpdf');
     print(fH1, fullfile(saveDir, sprintf('fig2a_AVERAGE_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
-    
     
     print(fH2, fullfile(saveDir, sprintf('fig2a_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
     print(fH2, fullfile(saveDir, sprintf('fig2a_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');

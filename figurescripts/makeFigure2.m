@@ -14,9 +14,9 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-10 50];
+yl    = [0 50];
 clim  = [0 50];
-interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
+interpmethod = 'v4'; % can be [] for 'v4' --> smooth interpolation or 'nearest' to avoid interpolation
 
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -40,7 +40,7 @@ end
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
-ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
+ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.96 for 95%
 lo           = 100.*(mean_varexpl - ci_varexpl);
 hi           = 100.*(mean_varexpl + ci_varexpl);
 
@@ -94,7 +94,7 @@ if opt.saveFig
     figure(fH2);
     figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
     figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
-    fprintf('\n saving figure 1D in %s',saveDir);
+
 end
 
 return
