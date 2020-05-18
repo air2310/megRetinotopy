@@ -31,25 +31,33 @@ end
 [dataDir, tmp] = fileparts(dirPth.finalFig.savePthAverage);
 loadDir = fullfile(dataDir, 'GroupAvePrediction', opt.subfolder);
 
-load(fullfile(loadDir, 'groupVarExplBoot10000'),'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot');
-load(fullfile(loadDir, 'groupVarExplNoBoot'),'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allData', 'allPredictions');
-    
-
 % Check number of iterations
 if ~opt.vary.perturbOrigPRFs
     nrVariations = 1;
-    groupVarExplMeanBoot = nanmean(groupVarExpl,2);
-    ve_cat = cat(1,groupVarExplMeanBoot',groupVE_noBootstrp);
 elseif strcmp(opt.vary.perturbOrigPRFs, 'position')
     nrVariations = length(opt.vary.position);
-    groupVarExplMean = nanmean(groupVarExpl,3);
-
 elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
     nrVariations = length(opt.vary.size);
-    groupVarExplMean = nanmean(groupVarExpl,3);
-
 end
 
+nSensors = 157;
+nBoot = 10000;
+groupVarExplAll = NaN(nrVariations, nSensors, nBoot);
+groupVarExplMean = NaN(nrVariations, nSensors);
+
+
+for ii = 1:nrVariations
+    load(fullfile(loadDir, sprintf('groupVarExplBoot10000_%d',ii)),'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot');
+    load(fullfile(loadDir, sprintf('groupVarExplNoBoot_%d',ii)),'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allData', 'allPredictions');
+    
+    if ~opt.vary.perturbOrigPRFs
+        groupVarExplMeanBoot = nanmean(groupVarExpl,2);
+        ve_cat = cat(1,groupVarExplMeanBoot',groupVE_noBootstrp);
+    else
+        groupVarExplAll(ii,:,:) = groupVarExpl;
+        groupVarExplMean(ii,:) = nanmean(groupVarExpl,2)';
+    end
+end   
 
 if ~opt.vary.perturbOrigPRFs
     fnameAdd = {'withBoot', 'noBoot'};
@@ -86,6 +94,7 @@ if ~opt.vary.perturbOrigPRFs
     end
     
 else
+    
     if strcmp(opt.vary.perturbOrigPRFs,'position')
         range = opt.vary.position;
         origIdx = find(range==0);
@@ -122,17 +131,25 @@ else
     % Get confidence intervals based on boots across subjects 
     pct1 = 100 * (0.32/2);
     pct2 = 100 - pct1;
-    lo = 100.*nanmean(prctile(groupVarExpl(:,sensorLoc,:), pct1, 3),2); % 16th percentile
-    hi = 100.*nanmean(prctile(groupVarExpl(:,sensorLoc,:), pct2, 3),2); % 84th percentile
+    lo = 100.*nanmean(prctile(groupVarExplAll(:,sensorLoc,:), pct1, 3),2); % 16th percentile
+    hi = 100.*nanmean(prctile(groupVarExplAll(:,sensorLoc,:), pct2, 3),2); % 84th percentile
     
-    figure(99); clf;
+    % Get p value from bootstrapped data
+    mnTop10Boots = squeeze(nanmean(groupVarExplAll(:,sensorLoc,:),2));
+    [~,peakIdx] = max(mnTop10Boots,[],1);
+    peakBelowOrigPRF = sum(peakIdx<origIdx);
+    p = 2*(.5-abs(.5- (peakBelowOrigPRF/size(groupVarExplAll,3))));
+    fprintf('P-value of mean peak at original pRF param using %dx bootstraps: %1.3f \n',size(groupVarExplAll,3), p)
+
+    
+    figure(99); set(gcf, 'Position',[520, 39, 996, 759], 'Color', 'w'); clf;
     meandataToPlot = 100.*nanmean(dataToPlot, 1);   
-    plot([range(origIdx) range(origIdx)],[min(lo'), max(hi')], 'k');  hold on;
+    plot([range(origIdx) range(origIdx)],[0, max(hi')], 'k');  hold on;
     plot([range(1), range(end)], [0 0], 'k');
     err = patch([range, fliplr(range)], [lo', fliplr(hi')], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
     plot(range,meandataToPlot,'Color', 'r', 'Linewidth',2); hold on;
     
-    set(gca,'TickDir', 'out', 'YLim', [min(lo), max(hi)], 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
+    set(gca,'TickDir', 'out', 'YLim', [0, max(hi)], 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
     xlabel(xLabels);
     set(gca,'XScale', xScale, 'XLim', [range(1),range(end)]); axis square;
     title('Group average fit');
@@ -150,7 +167,7 @@ else
     for ii = 1:nrVariations
         
         figure(fH1); subplot(3,ceil(nrVariations/3),ii)
-        megPlotMap(groupVarExplMean(:,ii)',clims,fH1, 'parula', ...
+        megPlotMap(groupVarExplMean(ii,:),clims,fH1, 'parula', ...
             subplotLabels{ii}, [],[], 'interpMethod', 'v4');
         c = colorbar;
         c.Location = 'eastoutside';
@@ -161,7 +178,7 @@ else
         pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
         
         figure(fH2); subplot(3,ceil(nrVariations/3),ii)
-        megPlotMap(groupVarExplMean(:,ii)',clims,fH2, 'parula', ...
+        megPlotMap(groupVarExplMean(ii,:),clims,fH2, 'parula', ...
             subplotLabels{ii}, [],[], 'interpmethod', 'nearest');
         c = colorbar;
         c.Location = 'eastoutside';
@@ -189,7 +206,7 @@ if ~opt.vary.perturbOrigPRFs
     load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'megStimConditions.mat'), 'triggers');
     
     % Define time scale
-    [~, nSensors,nEpochs] = size(allData);
+    [~,nEpochs,nSensors] = size(allData);
     epochLengthSeconds = diff(opt.meg.epochStartEnd);
     t = (0:nEpochs-1) .* epochLengthSeconds;
     
@@ -199,15 +216,15 @@ if ~opt.vary.perturbOrigPRFs
     blink_t = t(blinkIdx);
     blank_t = t(blankIdx);
     
-    averageAllData = nanmean(allData,1);
-    averageAllPredictions = nanmean(allPredictions,1);
+    averageAllData = squeeze(nanmean(allData,1));
+    averageAllPredictions = squeeze(nanmean(allPredictions,1));
     
     % Plot individual sensor time series
     fH3 = figure(3); set(fH3, 'Position', [1000,420,1269,918]);
     for s = 1:nSensors
         
         % Compute y limits
-        tmp_yl = max(abs([min(averageAllData(s,:)), max(averageAllData(s,:))])).*10^14;
+        tmp_yl = max(abs([min(averageAllData(:,s)), max(averageAllData(:,s))])).*10^14;
         if (tmp_yl > 3)
             yl = [-1*tmp_yl, tmp_yl].*10^-14;
         else
@@ -216,7 +233,7 @@ if ~opt.vary.perturbOrigPRFs
         ylim(yl); xlim([0, max(t)])
         
         clf,
-        averageAllData(s,blinkIdx) = NaN;
+        averageAllData(blinkIdx,s) = NaN;
         
         % Plot the blank and blink periods
         for bt = 1:length(blink_t)
@@ -227,11 +244,11 @@ if ~opt.vary.perturbOrigPRFs
             patch([blank_t(bt),blank_t(bt)+epochLengthSeconds blank_t(bt)+epochLengthSeconds blank_t(bt)],[yl(1),yl(1),yl(2),yl(2)],[0.5 0.5 0.5],'FaceAlpha', 0.7, 'LineStyle','none');
         end
         hold on;
-        plot(t, zeros(size(timepoints)), 'k');
-        plot(t, averageAllData(s,:), 'ko:', 'LineWidth',3);
-        plot(t, averageAllPredictions(s,:), '-', 'Color',[1 0.45 0.45], 'LineWidth',3);
+        plot(t, zeros(size(t)), 'k');
+        plot(t, averageAllData(:,s), 'ko:', 'LineWidth',3);
+        plot(t, averageAllPredictions(:,s), '-', 'Color',[1 0.45 0.45], 'LineWidth',3);
         ylim(yl); xlim([0, max(t)])
-        title(sprintf('Group average sensor %d, var expl %1.2f', s, groupVarExpl(s)));
+        title(sprintf('Group average sensor %d, var expl %1.2f', s, groupVarExplMean(s)));
         set(gca, 'TickDir', 'out', 'FontSize', 20, 'TickLength',[0.010 0.010],'LineWidth',3); box off;
         xlabel('Time (s)'); ylabel('Phase-referenced 10 Hz SSVEF response (fT)');
         
