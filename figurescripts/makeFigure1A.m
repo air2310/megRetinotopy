@@ -19,8 +19,8 @@ end
 load(fullfile(varexpl.folder,varexpl.name),'meanVarExpl');
 
 % Set colormap limits
-clims = [0 0.45];
-clims = [0 max(meanVarExpl)];
+clims = [0 0.5];
+% clims = [0 max(meanVarExpl)];
 interpMethod = 'v4'; % choose 'v4' or 'nearest'
 
 % Plot it!
