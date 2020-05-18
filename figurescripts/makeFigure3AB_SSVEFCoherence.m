@@ -1,4 +1,6 @@
-function [] = makeFigureSSVEFCoherence()
+function [] = makeFigure3AB_SSVEFCoherence()
+% Function to plot individual subjects for Figure 3A and B from manuscript,
+% plotting 10 Hz SSVEF coherence (10Hz/(9-11Hz).
 
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
