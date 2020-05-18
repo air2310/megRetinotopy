@@ -82,7 +82,7 @@ else
             fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type);
         end
         if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
-        print(gcf, fullfile(saveDir, 'sensorSelection', fname), '-dpng');
+        print(gcf, fullfile(saveDir, 'sensorSelection', fname), '-dpdf');
     end
     
     close(fh)
