@@ -79,12 +79,12 @@ cd(mprf_rootPath)
 
 
 
-%% Figure 1. Time series (1A) and MEG head plot (1B)
+%% Figure 3. Time series (3A) and MEG head plot (3B)
 if any(intersect(whichFigure,1))
     
     if plotAverage    
         % Average subjects predictions and data separately before fitting
-        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 1, sensorsToAverage)
+        plotGroupAverageDataVsPrediction(dirPth, opt, 1, sensorsToAverage)
         
         % Plot MEG headplots for 10 subjects separately
         makeFigure1Supplement(dirPth, opt) 
@@ -105,10 +105,12 @@ if any(intersect(whichFigure,2))
         'refitGainParam', refitGainParam);
     
     if plotAverage
+        % Sensor-wise average of subject's variance explained
         makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
         
-        % Average subjects predictions and data separately before fitting
-        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 2, sensorsToAverage)
+        % Group Average modelfit variance explained (averaging subjects 
+        % predictions and data separately before fitting)
+        plotGroupAverageDataVsPrediction(dirPth, opt, 2, sensorsToAverage)
     else
         makeFigure2(dirPth, opt, sensorsToAverage);
     end
@@ -123,10 +125,12 @@ if any(intersect(whichFigure,3))
          'refitGainParam', refitGainParam);
     
     if plotAverage
+        % Sensor-wise average of subject's variance explained
         makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);
         
-        % Average subjects predictions and data separately before fitting
-        mprf_CompareGroupAverageDataVsPrediction(dirPth, opt, 3, sensorsToAverage)
+        % Group Average modelfit (averaging subjects predictions and data
+        % separately before fitting)
+        plotGroupAverageDataVsPrediction(dirPth, opt, 3, sensorsToAverage)
     else
         makeFigure3(dirPth,opt,sensorsToAverage);
     end
