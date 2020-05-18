@@ -13,9 +13,9 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-10 50];
-clim  = [0 50];
-interpmethod = 'nearest'; % can also be [] for 'v4' --> smooth interpolation
+yl    = [20 50];
+clim  = [20 50];
+interpmethod = 'v4'; % can also be [] for 'v4' --> smooth interpolation
 
 % Load variance explained
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -39,7 +39,7 @@ end
 % Compute mean and standard error of variance explained across selected sensors
 mean_varexpl = nanmean(dataToPlot,2);
 se_varexpl   = nanstd(dataToPlot,0,2) ./ sqrt(size(dataToPlot,2));
-ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.95 for 95%
+ci_varexpl   = 1 .* se_varexpl;  % use zsore=1 for 68% CI or zcore=1.96 for 95%
 lo           = 100.*(mean_varexpl - ci_varexpl);
 hi           = 100.*(mean_varexpl + ci_varexpl);
 
@@ -81,8 +81,17 @@ end
 %% Save figures if requestsed
 if opt.saveFig
     fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
+    % print as pdf in case shaded area is not rendered properly
     print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
-    print(fH2, fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpng');
+
+    figure(fH1);
+    figurewrite(fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
+
+    figure(fH2);
+    figurewrite(fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
+  
 end
 
 
