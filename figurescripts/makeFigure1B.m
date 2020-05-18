@@ -64,7 +64,7 @@ for tt = 1:length(topSensor)
     end
     
     % Plot it!
-    fH1 = figure; clf; hold all; set(gcf, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', figName); 
+    fH1 = figure(1); clf; hold all; set(gcf, 'Color', 'w', 'Position', [66,1,1855,1001], 'Name', figName); 
     
     % Plot the blank and blink periods
     for bt = 1:length(blink_t)
@@ -88,11 +88,12 @@ for tt = 1:length(topSensor)
     legend(l([2,1]), {'Observed', 'Predicted'}, 'Location', 'NorthEastOutside', 'FontSize', 25); legend boxoff;
     
     if opt.saveFig    
-        set(fH1,'Units','Inches');
-        pos = get(fH1,'Position');
-        set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+%         set(fH1,'Units','Inches');
+%         pos = get(fH1,'Position');
+%         set(fH1,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
         figurewrite(fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)),[],0,'.',1);
         figurewrite(fullfile(saveDir, sprintf('MEG_time_series_Orig_Pred_sensor_%d_%d_%s',topSensor(tt),ve_toPlot(tt), opt.fNamePostFix)),[],[1 300],'.',1);
+        
         makeFigure1B_i(topSensor(tt),saveDir, opt); % sensor location
         
     end
@@ -107,6 +108,7 @@ function makeFigure1B_i(topSensor,saveDir, opt)
 % creates and saves plot showing the position of the meg sensor
 % axes('Position',[0.12 0.7 0.2 0.2]);
 % box on; axis off; axis image;
-fH1_1 = mprfPlotHeadLayout(topSensor, false, [], false);
-saveas(fH1_1, fullfile(saveDir, sprintf('sensor_location_%d%s',topSensor,opt.fNamePostFix)), 'eps');
+fH2 = mprfPlotHeadLayout(topSensor, false, [], false);
+print(fH2, '-depsc', fullfile(saveDir, sprintf('sensor_location_%d%s',topSensor,opt.fNamePostFix)));
+close(fH2);
 end
