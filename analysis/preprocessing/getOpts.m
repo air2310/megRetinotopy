@@ -12,17 +12,17 @@ function opt = getOpts(varargin)
 % --- GENERAL ---
 opt.skipMEGPreproc        = true;               % General
 opt.skipMRIPreproc        = true;               % General
-opt.verbose               = true;               % General
+opt.verbose               = true;               % General: if true, make figures
 opt.saveData              = true;               % General
 opt.saveFig               = true;               % General
-opt.fullSizeMesh          = false;              % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
+opt.fullSizeMesh          = true;               % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
 opt.surfVisualize         = false;              % General: visualize surface meshes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
-opt.makeAverageFig        = false;              % General: Plot average across subjects
 opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
-opt.addOffsetParam        = true;               % General: if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
-opt.refitGainParam        = true;               % General: if true, recompute the gain factor for the prediction by refitting the phase-ref data.
+opt.addOffsetParam        = false;              % General: if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
+opt.refitGainParam        = false;              % General: if true, recompute the gain factor for the prediction by refitting the phase-ref data.
 opt.seed                  = 1;                  % General: random number generator seed for reproducing results, can be an integer > 0  or 'shuffle' to get reset rng
+opt.nBoot                 = 10000;              % General: number of bootstraps to get confidence intervals
 
 % --- MEG Preproc ---
 opt.meg.doFiltering           = false;          % MEG preprocessing
