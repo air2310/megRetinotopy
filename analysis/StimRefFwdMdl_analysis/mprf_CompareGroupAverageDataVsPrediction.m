@@ -47,20 +47,22 @@ end
 % Preallocate space
 
 % for analysis without bootstrapping
-VE = NaN(nrVariations, nSensors);
-predScaled = NaN(nrVariations, nSensors,nEpochs);
+VE = NaN(1,nSensors);
+predScaled = NaN(nSensors,nEpochs);
 
 % for analysis with bootstrapping
 nBoot              = 10000;
-bootVE             = NaN(nrVariations, nSensors, nBoot);
-bootAvgPredictions = NaN(nrVariations, nSensors, nBoot, nEpochs);
-bootAvgData        = NaN(nrVariations, nSensors, nBoot, nEpochs);
-bootGroupAvePredictionScaled  = NaN(nrVariations, nSensors, nBoot, nEpochs);
 
 % Define scale factor
 femtoScaleFactor = 10^14;
 
 for v = 1:nrVariations
+    
+    bootVE             = NaN(nSensors, nBoot);    
+    bootAvgPredictions = NaN(nSensors, nBoot, nEpochs);
+    bootAvgData        = NaN(nSensors, nBoot, nEpochs);
+    bootGroupAvePredictionScaled  = NaN(nSensors, nBoot, nEpochs);
+    
     for s = 1:nSensors
         
         % Identify and remove nans
@@ -72,8 +74,8 @@ for v = 1:nrVariations
             dataGroup       = allData(:,:,s,v) .*femtoScaleFactor;
         end
         
-        [VE(v, s), predScaled(v,s,:)]  = ...
-                fitGroupPredictionToData(nanmean(predictionGroup,1)', nanmean(dataGroup,1)', opt.addOffsetParam);
+        [VE(s), predScaled(s,:)]  = ...
+                fitGroupPredictionToData(nanmean(predictionGroup,1)', nanmean(dataGroup,1)', opt.addOffsetParam, opt.refitGainParam);
         
         % Concatenate predictions and data for bootstrapping the mean
         % across observers
@@ -87,34 +89,39 @@ for v = 1:nrVariations
             bootstrp(nBoot, bootFun, concatPredData);        
        
         % Separate prediction and data into separate bootstrapped matrices
-        bootAvgPredictions(v,s,:,:) = bootstat(:, 1:nEpochs);
-        bootAvgData(v,s,:,:) = bootstat(:, (nEpochs+1):(2*nEpochs));
+        bootAvgPredictions(s,:,:) = bootstat(:, 1:nEpochs);
+        bootAvgData(s,:,:) = bootstat(:, (nEpochs+1):(2*nEpochs));
         
         % Fit every bootstrap
         for boot = 1:nBoot
-            [bootVE(v, s, boot), bootGroupAvePredictionScaled(v,s,boot,:)]  = ...
-                fitGroupPredictionToData(squeeze(bootAvgPredictions(v,s, boot,:)), squeeze(bootAvgData(v,s, boot,:)), opt.addOffsetParam);
+            [bootVE(s, boot), bootGroupAvePredictionScaled(s,boot,:)]  = ...
+                fitGroupPredictionToData(squeeze(bootAvgPredictions(s, boot,:)), squeeze(bootAvgData(s, boot,:)), opt.addOffsetParam, opt.refitGainParam);
         end
                 
     end % sensors
+    
+    % Remove dummy dimension
+    groupVE_noBootstrp            = VE;
+    groupAvePredScaled_noBootstrp = predScaled;
+    
+    groupVarExpl             = bootVE;
+    groupAveData             = bootAvgData;
+    groupAvePredictionScaled = bootGroupAvePredictionScaled;
+
+    
+    save(fullfile(saveDir, sprintf('groupVarExplBoot10000_%d',v)), 'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot', '-v7.3')
+    save(fullfile(saveDir, sprintf('groupVarExplNoBoot_%d',v)), 'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allData', 'allPredictions', 'opt', '-v7.3');
+
+    
 end % nr variations (eg. size or position)
 
 
-
-% Remove dummy dimension
-groupVE_noBootstrp            = squeeze(VE);
-groupAvePredScaled_noBootstrp = squeeze(predScaled);
-
-groupVarExpl             = squeeze(bootVE);
-groupAveData             = squeeze(bootAvgData);
-groupAvePredictionScaled = squeeze(bootGroupAvePredictionScaled);
-
-save(fullfile(saveDir, 'groupVarExplBoot10000'), 'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot', '-v7.3')
-save(fullfile(saveDir, 'groupVarExplNoBoot'), 'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allPredictions', 'allPredictions', 'opt', '-v7.3');
+% save(fullfile(saveDir, 'groupVarExplBoot10000'), 'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot', '-v7.3')
+% save(fullfile(saveDir, 'groupVarExplNoBoot'), 'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allPredictions', 'allPredictions', 'opt', '-v7.3');
 end
 
 
-function [groupVarExpl, groupAvePredictionScaled] = fitGroupPredictionToData(GroupAvePrediction, GroupAveData, addOffset)
+function [groupVarExpl, groupAvePredictionScaled] = fitGroupPredictionToData(GroupAvePrediction, GroupAveData, addOffset, recomputeBetas)
 
 meanNanMask = isnan(GroupAveData);
 thisGroupAvePredictionMasked = GroupAvePrediction(~meanNanMask);
@@ -124,25 +131,29 @@ groupAvePredictionScaled     = NaN(size(GroupAvePrediction));
 
 % Create predictions
 if addOffset
+    % Add column of ones
     groupAveX = [ones(size(thisGroupAvePredictionMasked,1),1), thisGroupAvePredictionMasked];
-    
-    % Fit prediction to data
-    groupFitBeta = groupAveX \ thisGroupAveDataMasked;
-    
-    % Compute scaled predictions with betas
-    groupAvePredictionScaled(~meanNanMask) =  thisGroupAvePredictionMasked * groupFitBeta(2) + groupFitBeta(1);    
 else
     groupAveX = thisGroupAvePredictionMasked;
-    
-    % Regress out predictions
+end
+
+if recomputeBetas
+    % Fit prediction to data
     groupFitBeta = groupAveX \ thisGroupAveDataMasked;
-    
+
     % Compute scaled predictions with betas
-    groupAvePredictionScaled(~meanNanMask) =  groupAveX * groupFitBeta;
+    if addOffset
+        groupAvePredictionScaled(~meanNanMask) =  thisGroupAvePredictionMasked * groupFitBeta(2) + groupFitBeta(1);    
+    else
+        groupAvePredictionScaled(~meanNanMask) =  groupAveX * groupFitBeta;   
+    end
+else
+    groupAvePredictionScaled(~meanNanMask)  = thisGroupAvePredictionMasked;
 end
 
 % Compute coefficient of determination:
 groupVarExpl = computeCoD(thisGroupAveDataMasked',groupAvePredictionScaled(~meanNanMask)');
+
 
 end
 
