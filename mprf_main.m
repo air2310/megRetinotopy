@@ -1,4 +1,4 @@
-function mprf_main(subjID, opt)
+function results = mprf_main(subjID, opt)
 %
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions
 % involved in the MEG Retinotopy project.
@@ -177,6 +177,7 @@ end
 %       OUTPUTS (1) predicted responses on surface (epochs x vertices)
 
 predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.stim, dirPth, opt);
+results.predSurfResponse = predSurfResponse;
 
 %% 3.2 Predicted response for MEG stimulus at MEG sensor level (weighting
 %     predicted surface responses with gain matrix)
@@ -187,6 +188,7 @@ predSurfResponse = mprf_MEGPredictionFromSurfaceWrapper(mri.prfSurfPath, meg.sti
 %       OUTPUTS (1) predicted MEG responses (epochs x sensors)
 
 predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, dirPth, opt);
+results.predMEGResponse = predMEGResponse;
 
 %% 3.3 Computing phase referenced amplitude from preprocessed MEG data
 % and predicted MEG responses from cortical surface
@@ -199,6 +201,10 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %               (4) bestOffsets             (1 x run group x sensors)
 
 [phaseRefMEGResponse, bestBetas, bestRefPhase, bestOffsets] = mprf_MEGPhaseReferenceDataWrapper(meg.data, predMEGResponse, dirPth, opt);
+results.phaseRefMEGResponse = phaseRefMEGResponse;
+results.bestBetas           = bestBetas;
+results.bestRefPhase        = bestRefPhase;
+results.bestOffsets         = bestOffsets;
 
 %% 3.4 Comparing predicted MEG time series and phase-referenced MEG steady-state responses
 %       INPUTS  (1) Phase referenced MEG time series     (sensors x run groups x epochs)
@@ -209,6 +215,8 @@ predMEGResponse = mprf_MEGPredictionSensorsWrapper(predSurfResponse, meg.gain, d
 %               (2) average variance explained per MEG sensor (1 x sensors)
 
 [predMEGResponseScaled,meanVarExpl] = mprf_CompareMEGDataToPRFPredictionWrapper(phaseRefMEGResponse, predMEGResponse, bestBetas, bestOffsets, dirPth, opt);
+results.predMEGResponseScaled   = predMEGResponseScaled;
+results.meanVarExpl             = meanVarExpl;
 
 
 fprintf('(%s) finished without error!\n', mfilename)

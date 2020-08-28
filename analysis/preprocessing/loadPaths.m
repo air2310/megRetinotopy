@@ -12,7 +12,7 @@ dirPth.sessionPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Subject_se
 
 %% ------ MEG ------
 dirPth.meg.dataPth      = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'MEG'); % should be sym link in git folder
-dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'meg'); % should be sym link in git folder
+dirPth.meg.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', subjID, 'meg'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.meg.rawSqdPth    = fullfile(dirPth.meg.dataPth, subjID, 'raw');
@@ -38,7 +38,7 @@ dirPth.fs.surfPth       = fullfile(dirPth.fs.segPth, 'surf');
 
 %% ------ fMRI ------ 
 dirPth.fmri.dataPth     = fullfile(mprf_rootPath, 'data','Retinotopy', 'Data', 'fMRI'); % should be sym link in git folder
-dirPth.fmri.saveDataPth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'fmri'); % should be sym link in git folder
+dirPth.fmri.saveDataPth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', subjID, 'fmri'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.fmri.mrvPth       = fullfile(dirPth.fmri.dataPth, subjID, 'vistaSession');
@@ -65,13 +65,13 @@ dirPth.bs.anatPth = fullfile(dirPth.bsPth,'anat',subjID);
 
 %% ----- Modelfitting ----
 
-dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit'); % should be sym link in git folder
-dirPth.model.saveDataPth  = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'modelfit');
+dirPth.model.saveFigPth   = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', subjID, 'modelfit'); % should be sym link in git folder
+dirPth.model.saveDataPth  = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', subjID, 'modelfit');
 
 %% ----- Final figures ----
 
-dirPth.finalFig.savePth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', subjID, 'finalfig'); % should be sym link in git folder
-dirPth.finalFig.savePthAverage = fullfile(mprf_rootPath, 'data','Retinotopy', 'Quality_check', 'average','finalfig'); % should be sym link in git folder
+dirPth.finalFig.savePth = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', subjID, 'finalfig'); % should be sym link in git folder
+dirPth.finalFig.savePthAverage = fullfile(mprf_rootPath, 'data','Retinotopy', 'Modelfits', 'average','finalfig'); % should be sym link in git folder
 
 
 end
