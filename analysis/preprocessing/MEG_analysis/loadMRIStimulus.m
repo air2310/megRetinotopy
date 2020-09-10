@@ -30,7 +30,7 @@ meg_stim.Y = Y;
 % Get final retinotopy stimulus images (previously called full_im)
 [~, meg_stim.allim] = rmStimulusMatrix(prfParams.params,xRange,yRange,useFinalImages,scans);
 
-saveDir = fullfile(s.outPut.pth, 'stimuli', 'mri');
+saveDir = fullfile(dirPth.m, 'stimuli', 'mri');
 if ~exist('saveDir', 'dir'); mkdir(saveDir); end;
 save(fullfile(saveDir,'rm_stim.mat'), 'meg_stim');
 

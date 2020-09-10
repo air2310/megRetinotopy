@@ -279,10 +279,10 @@ end
 opt.meg.badChannels = badChannels;
 opt.meg.badEpochs   = badEpochs;
 
-fprintf('Nr of bad sensors: %d', sum(badChannels))
-fprintf('Nr of bad epochs: %d', sum(badEpochs))
+fprintf('Nr of bad sensors:\t %d\n', sum(badChannels))
+fprintf('Nr of bad epochs:\t %d\n', sum(badEpochs))
 
-figure; megPlotMap(badChannels, [0 1], [], [],[],[],[],'interpmethod', 'nearest'); colormap gray;
+figure; megPlotMap(badChannels, [0 1], [], [],'Excluded/bad sensors',[],[],'interpmethod', 'nearest'); colormap gray;
 
 if opt.saveFig
     print(gcf, '-dpng', fullfile(dirPth.meg.saveFigPth,sprintf('%s_badChannelsLayout', subjID)));
