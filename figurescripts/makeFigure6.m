@@ -1,10 +1,10 @@
-function makeFigure3(dirPth, opt, sensorsToAverage)
-% Function to make that plots the effect of scaling the original pRF
-% sizes (sigma).
+function makeFigure6(dirPth, opt, sensorsToAverage)
+% Function to make that Figure 6 of manuscript, showing the effect of 
+% scaling the original pRF sizes (sigma).
 
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveSubDir = ['figure3_' opt.subfolder];
+    saveSubDir = ['Figure6_' opt.subfolder];
     saveDir = fullfile(pth, 'finalfig', saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
@@ -13,9 +13,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [20 50];
-clim  = [20 50];
-interpmethod = 'v4'; % can also be [] for 'v4' --> smooth interpolation
+yl    = [-5 45];
 
 % Load variance explained
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -60,38 +58,15 @@ title('Variance explained by modelfit: Vary Size');
 ylabel('Variance explained (%)');
 
 
-%% Plot meshes
-rows = 3;
-cols = round(length(range)/rows)+1;
-fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF size'); hold all;
-
-for ii = 1:length(range)
-    % Select data
-    meshDataToPlot = meanVarExpl(ii,:).*100;
-    
-    % Get subplot
-    subplot(rows, cols, ii);
-    
-    megPlotMap(meshDataToPlot,clim,fH2,'parula',...
-        sprintf('%1.2fx',range(ii)),[],[],'interpmethod',interpmethod);
-    c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-    pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])   
-end
-
 %% Save figures if requestsed
 if opt.saveFig
-    fprintf('\n(%s): Saving figure 3 in %s\n',mfilename, saveDir);
+    
+    fprintf('\n(%s): Saving figure 6 in %s\n',mfilename, saveDir);
     % print as pdf in case shaded area is not rendered properly
-    print(fH1, fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+    print(fH1, fullfile(saveDir, sprintf('Figure6A_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+    figurewrite(fullfile(saveDir, sprintf('Figure6A_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+%     figurewrite(fullfile(saveDir, sprintf('Figure6A_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
 
-    figure(fH1);
-    figurewrite(fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig3a_%s_varySizeSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
-
-    figure(fH2);
-    figurewrite(fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig3b_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
-  
 end
 
 

@@ -1,4 +1,4 @@
-function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summaryMetric, opt)
+function makeFigureWrapper(subjID, whichFigure, sensorsToAverage, plotAverage, summaryMetric, opt)
 % Wrapper function for make manuscript figures for MEG Retinotopy project.
 % Allows to plot all figures at once, or just a single one, for any
 % subject, or the average across subjects
@@ -23,11 +23,11 @@ function makeAllFigures(subjID, whichFigure, sensorsToAverage, plotAverage, summ
 %                         'percentChangeVE', 'zscoreVE'.
 %
 % Example 1: Plot average variance explained for every pRF size variation  
-%   makeAllFigures('wlsubj004', 2, 'top10', true, 'meanVE')
+%   makeFigureWrapper('wlsubj004', 4, 'top10', true, 'meanVE', [])
 % Example 2: Plot average variance explained for every pRF position variation  
-%   makeAllFigures('wlsubj004', 1, 'top10', false, 'meanVE')
+%   makeFigureWrapper('wlsubj004', 5, 'top10', false, 'meanVE', [])
 % Example 3: Plot avergae zcored variance explained for every position pRF variation  
-%   makeAllFigures('wlsubj004', 1, 'top10', false, 'zscoreVE')
+%   makeFigureWrapper('wlsubj004', 6, 'top10', false, 'zscoreVE', [])
 %
 % Author: Eline R. Kupers <ek99@nyu.edu>, 2019
 
@@ -36,15 +36,15 @@ dirPth = loadPaths(subjID);
 
 % See what figures to plot
 if ~exist('whichFigure','var') || isempty(whichFigure)
-    whichFigure = 1:3;
+    whichFigure = 3:6;
 end
 
 if ~exist('sensorsToAverage','var') || isempty(sensorsToAverage)
-    sensorsToAverage = 'allPosterior';
+    sensorsToAverage = 'top10';
 end
 
 if ~exist('plotAverage', 'var') || isempty(plotAverage)
-    plotAverage = 0;
+    plotAverage = false;
 end
 
 if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
@@ -76,28 +76,40 @@ end
 % Go back to root
 cd(mprf_rootPath)
 
+%% Figure 3. Steady state coherence / reliability
+if any(intersect(whichFigure,3))
+    
+    subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
+    'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
+
+    subjectToPlot = find(strcmp(subjects,subjID));
+    
+    plotSupplementalFig = false;
+    
+    % Figure 3A. Steady state coherence
+    makeFigure3AB_SSVEFCoherence(subjectToPlot,plotAverage,plotSupplementalFig)
+    
+    % Figure 3B. Steady state reliability
+    makeFigure3C_SSVEFReliability(subjectToPlot,plotAverage,plotSupplementalFig)
+
+end
 
 
 
-%% Figure 3. Time series (3A) and MEG head plot (3B)
-if any(intersect(whichFigure,1))
+%% Figure 4. Time series (4A) and MEG head plot (4B)
+if any(intersect(whichFigure,4))
     
     if plotAverage    
         % Average subjects predictions and data separately before fitting
-        plotGroupAverageDataVsPrediction(dirPth, opt, 1, sensorsToAverage)
-        
-        % Plot MEG headplots for 10 subjects separately
-        makeFigure1Supplement(dirPth, opt) 
-
-    else
-    
-        % Figure 1. Time series (1A) and MEG head plot (1B)
-        makeFigure1(dirPth, opt);
+        plotGroupAverageDataVsPrediction(dirPth, opt, whichFigure, sensorsToAverage)
+    else  
+        % Figure 4. Time series (4A) and MEG head plot (4B)
+        makeFigure4(dirPth, opt);
     end
 end
 
-%% Figure 2. Position range line plot and headplots for every position range
-if any(intersect(whichFigure,2))
+%% Figure 5. Position range line plot and headplots for every position range
+if any(intersect(whichFigure,5))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
@@ -105,34 +117,28 @@ if any(intersect(whichFigure,2))
         'refitGainParam', refitGainParam);
     
     if plotAverage
-        % Sensor-wise average of subject's variance explained
-        makeFigure2AverageSubject(dirPth, opt, sensorsToAverage, summaryMetric);
-        
         % Group Average modelfit variance explained (averaging subjects 
         % predictions and data separately before fitting)
-        plotGroupAverageDataVsPrediction(dirPth, opt, 2, sensorsToAverage)
+        plotGroupAverageDataVsPrediction(dirPth, opt, whichFigure, sensorsToAverage)
     else
-        makeFigure2(dirPth, opt, sensorsToAverage);
+        makeFigure5(dirPth, opt, sensorsToAverage);
     end
 end
 
-%% Figure 3. Size range line plot and headplots for every size range
-if any(intersect(whichFigure,3))
+%% Figure 6. Size range line plot and headplots for every size range
+if any(intersect(whichFigure,6))
     
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
         'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
          'refitGainParam', refitGainParam);
     
-    if plotAverage
-        % Sensor-wise average of subject's variance explained
-        makeFigure3AverageSubject(dirPth,opt,sensorsToAverage, summaryMetric);
-        
+    if plotAverage       
         % Group Average modelfit (averaging subjects predictions and data
         % separately before fitting)
-        plotGroupAverageDataVsPrediction(dirPth, opt, 3, sensorsToAverage)
+        plotGroupAverageDataVsPrediction(dirPth, opt, whichFigure, sensorsToAverage)
     else
-        makeFigure3(dirPth,opt,sensorsToAverage);
+        makeFigure6(dirPth,opt,sensorsToAverage);
     end
 end
 

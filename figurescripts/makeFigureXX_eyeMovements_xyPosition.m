@@ -6,8 +6,9 @@
 
 % For MRI data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj109, wlsubj111
 % For MEG data choose from wlsubj039, wlsubj058, wlsubj068, wlsubj070, wlsubj081, wlsubj106, wlsubj109, wlsubj111
-modality = 'MRI';       % choose 'MEG' or 'MRI' (Note: subjects 004, 040 have neither eye datasets, 081 has no MRI eye data)
-subjID   = 'wlsubj111'; 
+modality = 'MEG';       % choose 'MEG' or 'MRI' (Note: subjects 004, 040 have neither eye datasets, 081 has no MRI eye data)
+subjID   = 'wlsubj039'; 
+equateSamples = false;  % equate number of samples for MEG to match MRI 
 
 % Load paths with data files for this subject
 dirPth = loadPaths(subjID);
@@ -23,11 +24,30 @@ convertEDFFile =  false;
 
 eyeData = mprf_eyeAnalysis(subjID, dirPth, opt, modality, convertEDFFile);
 
+% If equating the number of samples for MRI and MEG, then randomly select
+% 1000 epochs:
+%   MRI => 244 epochs x 4500 samples (500 Hz sample rate) = 1,098,000 samples
+%   MEG => 2375 epochs x 1100 samples (1000 Hz sample rate) = 2,612,500
+%   samples
+% Thus ~1,100,000 MRI samples / 1100 samples in one MEG epoch = ~1000 epochs
+if strcmp(modality, 'MEG') && equateSamples
+    rn_vector = randi(size(eyeData.msVec,1),1,1000);
+    eyeData.xyPos = eyeData.xyPos(rn_vector,:,:);
+    eyeData.xyVel = eyeData.xyVel(rn_vector,:,:);
+    eyeData.xPos  = eyeData.xPos(rn_vector,:);
+    eyeData.yPos  = eyeData.yPos(rn_vector,:);
+    eyeData.msVec  = eyeData.msVec(rn_vector,:);
+    eyeData.theta  = eyeData.theta(rn_vector);
+    eyeData.rho  = eyeData.rho(rn_vector);
+
+end
+
 % Get mean, median and covariance matrix
 traceMean   = nanmean([eyeData.xPos(:), eyeData.yPos(:)]);
 traceMedian = nanmedian([eyeData.xPos(:), eyeData.yPos(:)]);
 traceCov    = cov([eyeData.xPos(~isnan(eyeData.xPos(:))), eyeData.yPos(~isnan(eyeData.yPos(:)))]);
 
+fprintf('Diagonal of covariance matrix %1.2f\t%1.2f\n',diag(traceCov))
 
 %% -------------------------------------
 % ------------- Fixations --------------
@@ -64,8 +84,14 @@ if opt.saveFig
     end
     fprintf('\n(%s): Saving eye movements figure  in %s\n',mfilename, saveDir);
     
-    print(fH1, fullfile(saveDir, sprintf('figXX_eyeMovements_%s_%s', subjID,lower(modality))), '-dpng');
-    print(fH1, fullfile(saveDir, sprintf('figXX_eyeMovements_%s_%s', subjID,lower(modality))), '-depsc');
+    if strcmp(modality, 'MEG') && equateSamples
+        fname = sprintf('figXX_eyeMovements_%s_%s_equateSamples', subjID,lower(modality));
+    else
+        fname = sprintf('figXX_eyeMovements_%s_%s', subjID,lower(modality));
+    end
+
+    print(fH1, fullfile(saveDir, fname), '-dpng');
+    print(fH1, fullfile(saveDir, fname), '-depsc');
     
 end
 
@@ -86,14 +112,23 @@ y = hist(bootstat,nbins);
 plot(nbins, y, 'Color', 'k','LineWidth',2);
 plot([mdBootsStat mdBootsStat],[0 500],'--','Color', 'k');
 
+fprintf('Median of bootstrapped ms rate %1.2f\n',mdBootsStat)
+
+
 xlabel('MS rate/s')
 ylabel('Frequency')
 makeprettyaxes(gca, 18,18);
 title(sprintf('MS Distributions subject %s %s', subjID, modality));
 
 if opt.saveFig
-    print(fH2, fullfile(saveDir, sprintf('figXX_msRateHistogram_%s_%s', subjID,lower(modality))), '-dpng');
-    print(fH2, fullfile(saveDir, sprintf('figXX_msRateHistogram_%s_%s', subjID,lower(modality))), '-depsc');
+    if strcmp(modality, 'MEG') && equateSamples
+        fname = sprintf('figXX_msRateHistogram_%s_%s_equateSamples', subjID,lower(modality));
+    else
+        fname = sprintf('figXX_msRateHistogram_%s_%s', subjID,lower(modality));
+    end
+    
+    print(fH2, fullfile(saveDir, fname), '-dpng');
+    print(fH2, fullfile(saveDir, fname), '-depsc');
 end
 
 
@@ -131,8 +166,13 @@ title(sprintf('Angular distribution MS - subject %s %s',subjID, modality))
 
 
 if opt.saveFig
-    print(fH3, fullfile(saveDir, sprintf('figXX_msHistogramAngular_%s_%s', subjID,lower(modality))), '-dpng');
-    print(fH3, fullfile(saveDir, sprintf('figXX_msHistogramAngular_%s_%s', subjID,lower(modality))), '-depsc');
+    if strcmp(modality, 'MEG') && equateSamples
+        fname = sprintf('figXX_msHistogramAngular_%s_%s_equateSamples', subjID,lower(modality));
+    else
+        fname = sprintf('figXX_msHistogramAngular_%s_%s', subjID,lower(modality));
+    end
+    print(fH3, fullfile(saveDir, fname), '-dpng');
+    print(fH3, fullfile(saveDir, fname), '-depsc');
 end
 
 

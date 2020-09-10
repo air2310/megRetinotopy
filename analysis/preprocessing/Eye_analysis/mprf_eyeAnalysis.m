@@ -9,7 +9,6 @@ msMinDur    = 6; % Microsaccade minimum duration (ms)
 endTime     = 0; % number of messages to omit from end (if any)
 blinkWinSec = [0.2 0.35]; % in seconds, window to define a blink (thus exclude from analysis)
 
-
 %% 0.1 Convert EDF to mat file if requested
 if convertEDFFile
     if strcmp(modality, 'MEG')
@@ -43,6 +42,7 @@ if strcmp(modality, 'MEG')
     % Define params, get xy data and messages
     timeLims    = [eyd.messages(startTime).time(1), eyd.messages(end-endTime).time];
     s           = msGetEyeData(eyd,timeLims,blinkWinSec);
+    sampleRate  = s.eyeInfo.smpRate; % msec
     
     % Find start of run (20 is blink block)
     blinkTrigNr   = 20;
@@ -96,7 +96,7 @@ if strcmp(modality, 'MEG')
             
         end
     end
-    
+   
     %% 2. MRI analysis
 elseif strcmp(modality, 'MRI')
     
@@ -129,37 +129,38 @@ elseif strcmp(modality, 'MRI')
             timeLims  = [eyd.messages(end).time, eyd.gaze.time(end)];
             s{fn}     = msGetEyeData(eyd,timeLims,blinkWinSec);
             
-            epochSampleRate = (TR/1000) * s{fn}.eyeInfo.smpRate; % sec
+            sampleRate = s{fn}.eyeInfo.smpRate; % msec
+            nrSamplesPerEpoch = (TR/1000) * sampleRate; % samples
             
             % Pad data with zero's if necessary
-            paddingLength = (nTRs*epochSampleRate) - length(s{fn}.xyPos(:,1));
+            paddingLength = (nTRs*nrSamplesPerEpoch) - length(s{fn}.xyPos(:,1));
             
             % Get eye position and velocity for selected timepoints in TR
             if paddingLength > 0
                 temp_xPos = [s{fn}.xyPos(:,1); zeros(paddingLength,1)];
-                xPos = cat(1, xPos, reshape(temp_xPos, epochSampleRate, nTRs));
+                xPos = cat(1, xPos, reshape(temp_xPos, nrSamplesPerEpoch, nTRs));
                 
                 temp_yPos = [s{fn}.xyPos(:,2); zeros(paddingLength,1)];
-                yPos = cat(1, yPos, reshape(temp_yPos, epochSampleRate, nTRs));
+                yPos = cat(1, yPos, reshape(temp_yPos, nrSamplesPerEpoch, nTRs));
                 
                 temp_xVel = [s{fn}.xyVel(:,1); zeros(paddingLength,1)];
-                xVel = cat(1, xVel, reshape(temp_xVel, epochSampleRate, nTRs));
+                xVel = cat(1, xVel, reshape(temp_xVel, nrSamplesPerEpoch, nTRs));
                 
                 temp_yVel = [s{fn}.xyVel(:,2); zeros(paddingLength,1)];
-                yVel = cat(1, yVel, reshape(temp_yVel, epochSampleRate, nTRs));
+                yVel = cat(1, yVel, reshape(temp_yVel, nrSamplesPerEpoch, nTRs));
                 
             else paddingLength < 0
                 temp_xPos = s{fn}.xyPos(1:end+paddingLength,1);
-                xPos = cat(1, xPos, reshape(temp_xPos, epochSampleRate, nTRs));
+                xPos = cat(1, xPos, reshape(temp_xPos, nrSamplesPerEpoch, nTRs));
                 
                 temp_yPos = s{fn}.xyPos(1:end+paddingLength,2);
-                yPos = cat(1, yPos, reshape(temp_yPos, epochSampleRate, nTRs));
+                yPos = cat(1, yPos, reshape(temp_yPos, nrSamplesPerEpoch, nTRs));
                 
                 temp_xVel = s{fn}.xyVel(1:end+paddingLength,1);
-                xVel = cat(1, xVel, reshape(temp_xVel, epochSampleRate, nTRs));
+                xVel = cat(1, xVel, reshape(temp_xVel, nrSamplesPerEpoch, nTRs));
                 
                 temp_yVel = s{fn}.xyVel(1:end+paddingLength,2);
-                yVel = cat(1, yVel, reshape(temp_yVel, epochSampleRate, nTRs));
+                yVel = cat(1, yVel, reshape(temp_yVel, nrSamplesPerEpoch, nTRs));
             end
         end
     end
@@ -176,7 +177,6 @@ if strcmp(modality, 'MRI') % put TRs as first dim (equivalent to epochs in MEG)
     xyVel = permute(xyVel, [2,1,3]);
 end
 
-
 % Get microsaccades
 epochsWithMS = [];
 for epoch = 1:size(xyVel,1)
@@ -189,7 +189,7 @@ for epoch = 1:size(xyVel,1)
     
     % Remove the ones that occurr closely together (overshoot)
     numSacs = size(sacRaw,1);
-    minInterSamples = ceil(0.01*s{1}.eyeInfo.smpRate);
+    minInterSamples = ceil(0.01*sampleRate);
     
     if numSacs ~= 0
         interSac = sacRaw(2:end,1)- sacRaw(1:end-1,2);
@@ -235,5 +235,5 @@ eyeData.sAll    = sAll;     % struct with all ms data
 eyeData.msVec   = msVec;    % vector, ms counts per epoch
 eyeData.rho     = rho;      % ms count, for circular distribution
 eyeData.theta   = theta;    % ms orientation, for circular distribution
-eyeData.epochSampleRate = epochSampleRate; % sec
+eyeData.sampleRate = sampleRate; % msec
 

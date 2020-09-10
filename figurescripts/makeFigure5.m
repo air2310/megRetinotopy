@@ -1,11 +1,11 @@
-function makeFigure2(dirPth, opt, sensorsToAverage)
+function makeFigure5(dirPth, opt, sensorsToAverage)
 % Function to make Figure 2 from manuscript, plotting variance explained by
 % the model as a function of polar angle rotations around the fovea of the 
 % original estimated pRF centers.
 
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
-    saveSubDir = ['figure2_' opt.subfolder];
+    saveSubDir = ['Figure5_' opt.subfolder];
     saveDir = fullfile(pth, 'finalfig', saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
@@ -14,9 +14,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [0 50];
-clim  = [0 50];
-interpmethod = 'v4'; % can be [] for 'v4' --> smooth interpolation or 'nearest' to avoid interpolation
+yl    = [-5 45];
 
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -61,39 +59,19 @@ title('Variance explained by modelfit: Vary Position');
 ylabel('Variance explained (%)');
 
 
-%% Plot meshes for each iteration
-rows = 2;
-cols = round(length(range)/rows);
-fH2 = figure(2); clf; set(fH2, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
-
-for ii = 1:length(range)
-    % Select data
-    meshDataToPlot = meanVarExpl(ii,:).*100;
-        
-    % Get subplot
-    fH2 = figure(2); hold all;
-    subplot(rows, cols, ii);
-    
-    megPlotMap(meshDataToPlot,clim,fH2,'parula',...
-        range(ii),[],[],'interpmethod',interpmethod);
-    c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-    pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
-
-end
-
 %% Save figures if requested
 if opt.saveFig
+    [pth, ~] = fileparts(dirPth.model.saveFigPth);
+    saveSubDir = ['Figure5_' opt.subfolder];
+    saveDir = fullfile(pth, 'finalfig', saveSubDir);
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
 
-    fprintf('\n(%s): Saving figure 2 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
-    
-    figure(fH1);
-    figurewrite(fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig2a_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
-
-    figure(fH2);
-    figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
-    figurewrite(fullfile(saveDir, sprintf('fig2b_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
+    fprintf('\n(%s): Saving Figure 5 in %s\n',mfilename, saveDir);
+    print(fH1, fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+    figurewrite(fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+%     figurewrite(fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
 
 end
 
