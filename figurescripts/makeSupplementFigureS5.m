@@ -44,6 +44,15 @@ for s = 1:length(subjects)
     subjectID = subjects{s};
     dirPth = loadPaths(subjectID);
     
+    if opt.saveFig
+        % Define folder to save figures
+        saveSubDir = ['SupplFigureS5_' opt.subfolder];
+        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+        if ~exist(saveDir, 'dir')
+            mkdir(saveDir);
+        end
+    end
+    
     % Load variance explained file
     load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
     varexpl(s,:,:) = meanVarExpl;
@@ -113,17 +122,11 @@ end % subjects
 
 % Save figures
 if opt.saveFig
-    % Define folder to save figures
-    saveSubDir = ['SupplFigure4_' opt.subfolder];
-    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
-    if ~exist(saveDir, 'dir')
-        mkdir(saveDir);
-    end
-    
-    fprintf('\n(%s): Saving Supplement Figure 4 in %s\n',mfilename, saveDir);
+
+    fprintf('\n(%s): Saving Supplement Figure S5 in %s\n',mfilename, saveDir);
   
-    print(fH1, fullfile(saveDir, sprintf('SuppFigure4_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
-    print(fH1, fullfile(saveDir, sprintf('SuppFigure4_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('SuppFigureS5_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
+    print(fH1, fullfile(saveDir, sprintf('SuppFigureS5_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
     
 end
 

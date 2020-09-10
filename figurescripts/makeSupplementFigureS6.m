@@ -52,8 +52,8 @@ for s = subjectToPlot
         fprintf('\n(%s): Saving Supplemental Figure S6 in %s\n',mfilename, saveDir);
         
         figure(fH1);
-        figurewrite(fullfile(saveDir, sprintf('SupplFigureS6_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
-        %     figurewrite(fullfile(saveDir, sprintf('SupplFigureS6_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
+        figurewrite(fullfile(saveDir, sprintf('SupplFigureS6_%s_varySizeMeshes%s', dirPth.subjID, opt.fNamePostFix)),[],[1 300],'.',1);
+        %     figurewrite(fullfile(saveDir, sprintf('SupplFigureS6_%s_varySizeMeshes%s', dirPth.subjID, opt.fNamePostFix)),[],0,'.',1);
         
     end
 end

@@ -14,7 +14,7 @@ if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
 end
 
 if ~exist('opt', 'var') || isempty(opt)
-    opt = getOpts;
+    opt = getOpts('perturbOrigPRFs','position');
 end
 
 
@@ -34,6 +34,15 @@ sz = get(0, 'screensize');
 fH1 = figure; set(gcf,'Position', sz);
 colorCIPatch = [0.5 0.5 0.5];
 
+if opt.saveFig
+    % Make folder to save figures
+    saveSubDir = ['SuppFigure3'];
+    dirPth = loadPaths(subjects{1});
+    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+end
 
 for s = 1:length(subjects)
     
@@ -110,12 +119,6 @@ end
 
 % Save fig
 if opt.saveFig
-    % Make folder to save figures
-    saveSubDir = ['SuppFigure3'];
-    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
-    if ~exist(saveDir, 'dir')
-        mkdir(saveDir);
-    end
     
     fprintf('\n(%s): Saving Supplemental Figure 3 in %s\n',mfilename, saveDir);
     print(fH1, fullfile(saveDir, sprintf('SuppFigure3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');

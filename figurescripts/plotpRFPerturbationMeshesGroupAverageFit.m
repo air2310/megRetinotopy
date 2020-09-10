@@ -86,9 +86,9 @@ if opt.saveFig
         mkdir(saveDir);
     end
     
-    figure(fH2)
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs, interpMthd)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs, interpMthd)),[],[1 300],'.',1);
     
 end
-end
+
+return

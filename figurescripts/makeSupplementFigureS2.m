@@ -59,8 +59,8 @@ if opt.saveFig
     end
     
     fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
-    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-depsc');
+    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-dpng');
 end
 
 return
