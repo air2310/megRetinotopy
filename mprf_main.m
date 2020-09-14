@@ -72,7 +72,7 @@ fprintf('(%s): Starting analysis of subject %s, using %s\n', mfilename, subjID, 
 %% 1. MEG data preprocessing
 
 % Start MEG data processing (if requested)
-if ~opt.skipMEGPreproc
+if opt.doMEGPreproc
     if opt.verbose; fprintf('(%s): Preprocess MEG data..\n', mfilename); end
     
     % 1.1 Get preprocessed data from raw MEG data (.sqd) to preprocessed MEG data
@@ -129,7 +129,7 @@ else % if using downsampled gain matrix, we need pRF params on Brainstorm surfac
 end
 
 % Start MRI data processing (if requested)
-if ~opt.skipMRIPreproc
+if opt.doMRIPreproc
     if opt.verbose; fprintf('(%s): Preprocess MRI data..\n', mfilename); end
     
     % 2.1 Smoothing pRF params in voxel space (and then recompute beta 
