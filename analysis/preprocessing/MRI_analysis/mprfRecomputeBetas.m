@@ -39,7 +39,8 @@ for n = 1:1000:length(sigma)
     
 end
 
-[~, idx] = max(beta_out);
+
+[~, idx] = max(mresp);
 plot(prfResp(:, 1:100:end)); hold all;
 plot(prfResp(:, idx), 'r', 'LineWidth', 10);
 drawnow;
