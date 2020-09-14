@@ -10,13 +10,13 @@ function opt = getOpts(varargin)
 
 
 % --- GENERAL ---
-opt.skipMEGPreproc        = true;               % General
-opt.skipMRIPreproc        = true;               % General
-opt.verbose               = true;               % General: if true, make figures
+opt.doMEGPreproc          = false;              % General
+opt.doMRIPreproc          = false;              % General
+opt.verbose               = true;               % General: if true, make extra figures and spit out extra text
 opt.saveData              = true;               % General
 opt.saveFig               = true;               % General
 opt.fullSizeMesh          = true;               % General: if true, execute analysis with fullsize meshes and gain matrix (FS size), if false, downsample to Brainstorm mesh size
-opt.surfVisualize         = false;              % General: visualize surface meshes
+opt.surfVisualize         = true;               % General: visualize surface meshes
 opt.subfolder             = 'original';         % General: Create subfolder to save figures
 opt.headmodel             = 'OS';               % General: choose from 'OS' (default) or 'BEM' head model (for now, BEM is only implemented for wlsubj081 and wlsubj111)
 opt.addOffsetParam        = false;              % General: if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
