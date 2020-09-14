@@ -43,8 +43,11 @@ switch type
         
         if strcmp(opt.vary.perturbOrigPRFs, 'position')
             % Check if size data and nr of variations match
-            assert(size(data.x_smoothed_vary,2)==length(opt.vary.position))
-            
+            if opt.mri.useSmoothedData
+                assert(size(data.x_smoothed_vary,2)==length(opt.vary.position))
+            else
+                assert(size(data.x_vary,2)==length(opt.vary.position))
+            end
             % Find the original pRFs and place that iteration first, so we
             % can select the vertices after applying the variance threshold
             % to the original data.
@@ -58,7 +61,11 @@ switch type
             % i.e. check size of data, get the iteration nr of original prf
             % params, place that one first in the iteration list, so we can
             % apply our variance threshold.
-            assert(size(data.sigma_smoothed_vary,2)==length(opt.vary.size))
+            if opt.mri.useSmoothedData
+                assert(size(data.sigma_smoothed_vary,2)==length(opt.vary.size))
+            else
+                assert(size(data.sigma_vary,2)==length(opt.vary.size))
+            end
             origIter = find(opt.vary.size==1);
             varyIter = 1:length(opt.vary.size);
             varyIter(origIter) = [];
@@ -68,7 +75,11 @@ switch type
             % Again, check size of data, we add 1 iteration to account for  
             % original estimated prf data placed as the first set of
             % vertices
-            assert(size(data.sigma_smoothed_scramble,2)==opt.vary.nScrambles+1)
+            if opt.mri.useSmoothedData
+                assert(size(data.sigma_smoothed_scramble,2)==opt.vary.nScrambles+1)
+            else
+                assert(size(data.sigma_scramble,2)==opt.vary.nScrambles+1)
+            end
             iter = 1:(opt.vary.nScrambles+1); 
         
         elseif ~opt.vary.perturbOrigPRFs

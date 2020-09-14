@@ -2,11 +2,23 @@ function [prfParams, nIter] = getpRFParamNames(opt)
 % Function to get the appropiate prf parameter file names to load..
 
 if strcmp(opt.vary.perturbOrigPRFs, 'position')
-    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed_vary.mgz', 'y_smoothed_vary.mgz', 'sigma_smoothed'};
+    if opt.mri.useSmoothedData
+        prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed_vary.mgz', 'y_smoothed_vary.mgz', 'sigma_smoothed'};
+    else
+        prfParams = {'varexplained', 'mask', 'beta', 'x_vary.mgz', 'y_vary.mgz', 'sigma'};
+    end
 elseif strcmp(opt.vary.perturbOrigPRFs, 'size')
-    prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed_vary.mgz'};
+    if opt.mri.useSmoothedData
+        prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed_vary.mgz'};
+    else
+        prfParams = {'varexplained', 'mask', 'beta', 'x', 'y', 'sigma_vary.mgz'};
+    end
 elseif strcmp(opt.vary.perturbOrigPRFs, 'scramble')
-    prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_smoothed_scramble.mgz', 'y_smoothed_scramble.mgz', 'sigma_smoothed_scramble.mgz'};
+    if opt.mri.useSmoothedData
+        prfParams = {'varexplained', 'mask', 'recomp_beta_scramble.mgz', 'x_smoothed_scramble.mgz', 'y_smoothed_scramble.mgz', 'sigma_smoothed_scramble.mgz'};
+    else
+        prfParams = {'varexplained', 'mask', 'beta_scramble.mgz', 'x_scramble.mgz', 'y_scramble.mgz', 'sigma_scramble.mgz'};
+    end
 elseif (~opt.mri.useBensonMaps && opt.mri.useSmoothedData)
     prfParams = {'varexplained', 'mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
 elseif (~opt.mri.useBensonMaps && opt.mri.useSmoothedData && opt.roi.onlyV123WangAtlas)
