@@ -60,7 +60,7 @@ This code repository contains 5 subfolders specific for this project:
 
 6. Synthetic --- Folder to save synthetic data produced by the separated analysis function
 
-## MAIN FUNCTIONS
+## MAIN FUNCTIONS (all code is written in Matlab 2016b)
 * mprf_addPaths.m
 	+ Function to add data folders and relevant code (used by ToolboxToolbox)
 * mprf_main.m
