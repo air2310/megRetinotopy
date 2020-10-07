@@ -55,23 +55,27 @@ This is an empty folder where we make symbolic links to 3 existing folders:
 	-  "brainstorm_db", a folder linking to Brainstorm's Database, containing anat and data folder with subject MEG-MRI alignment and headmodel.
 
 3. figurescripts
+
 This folder with functions to reproduce main and supplementary manuscript figures, several helper functions and some loose visualization figures.
 
 4. obsolete
+
 Folder with old functions from Barrie's legacy, these are not used anymore and should eventually be removed.
 
 5. Stimulus
+
 Code to create and run stimulus for MEG and MRI
 
 6. Synthetic
+
 Folder to save synthetic data produced by the separated analysis function
 
 ## MAIN FUNCTIONS
-* mprf_addPaths.m: 				Function to add data folders and relevant code (used by ToolboxToolbox)
-* mprf_main.m:					Function to run analysis from preprocessing MEG & MRI data to forward modeling to fitting
-* mprf_makeManuscriptFigures.m:	Function to that makes all manuscript figures by calling subfunctions
-* mprf_rootPath.m: 				Function to locate root of this toolbox (must be at this folder level)
-* mprf_runAllAnalyses.m:		Function to call mprf_main.m with different input variables/settings to run the three analyses in the manuscript (using original pRF params, scaled pRF sizes, or rotated pRF positions)
+* mprf_addPaths.m                -->  Function to add data folders and relevant code (used by ToolboxToolbox)
+* mprf_main.m:                   -->  Function to run analysis from preprocessing MEG & MRI data to forward modeling to fitting
+* mprf_makeManuscriptFigures.m:	 -->  Function to that makes all manuscript figures by calling subfunctions
+* mprf_rootPath.m:               -->  Function to locate root of this toolbox (must be at this folder level)
+* mprf_runAllAnalyses.m:         -->  Function to call mprf_main.m with different input variables/settings to run the three analyses in the manuscript: using original pRF params, scaled pRF sizes, or rotated pRF positions
 
 
 ## DATA 
@@ -79,19 +83,19 @@ Currently, raw and derivatives of MRI and MEG data are on the Winawerlab server.
 We are in the process of deidentifying data and permantently store it on a publicly available OSF URL.
 
 Symbolic links point to the following places:
-	- MEG/MRI Data: server > Projects > MEG > Retinotopy
-	- Freesurfer:   server > Freesurfer_subjects
-	- Brainstorm: 	server > Projects > MEG > brainstorm_db
+* MEG/MRI Data: server > Projects > MEG > Retinotopy
+* Freesurfer:   server > Freesurfer_subjects
+* Brainstorm: 	server > Projects > MEG > brainstorm_db
 
 
 ## PIPELINE
 This code is Matlab based, and has the following depencies:
-- FreeSurfer (v5.3)
-- Vistasoft/mrVista (v??)
-- ToolboxToolbox (v??)
-- Fieldtrip (v??)
-- Brainstorm (v??)
-- meg_utils (v??)
+* FreeSurfer (v5.3)
+* Vistasoft/mrVista (v??)
+* ToolboxToolbox (v??)
+* Fieldtrip (v??)
+* Brainstorm (v??)
+* meg_utils (v??)
 
 
 ## HOW TO GET STARTED
