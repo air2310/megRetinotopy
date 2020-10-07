@@ -41,7 +41,7 @@ The aim of this project is to predict visually-triggered MEG responses responses
 
 
 ## FOLDER STRUCTURE
-This code repository contains 5 subfolders specific for this project:
+This code repository contains 6 subfolders specific for this project:
 1. analysis --- Folder with code for multiple stages of the analysis:
 	- preprocessing: code for MEG, MRI and eye tracking analyses
 	- StimRefFwdMdl_analysis: code for stimulus referred MEG forward model, after data are preprocessed.
@@ -54,7 +54,7 @@ This code repository contains 5 subfolders specific for this project:
 
 3. figurescripts --- Folder with functions to reproduce main and supplementary manuscript figures, several helper functions and some loose visualization figures.
 
-4. obsolete --- Folder with old functions from Barrie's legacy, these are not used anymore and should eventually be removed.
+4. obsolete --- Folder with old left-over functions from Barrie's legacy, these are not used anymore and should eventually be removed.
 
 5. Stimulus --- Code to create and run stimulus for MEG and MRI
 
