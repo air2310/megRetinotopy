@@ -1,45 +1,50 @@
 function makeSupplementFigureS4(subjectToPlot, plotAverage)
-% Function to make Supplemental Figure S6 of manuscript, showing the effect
-% of scaling the original pRF sizes (sigma) on a head plot.
+% Function to visualize variance explained meshes when varying pRF position
+% for the request subject and group average fit
+%
+%
+% Written by Eline Kupers, NYU 2020
 
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
-
-% Define plotting params
-clim  = [0 50];
-interpmethod = 'v4'; % can also be [] for 'v4' --> smooth interpolation
 
 for s = subjectToPlot
     
     % Get subject ID, options and paths
     subjID  = subjects{s};
-    opt     = getOpts('perturbOrigPRFs','position');
+    opt     = getOpts('perturbOrigPRFs','size');
     dirPth  = loadPaths(subjID);
     
-    % Get range of permutations, plotting rows/columns
+    % Define the range of rotations
     range   = opt.vary.position;
-    rows    = 2;
-    cols    = round(length(range)/rows)+1;
     
-    % Load variance explained
-    load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
+    % Define figure/subfigure locations
+    rows = 2;
+    cols = round(length(range)/rows);
+    fH1 = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [326,584,1234,754], 'Name', 'Vary pRF position'); hold all;
     
-    fH1 = figure(1); set(gcf, 'Color', 'w', 'Position', [ 136, 96, 2000,  1138],  'Name', 'Vary pRF position'); hold all;
+    % plotting params
+    clim  = [0 50];
+    interpmethod = 'v4'; % can be [] for 'v4' --> smooth interpolation or 'nearest' to avoid interpolation
+    
     
     for ii = 1:length(range)
+        
         % Select data
         meshDataToPlot = meanVarExpl(ii,:).*100;
         
         % Get subplot
+        hold all;
         subplot(rows, cols, ii);
         
         megPlotMap(meshDataToPlot,clim,fH1,'parula',...
-            sprintf('%1.2f deg',range(ii)),[],[],'interpmethod',interpmethod);
+            range(ii),[],[],'interpmethod',interpmethod);
         c = colorbar; c.TickDirection = 'out'; c.Box = 'off';
-        pos = c.Position; set(c, 'Position', [pos(1)+0.03 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
+        pos = c.Position; set(c, 'Position', [pos(1)+0.04 pos(2)+0.03, pos(3)/1.5, pos(4)/1.5])
+        
     end
     
-    %% Save figures if requestsed
+    % Save fig if requested
     if opt.saveFig
         
         [pth, ~] = fileparts(dirPth.model.saveFigPth);
@@ -51,10 +56,8 @@ for s = subjectToPlot
         
         fprintf('\n(%s): Saving Supplemental Figure S4 in %s\n',mfilename, saveDir);
         
-        figure(fH1);
-        figurewrite(fullfile(saveDir, sprintf('SupplFigureS4_%s_varySizeMeshes%s', dirPth.subjID, opt.fNamePostFix)),[],[1 300],'.',1);
-        %     figurewrite(fullfile(saveDir, sprintf('SupplFigureS4_%s_varySizeMeshes%s_%s', dirPth.subjID, opt.fNamePostFix)),[],0,'.',1);
-        
+        figurewrite(fullfile(saveDir, sprintf('SupplFigureS4_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],[1 300],'.',1);
+        figurewrite(fullfile(saveDir, sprintf('SupplFigureS4_%s_varyPositionMeshes%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)),[],0,'.',1);
     end
 end
 
@@ -62,5 +65,6 @@ if plotAverage
     % Do the same for group average modelfit
     opt = getOpts('perturbOrigPRFs','position');
     plotpRFPerturbationMeshesGroupAverageFit(dirPth, opt)
+    
 end
 return
