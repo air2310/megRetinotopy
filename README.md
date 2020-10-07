@@ -75,7 +75,7 @@ This code repository contains 5 subfolders specific for this project:
 
 ## DATA 
 Currently, raw and derivatives of MRI and MEG data are on the Winawerlab server.
-We are in the process of deidentifying data and permantently store it on a publicly available OSF URL.
+Soon, we will deidentify data and permantently store it on a publicly available OSF URL.
 
 Symbolic links point to the following places:
 * MEG/MRI Data: server > Projects > MEG > Retinotopy
@@ -83,7 +83,7 @@ Symbolic links point to the following places:
 * Brainstorm: 	server > Projects > MEG > brainstorm_db
 
 
-## PIPELINE
+## DEPENDENCIES
 This code is Matlab based, and has the following depencies:
 * FreeSurfer (v5.3)
 * Vistasoft/mrVista (v??)
