@@ -15,10 +15,15 @@ The code from Barrie Klein is archived in this repository under archive/archive_
 Our analyses and results are described in this preprint on BiorXiv. Please cite this paper when using code.
 
 TITLE:		A Population Receptive Field Model of the Magnetoencephalography Response.
+
 AUTHORS:	Eline R Kupers\*, Akhil Edadan\*,  Noah C Benson, Wietske Zuiderbaan, Maartje C de Jong, Serge O Dumoulin\*, Jonathan Winawer\*
-\* indicates shared first or senior authorship
+
+(\* indicates shared first or senior authorship)
+
 YEAR:		2020
+
 DOI:		https://doi.org/10.1101/2020.08.28.272534
+
 URL: 		https://www.biorxiv.org/content/10.1101/2020.08.28.272534v1
 
 
