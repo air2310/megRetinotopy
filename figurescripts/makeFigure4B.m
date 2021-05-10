@@ -19,7 +19,11 @@ end
 load(fullfile(varexpl.folder,varexpl.name),'meanVarExpl');
 
 % Set colormap limits
-clims = [0 0.5];
+if opt.mri.useHCPAveMaps
+    clims = [0 max(meanVarExpl,[],'omitnan')];
+else
+    clims = [0 0.5];
+end
 % clims = [0 max(meanVarExpl)];
 interpMethod = 'v4'; % choose 'v4' or 'nearest'
 
