@@ -1,7 +1,7 @@
-function makeFigure6sensorwiseAverageSubject(sensorsToAverage, summaryMetric, opt)
-% Function to make sensorwise average and bootstrapped average across subjects,
-% plotting variance explained by the model as a function of scale factor
-% of the original estimated pRF size.
+function makeFigure5sensorwiseAverageSubject(sensorsToAverage, summaryMetric, opt)
+% Function to make sensorwise and bootstrapped sensorwise average across subjects,
+% plotting variance explained by the model as a function of polar angle
+% rotations around the fovea of the original estimated pRF centers.
 
 % Check inputs
 if ~exist('sensorsToAverage', 'var') || isempty(sensorsToAverage)
@@ -13,35 +13,39 @@ if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
 end
 
 if ~exist('opt', 'var') || isempty(opt)
-    opt = getOpts;
+    opt = getOpts('perturbOrigPRFs','position');
 end
 
 
-% Define subjects
+% Define all subjects
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
 
 % Define the range of rotations
-range   = opt.vary.size;
+range   = opt.vary.position;
 
 % Allocate space
 varexpl = NaN(length(subjects),length(range), 157);
 sensorLoc = cell(length(subjects),1);
 
-% Get sensor locations in the back
-load(which('meg160_example_hdr.mat'))
-layout = ft_prepare_layout([],hdr);
-xpos = layout.pos(1:157,1);
-ypos = layout.pos(1:157,2);
-
-% Figure specs
+% Set up figures 
 fH1   = figure(1); clf; set(fH1, 'Color', 'w', 'Position', [1, 592, 838, 746]);
+
+% Plotting params
 lineColorSat = repmat(linspace(0.3,0.9,10), [3 1]);
 
 for s = 1:length(subjects)
+    
     % Get subject name and directories
     subjectID = subjects{s};
     dirPth = loadPaths(subjectID);
+    
+    [pth, ~] = fileparts(dirPth.model.saveFigPth);
+    saveSubDir = ['SupplementaryFigure9_varyPosition'];
+    saveDir = fullfile(pth, 'finalfig', saveSubDir);
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
     
     % Load variance explained file
     load(fullfile(dirPth.model.saveDataPth, opt.subfolder,'pred_resp', 'meanVarExpl'));
@@ -50,7 +54,7 @@ for s = 1:length(subjects)
     % What sensors are we averaging?
     sensorLoc{s} = selectSensorsToAverage(opt, dirPth, saveDir, squeeze(varexpl(s,:,:)), sensorsToAverage);
     
-    % Select data for sensors over the back of the head
+    % Select those data corresponding to sensors
     if strcmp(sensorsToAverage, 'top10Positive')
         curSubjLocs = sensorLoc{s};
         for ii = 1:size(curSubjLocs,1)
@@ -66,6 +70,7 @@ for s = 1:length(subjects)
     
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
+        yLabel = 'Variance explained (%)';
         yl = [-10 50];
         % Rescale if subjects fall outside ylimit
         if max(dataToPlot(:))>yl(2)
@@ -74,7 +79,6 @@ for s = 1:length(subjects)
         if min(dataToPlot(:))<yl(1)
             yl = [min(dataToPlot(:))-10 yl(2)];
         end
-        yLabel = 'Variance explained (%)';
     elseif strcmp(summaryMetric, 'percentChangeVE')
         dataToPlot(s,:) = 100*((meanSelectedSensors(s,:) - mean(meanSelectedSensors(s,:)))./mean(meanSelectedSensors(s,:)));
         yl = [-100 100];
@@ -85,32 +89,34 @@ for s = 1:length(subjects)
         yLabel = 'Z-scored variance explained (%)';
     end
     
-    % Compute mean and standard error of variance explained across selected sensors
     figure(fH1);
-    plot(range,meanSelectedSensors(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
-
-end % subjects
+    plot(range,dataToPlot(s,:),'Color', lineColorSat(:,s), 'Linewidth',2); hold on;
+    
+end
 
 %% Plot average across subjects on top of figure with individual lines
 
-% Average across subjects
 averageDataToPlot = nanmean(dataToPlot,1);
 
 figure(fH1);
-plot(range,averageDataToPlot,'r','Linewidth',6);
-plot([1 1], [min(yl), max(yl)], 'k');
+plot(range,averageDataToPlot,'r','Linewidth',5); hold on;
+plot(range, zeros(size(averageDataToPlot)), 'k', 'LineWidth', 1);
+plot([0 0], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Scale factor of original pRF size');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
-set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
-title('Sensorwise average of variance explained by modelfit: Vary Size');
+xlabel('Rotation angle from original pRF position (deg)');
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(averageDataToPlot), yl(2)], 'XLim', [range(1),range(end)]);
+set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+title('sensorwise Average variance explained by modelfit: Vary Position');
 ylabel(yLabel);
 box off;
 
-%% Figure 3 with bootstrapping data across subjects
-% Bootstrap average variance explained across subjects with 10,000 iterations
+%% Figure 2 with bootstrapping data across subjects
+
+colorCIPatch = [0.7 0.7 0.7];
+
+% Bootstrap with 10,000 iterations
 nBoot = 10000;
 BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
 pct1 = 100 * (0.32/2);
@@ -119,29 +125,42 @@ lo = prctile(BootStrappedData,pct1); % 16th percentile
 hi = prctile(BootStrappedData,pct2); % 84th percentile
 
 % Get p value from bootstrapped data
-origIdx = find(range==1);
+origIdx = find(range==0);
 [~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
-peakBelowOrigPRF = sum(peakIdx<origIdx);
+peakBelowOrigPRF = sum(peakIdx~=origIdx);
 p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
-fprintf('Mean below original pRF size of %dx bootstrapped p value: %1.3f \n',nBoot, p)
+fprintf('Mean different from original pRF position of %dx bootstrapped p value: %1.3f \n',nBoot, p)
 
 % Average of bootstrapped data
 aveBoot = nanmean(BootStrappedData,1);
 
-fH2 = figure(2); clf; set(gcf,'Position',[1, 592, 838, 746]);
-plot(range,zeros(size(aveBoot)),'k','Linewidth',1); hold on;
+fH2 = figure(2); clf; set(gcf,'position',[66,1,1855,1001]);
+plot(range, zeros(size(aveBoot)), 'k', 'LineWidth', 1); hold on;
 patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
 plot(range,aveBoot,'r','Linewidth',5);
-plot([1 1], [min(lo), max(hi)], 'k');
+plot([0 0], [min(lo), max(hi)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
-xlabel('Scale factor of original pRF size');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
-set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
-title('Bootstrapped average variance explained by modelfit: Vary Size');
+xlabel('Rotation angle from original pRF position (deg)');
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
+set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
+title('Bootstrapped average variance explained by modelfit: Vary Position');
 ylabel(yLabel);
 box off;
 
+if opt.saveFig
+   
+    saveSubDir = ['SupplFigureS9' opt.subfolder];
+    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir, sensorsToAverage);
+    if ~exist(saveDir, 'dir')
+        mkdir(saveDir);
+    end
+
+    fprintf('\n(%s): Saving Supplementary Figure S9 in %s\n',mfilename, saveDir);
+    print(fH2, fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
+    figurewrite(fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+
+end
 
 return
