@@ -27,8 +27,6 @@ else
    fH3 = figure(3); clf; set(gcf, 'Position',figSize); set(fH3, 'Name', 'Spectrum of one MEG sensor' , 'NumberTitle', 'off');
 end
 
-fH1 = figure(1); clf; set(gcf,'Position',figSize); set(fH1, 'Name', 'SSVEF coherent spectrum' , 'NumberTitle', 'off');
-
 % Plotting params
 interpMethod = 'v4'; % or if not interpolated, use 'nearest'
 
@@ -39,6 +37,8 @@ else
     nrows = 1;
     ncols = length(subjectToPlot);
 end
+
+fH1 = figure(1); clf; set(gcf,'Position',figSize); set(fH1, 'Name', 'SSVEF coherent spectrum' , 'NumberTitle', 'off');
 
 for s = subjectToPlot
     
@@ -148,7 +148,7 @@ for s = subjectToPlot
     
     %% Plot meshes
     figure(fH1);
-    subplot(nrows,ncols,s)
+    subplot(nrows,ncols,s==subjectToPlot)
     megPlotMap(stimSNRToPlot_coh(s,:),[0 .9], fH1, 'parula',[],[],[],'interpmethod', interpMethod);
     title(sprintf('S%d',s));
     if (s==ncols) || ((2*s)==(2*ncols))

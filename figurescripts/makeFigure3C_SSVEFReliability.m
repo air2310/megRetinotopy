@@ -16,11 +16,12 @@ end
 
 fH2 = figure(2); clf; set(gcf,'Position',[0,300,500,500]); set(fH2, 'Name', 'SSVEF reliability Group Average' , 'NumberTitle', 'off');
 
-dirPth = loadPaths(subjects{1});
 if plotSupplementalFig
+    dirPth = loadPaths(subjects{1});
     saveSubDir = 'SupplFigure1_SSVEF_coherence';
     saveDir = fullfile(dirPth.finalFig.savePthAverage,saveSubDir);
 else
+    dirPth = loadPaths(subjects{subjectToPlot});
     saveSubDir = 'Figure3C_SSVEFReliability';
     saveDir = fullfile(dirPth.finalFig.savePth,saveSubDir);
 end
@@ -56,7 +57,8 @@ load(fullfile(dataDir, 'splitHalfAmpReliability1000.mat'), 'splitHalfAmpCorrelat
 fH1 = figure(1); clf; set(fH1,'Position', figSize, 'Name', 'SSVEF reliability' , 'NumberTitle', 'off');
 
 for s = subjectToPlot 
-    subplot(nrows,ncols,s);
+    dirPth = loadPaths(subjects{1});
+    subplot(nrows,ncols,s==subjectToPlot);
     ttl = sprintf('S%d', s);
     megPlotMap(splitHalfAmpCorrelation(s,:),[0 .8],fH1, 'hot', ...
         ttl, [],[], 'interpmethod', interpMethod); hold on;
