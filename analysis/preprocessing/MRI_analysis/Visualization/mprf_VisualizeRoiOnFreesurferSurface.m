@@ -55,14 +55,14 @@ for ii = 1:length(roiName)
     
     % Get list of viewpoints and meshes when saving different images
     if strcmpi(cur_hs,'lh')
-        viewList={'right'};
-        viewVectors={[0 0 pi]};
+       viewList={'back','left','right','bottom','top'};
+        viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
     elseif strcmpi(cur_hs,'rh')
-        viewList={'left'};
-        viewVectors={[pi 0 0]};
+        viewList={'back','left','right','bottom','top'};
+        viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
     end
     
-
+    
     for thisView=1:length(viewList)
         cam.actor=0;
         cam.rotation = rotationMatrix3d(viewVectors{thisView});

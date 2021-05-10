@@ -12,7 +12,7 @@ function [data, triggers, opt] = preprocessMEGRetinotopyData(subjID, dirPth, opt
 %                                      show debug figures
 %                     - doFiltering :  low pass filter
 %                     - doDenoise   :  GLM denoise for MEG
-%                     - saveData  :  Save data and conditions as matfiles
+%                     - saveData    :  Save data and conditions as matfiles
 %                     - saveFig     :  Save debug figures, only if verbose = true
 %                     - removeStartOfRunEpoch :  remove the first epoch of
 %                                                the bar sweep

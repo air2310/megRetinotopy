@@ -15,7 +15,10 @@ fs_msh = meshColor(fs_msh);
 prfParams = {'eccentricity', 'eccentricity_smoothed', 'polar_angle', 'polar_angle_smoothed'...
   'sigma', 'sigma_smoothed', 'beta', 'recomp_beta'};
 
-
+if opt.mri.useHCPAveMaps
+    dirPth.fmri.saveDataPth_prfFS = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS');   
+    prfParams = {'eccentricity', 'polar_angle', 'sigma',  'beta'};
+end
 
 fH = figure('Color', 'w'); clf;
 for ii = 1:length(prfParams)
@@ -46,7 +49,9 @@ for ii = 1:length(prfParams)
         otherwise
             cmap = hsv(256);
     end
-    
+    if opt.mri.useHCPAveMaps
+        cmap = hsv(256);
+    end
     
     surf_data = read_curv(fullfile(dirPth.fmri.saveDataPth_prfFS, cur_param));
     surf_data(~vemask) = NaN;
@@ -55,7 +60,7 @@ for ii = 1:length(prfParams)
     
     % mask - usually all the vertices that has a value for the data point.
     mask = true(size(data_in));
-    mask(isnan(data_in)) = 0;
+    mask(isnan(data_in)) = false;
 
     cAxisLim = [min(data_in) max(data_in)];
         
@@ -65,8 +70,6 @@ for ii = 1:length(prfParams)
     viewList={'back','left','right','bottom','top'};
     viewVectors={[pi -pi/2 0],[pi 0 0],[0 0 pi],[pi/2 -pi/2 0],[-pi/2 -pi/2 0]};
     
-%     viewList={'back','left'};%
-%     viewVectors={[pi -pi/2 0],[pi 0 0]};
     for thisView=1:length(viewList)
         cam.actor=0;
         cam.rotation = rotationMatrix3d(viewVectors{thisView});
