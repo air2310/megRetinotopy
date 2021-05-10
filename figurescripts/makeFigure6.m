@@ -5,7 +5,7 @@ function makeFigure6(dirPth, opt, sensorsToAverage)
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
     saveSubDir = ['Figure6_' opt.subfolder];
-    saveDir = fullfile(pth, 'finalfig', saveSubDir);
+    saveDir = fullfile(pth, 'finalfig', saveSubDir, sensorsToAverage);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
@@ -13,7 +13,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-5 45];
+yl    = [-5 50];
 
 % Load variance explained
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');

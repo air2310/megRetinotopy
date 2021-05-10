@@ -14,7 +14,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-5 45];
+yl    = [-5 50];
 
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -63,7 +63,7 @@ ylabel('Variance explained (%)');
 if opt.saveFig
     [pth, ~] = fileparts(dirPth.model.saveFigPth);
     saveSubDir = ['Figure5_' opt.subfolder];
-    saveDir = fullfile(pth, 'finalfig', saveSubDir);
+    saveDir = fullfile(pth, 'finalfig', saveSubDir, sensorsToAverage);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end

@@ -40,7 +40,7 @@ for s = 1:length(subjects)
     % Plot it!
     subplot(2,5,s)
     megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
-        'Mean variance explained', [],[], 'interpmethod', interpMethod);
+        sprintf('S%d', s), [],[], 'interpmethod', interpMethod);
     c = colorbar;
     c.Location = 'eastoutside';
     c.Box = 'off';
@@ -52,15 +52,15 @@ end
 % Save fig
 if opt.saveFig
     % Make folder to save figures
-    saveSubDir = ['SuppFigure2'];
+    saveSubDir = ['SupplFigureS2_originalVE'];
     saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
     
     fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-depsc');
-    print(fH1, fullfile(saveDir, sprintf('SuppFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-dpng');
+    print(fH1, fullfile(saveDir, sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-depsc');
+    print(fH1, fullfile(saveDir, sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-dpng');
 end
 
 return

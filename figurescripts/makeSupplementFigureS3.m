@@ -1,4 +1,4 @@
-function [] = makeFigure5Supplement(sensorsToAverage, summaryMetric, opt)
+function [] = makeSupplementFigureS3(sensorsToAverage, summaryMetric, opt)
 % Function to plot supplemental data for Figure 6 from manuscript,
 % Variance explained by the model as a function of polar angle
 % rotations around the fovea of the original estimated pRF centers, for
@@ -36,9 +36,9 @@ colorCIPatch = [0.5 0.5 0.5];
 
 if opt.saveFig
     % Make folder to save figures
-    saveSubDir = ['SuppFigure3'];
+    saveSubDir = ['SupplFigureS3_' opt.subfolder];
     dirPth = loadPaths(subjects{1});
-    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir,sensorsToAverage);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
@@ -74,7 +74,7 @@ for s = 1:length(subjects)
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
         yLabel = 'Variance explained (%)';
-        yl = [-10 50];
+        yl = [-10 55];
         % Rescale if subjects fall outside ylimit
         if max(dataToPlot(:))>yl(2)
             yl = [yl(1) max(dataToPlot(:))+10];
@@ -121,8 +121,8 @@ end
 if opt.saveFig
     
     fprintf('\n(%s): Saving Supplemental Figure 3 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('SuppFigure3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
-    print(fH1, fullfile(saveDir, sprintf('SuppFigure3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    figurewrite(fullfile(saveDir, sprintf('SupplFigureS3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)),[],0,'.',1);
+    print(fH1, fullfile(saveDir, sprintf('SupplFigureS3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
 end
 
 

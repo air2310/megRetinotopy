@@ -13,7 +13,7 @@ if ~exist('sensorsToAverage', 'var') || isempty(sensorsToAverage)
 end
 
 if ~exist('opt', 'var') || isempty(opt)
-    opt = getOpts;
+    opt = getOpts('perturbOrigPRFs','size');
 end
 
 % Define subjects
@@ -47,7 +47,7 @@ for s = 1:length(subjects)
     if opt.saveFig
         % Define folder to save figures
         saveSubDir = ['SupplFigureS5_' opt.subfolder];
-        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir, sensorsToAverage);
         if ~exist(saveDir, 'dir')
             mkdir(saveDir);
         end
@@ -76,13 +76,13 @@ for s = 1:length(subjects)
     
     if strcmp(summaryMetric, 'meanVE')
         dataToPlot = meanSelectedSensors;
-        yl = [-10 50];
+        yl = [-10 55];
         % Rescale if subjects fall outside ylimit
         if max(dataToPlot(:))>yl(2)
-            yl = [yl(1) max(dataToPlot(:))+10];
+            yl = [yl(1) max(dataToPlot(:))+15];
         end
         if min(dataToPlot(:))<yl(1)
-            yl = [min(dataToPlot(:))-10 yl(2)];
+            yl = [min(dataToPlot(:))-15 yl(2)];
         end
         yLabel = 'Variance explained (%)';
     elseif strcmp(summaryMetric, 'percentChangeVE')
@@ -125,9 +125,8 @@ if opt.saveFig
 
     fprintf('\n(%s): Saving Supplement Figure S5 in %s\n',mfilename, saveDir);
   
-    print(fH1, fullfile(saveDir, sprintf('SuppFigureS5_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-depsc');
+    figurewrite(fullfile(saveDir, sprintf('SuppFigureS5_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)),[],0,'.',1);
     print(fH1, fullfile(saveDir, sprintf('SuppFigureS5_IndividualSubjects_varySizeSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
-    
 end
 
 return

@@ -42,9 +42,8 @@ for s = subjectToPlot
     %% Save figures if requestsed
     if opt.saveFig
         
-        [pth, ~] = fileparts(dirPth.model.saveFigPth);
         saveSubDir = ['SupplFigureS6_' opt.subfolder];
-        saveDir = fullfile(pth, 'finalfig', saveSubDir);
+        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir, sensorsToAverage);
         if ~exist(saveDir, 'dir')
             mkdir(saveDir);
         end
