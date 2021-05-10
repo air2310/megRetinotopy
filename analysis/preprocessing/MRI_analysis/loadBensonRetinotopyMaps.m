@@ -85,7 +85,7 @@ areas.all = areas.sub_bs_areas>0;
 % note, RH hemi should have negative polar angle values when converting to
 % x, y coordinates
 % theta = pi/180 * (90 - polarang.sub_bs_angle);
-eccenThresh = ((eccen.sub_bs_eccen > 0.5) & (eccen.sub_bs_eccen < opt.eccThresh(2)));
+eccenThresh = ((eccen.sub_bs_eccen > 0.5) & (eccen.sub_bs_eccen < opt.mri.eccThresh(2)));
 eccentricity =  eccen.sub_bs_eccen .* eccenThresh;
 
 x_tmp = eccentricity .* cos(polarang.sub_bs_angle);
@@ -94,13 +94,13 @@ y_tmp = eccentricity .* sin(polarang.sub_bs_angle);
 prfData.y            = y_tmp;
 prfData.x            = x_tmp;
 prfData.eccentricity = eccentricity;
-prfData.polar_angle  = polarang.sub_bs_angle;
+prfData.polar_angle  = deg2rad(polarang.sub_bs_angle);
 prfData.sigma        = sigma.sub_bs_sigma;
 prfData.beta         = 1./sqrt(2*pi*prfData.sigma.^2);
 prfData.mask         = areas.all;
 
 % Check if prf betas are not crazy high
-thresh = prctile(prfData.beta, opt.betaPrctileThresh);
+thresh = prctile(prfData.beta, opt.mri.betaPrctileThresh);
 betamask = ((prfData.beta  > thresh(1)) & (prfData.beta < thresh(2)));
 prfData.beta = prfData.beta.*betamask;
 
