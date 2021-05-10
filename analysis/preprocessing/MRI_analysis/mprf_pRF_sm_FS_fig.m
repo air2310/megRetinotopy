@@ -9,13 +9,18 @@ function mprf_pRF_sm_FS_fig(dirPth,opt)
 %% ------------
 %   File paths
 % -------------
+if opt.mri.useHCPAveMaps
+    prfFSDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS');
+    saveDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS', 'figs');
+else
+    prfFSDir = dirPth.fmri.saveDataPth_prfFS;
+    roiFSDir = dirPth.fmri.saveDataPth_roiFS;
+    saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS,'figs');
+end
 
-prfFSDir = dirPth.fmri.saveDataPth_prfFS;
-roiFSDir = dirPth.fmri.saveDataPth_roiFS;
 % ----------
 
 % Get directory to save images
-saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs');
 if ~exist(saveDir, 'dir'); mkdir(saveDir); end
 
 % load left hemi files
@@ -129,10 +134,14 @@ for roiIdx = 1:numROIs
     subplot(nRow,nCol,roiIdx);
     
     scatter(prfROIData.(fnRoi{roiIdx}).eccentricity, prfROIData.(fnRoi{roiIdx}).sigma,[],c,'*');  hold on;
-    scatter(prfROIData.(fnRoi{roiIdx}).eccentricity_smoothed,prfROIData.(fnRoi{roiIdx}).sigma_smoothed,[],c_sm,'*');
-    
+    labels = {'Original'};
+    if ~opt.mri.useHCPAveMaps
+        scatter(prfROIData.(fnRoi{roiIdx}).eccentricity_smoothed,prfROIData.(fnRoi{roiIdx}).sigma_smoothed,[],c_sm,'*');
+        labels = {'Original', 'Smoothed'};
+    end
     title(fnRoi{roiIdx}, 'FontSize', 15)
-    legend('Original','Smoothed','Location','NorthWest')
+    
+    legend(labels,'Location','NorthWest')
     ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
     ylabel('PRF sigma (deg)'); xlabel('PRF eccen (deg)');
     set(gca, 'FontSize', 14, 'TickDir', 'out')
@@ -144,10 +153,13 @@ print(fH3, fullfile(saveDir,'pRF_size_eccentricity'), '-dpng');
 roiName_allROI = fnRoi{1};
 fH4 = figure(104); clf; set(gcf, 'Color', 'w', 'Position',[675,384,763,590],'Name', 'pRF size vs ecc all rois');
 scatter(prfROIData.(roiName_allROI).eccentricity, prfROIData.(roiName_allROI).sigma,[],c,'*');  hold on;
-scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName_allROI).sigma_smoothed,[],c_sm,'*');
-
+labels = {'Original'};
+if ~opt.mri.useHCPAveMaps
+    scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName_allROI).sigma_smoothed,[],c_sm,'*');
+    labels = {'Original', 'Smoothed'};
+end
 title('allROIs', 'FontSize', 15)
-legend('Original','Smoothed','Location','NorthWest'); legend boxoff;
+legend(labels,'Location','NorthWest'); legend boxoff;
 ylim([0 opt.mri.eccThresh(2)]); xlim([0 opt.mri.eccThresh(2)]); axis square
 ylabel('PRF size (deg)'); xlabel('PRF eccen (deg');
 set(gca, 'FontSize', 20, 'TickDir', 'out','LineWidth',2); box off;
@@ -164,9 +176,15 @@ for roiIdx = 1:length(roisToPlot)
     subplot(nRow,nCol,roiIdx);
 
     if ~isempty(prfROIData.(fnRoi{roisToPlot(roiIdx)}).varexplained)
-        x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity_smoothed;
-        y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma_smoothed;
         w    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).varexplained;
+        if opt.mri.useSmoothedData
+            x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity_smoothed;
+            y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma_smoothed;
+
+        else
+            x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity;
+            y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma;
+        end
         xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
         yfit = mprf_fit(x,y,w,xfit);
 
@@ -186,8 +204,14 @@ fH6 = figure(106); clf; set(gcf, 'Color', 'w', 'Position', [1 1 scr_sz(3)/2 scr_
 
 for roiIdx = 1:length(roisToPlot)
     if ~isempty(prfROIData.(fnRoi{roisToPlot(roiIdx)}).varexplained)
-        x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity_smoothed;
-        y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma_smoothed;
+        if opt.mri.useSmoothedData
+            x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity_smoothed;
+            y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma_smoothed;
+
+        else
+            x    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).eccentricity;
+            y    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).sigma;
+        end
         w    = prfROIData.(fnRoi{roisToPlot(roiIdx)}).varexplained;
 
         xfit = linspace(opt.mri.eccThresh(1),opt.mri.eccThresh(2),20)';
@@ -223,22 +247,24 @@ for roiIdx = 1:numROIs
 end
 print(fH7, fullfile(saveDir,'sigma'), '-dpng');
 
-% Smoothed sigma histogram
-%-----------------------
-fH8 = figure(108); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+if opt.mri.useSmoothedData
+    % Smoothed sigma histogram
+    %-----------------------
+    fH8 = figure(108); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 
-for roiIdx = 1:numROIs
-    subplot(nRow,nCol,roiIdx);
-    hist(prfROIData.(fnRoi{roiIdx}).sigma_smoothed,100)
-    
-    title(fnRoi{roiIdx}, 'FontSize', 15)
-    h = findobj(gca,'Type','patch');
-    h.FaceColor = [0 0.5 0.5];
-    h.EdgeColor = 'w';
-    xlabel('Sigma smoothed'); ylabel('Frequency')
-    box off;
+    for roiIdx = 1:numROIs
+        subplot(nRow,nCol,roiIdx);
+        hist(prfROIData.(fnRoi{roiIdx}).sigma_smoothed,100)
+
+        title(fnRoi{roiIdx}, 'FontSize', 15)
+        h = findobj(gca,'Type','patch');
+        h.FaceColor = [0 0.5 0.5];
+        h.EdgeColor = 'w';
+        xlabel('Sigma smoothed'); ylabel('Frequency')
+        box off;
+    end
+    print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 end
-print(fH5, fullfile(saveDir,'sigma_smoothed'), '-dpng');
 
 % Beta histogram
 %-----------------------
@@ -257,20 +283,22 @@ for roiIdx = 1:numROIs
 end
 print(fH9, fullfile(saveDir,'beta'), '-dpng');
 
-% recomputed beta histogram
-%-----------------------
-fH10 = figure(110); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
-for roiIdx = 1:numROIs
-    subplot(nRow,nCol,roiIdx);
-    hist(prfROIData.(fnRoi{roiIdx}).recomp_beta,100)
-    title(fnRoi{roiIdx}, 'FontSize', 15)
-    h = findobj(gca,'Type','patch');
-    h.FaceColor = [0 0.5 0.5];
-    h.EdgeColor = 'w';
-    box off;
-    xlabel('Recomp Beta'); ylabel('Frequency')
+if opt.mri.useSmoothedData
+    % recomputed beta histogram
+    %-----------------------
+    fH10 = figure(110); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
+    for roiIdx = 1:numROIs
+        subplot(nRow,nCol,roiIdx);
+        hist(prfROIData.(fnRoi{roiIdx}).recomp_beta,100)
+        title(fnRoi{roiIdx}, 'FontSize', 15)
+        h = findobj(gca,'Type','patch');
+        h.FaceColor = [0 0.5 0.5];
+        h.EdgeColor = 'w';
+        box off;
+        xlabel('Recomp Beta'); ylabel('Frequency')
+    end
+    print(fH10, fullfile(saveDir,'recomp_beta'), '-dpng');
 end
-print(fH10, fullfile(saveDir,'recomp_beta'), '-dpng');
 
 fH11 = figure(111); set(gcf, 'Color', 'w', 'Position', [10   10   1920   1080]);
 c = [0.5 1 0];
@@ -279,16 +307,19 @@ title('pRF center distribution')
 for roiIdx = 1:numROIs
     subplot(nRow,nCol,roiIdx);
     scatter(prfROIData.(fnRoi{roiIdx}).x,prfROIData.(fnRoi{roiIdx}).y,[],c,'.');  hold on;
-    scatter(prfROIData.(fnRoi{roiIdx}).x_smoothed,prfROIData.(fnRoi{roiIdx}).y_smoothed,[],c_sm,'.');
-    %axis image
+    labels={'Orig'};
+    if opt.mri.useSmoothedData
+        scatter(prfROIData.(fnRoi{roiIdx}).x_smoothed,prfROIData.(fnRoi{roiIdx}).y_smoothed,[],c_sm,'.');
+        labels={'Orig', 'Smoothed'};
+    end
+        %axis image
     xlim([-10 10])
     ylim([-10 10])
     set(gca, 'TickDir', 'out','FontSize',15);
     box off;
     title(fnRoi{roiIdx}, 'FontSize', 15)
-    legend({'Orig', 'Smoothed'}, 'Location','NorthWest')
-    
-    
+    legend(labels, 'Location','NorthWest')
+
 end
 print(fH11, fullfile(saveDir,'prf_center_distribution'), '-dpng');
 
@@ -300,8 +331,12 @@ if opt.surfVisualize
     close all;
     
     % Get directory to save images
-    saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS, 'figs');
-    if ~exist(saveDir, 'dir'); mkdir(saveDir); end
+    if opt.mri.useHCPAveMaps
+        saveDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS', 'figs');
+    else
+        saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS,'figs');
+    end
+        if ~exist(saveDir, 'dir'); mkdir(saveDir); end
     
     %-----------------------------------------------
     % Visualize pRF parameters on freesurfer surface

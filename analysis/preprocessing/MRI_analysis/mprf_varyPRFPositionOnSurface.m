@@ -33,6 +33,8 @@ if opt.verbose; fprintf('(%s): Rotate pRF position along polar angles: %s\n', mf
 % Load prf parameters on surface
 if opt.mri.useBensonMaps
     prfParams = {'mask', 'beta','x', 'y'};
+elseif opt.mri.useHCPAveMaps
+    prfParams = {'varexplained', 'mask','beta','x', 'y'};
 elseif opt.mri.useSmoothedData
     prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed', 'y_smoothed'};
 else

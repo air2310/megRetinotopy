@@ -47,6 +47,7 @@ opt.mri.betaPrctileThresh     = [0 100];        % MRI prf model: Remove beta out
 opt.mri.useSmoothedData       = true;           % MRI prf model: Use smoothed surface data or not
 opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 opt.mri.predSurfMaxThresh     = [0 10];         % MRI prf model: if the max of a predicted vertex response response is x10 times larger than grand median, remove this response 
+opt.mri.useHCPAveMaps         = false;          % MRI prf model: Make prediction from HCP 7T retinotopy average, instead of actual subject's retinotopy data
 
 % --- PERTUBATION of pRF models ---
 opt.vary.perturbOrigPRFs       = false;         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
@@ -104,8 +105,8 @@ if opt.vary.perturbOrigPRFs
 end
 
 % --- Folders and filenames ---
-opt.fNamePostFix          = sprintf('_benson%d_highres%d_smoothed%d_%s', ...
-                            opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
+opt.fNamePostFix          = sprintf('useHCPave%d_benson%d_highres%d_smoothed%d_%s', ...
+                            opt.mri.useHCPAveMaps, opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
 
 
 % check in case additional original analyses are performed, we want to save those results separately
@@ -113,6 +114,13 @@ if opt.roi.onlyV123WangAtlas
     opt.subfolder = 'original/onlyV123WangAtlas'; % add results to extra folder to not override original
 elseif opt.mri.useBensonMaps
     opt.subfolder = 'original/BensonMaps'; % add results to extra folder to not override 
+elseif opt.mri.useHCPAveMaps
+    if opt.vary.perturbOrigPRFs
+        opt.subfolder = fullfile(opt.subfolder, 'HCPAveMaps');
+    else
+        opt.subfolder = 'original/HCPAveMaps';
+    end
+    opt.mri.useSmoothedData = false;
 end
 
 if opt.meg.useCoherentSpectrum
