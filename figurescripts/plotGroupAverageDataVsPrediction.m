@@ -153,8 +153,8 @@ else
     title('Group average fit');
     ylabel('Variance explained (%)'); box off;
     
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);
+    figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);
     
 end
 

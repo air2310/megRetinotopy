@@ -1,4 +1,4 @@
-function [splitHalfAmpReliability,splitHalfAmpCorrelation] = mprf_ComputeSplitHalfReliability(dirPth, opt, megData,freqIdx)
+function splitHalfAmpCorrelation = mprf_ComputeSplitHalfReliability(dirPth, opt, megData, freqIdx)
 
 % Check dimensions of MEG data
 [~, nEpochs, nRuns, nSensors] = size(megData);

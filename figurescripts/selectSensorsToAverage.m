@@ -26,11 +26,11 @@ switch type
         meanVarExpl(~positiveSensors) = NaN;
         sensorLoc  = union(positiveSensors, repmat(posteriorSensorLoc', [size(meanVarExpl,1), 1]), 'rows');
         sensorLoc = find(sensorLoc==1);
+    
     % Selecting union of top 10 sensors from all iterations with positive values
-    case 'top10Positive'
-        
-        positiveSensors = (meanVarExpl>0);
-        meanVarExpl(~positiveSensors)=NaN;
+    case 'top10Positive' 
+       positiveSensors = (meanVarExpl>0);
+       meanVarExpl(~positiveSensors)=NaN;
        [val,idx] = sort(meanVarExpl,2,'descend');
        nanMask = isnan(val);
        for ii = 1:size(val,1)
@@ -41,6 +41,13 @@ switch type
                sensorLoc(ii,:) = idx(ii,countStart+1:countStart+10);
            end
        end
+       
+    % Selecting union of top 15 sensors from all iterations
+    case 'top15'
+        meanVarExpl(isnan(meanVarExpl))=0;
+        [~,idx] = sort(meanVarExpl,2,'descend');
+        sensorLoc = unique(idx(:,1:15))';
+       
     % Selecting union of top 10 sensors from all iterations
     case 'top10'
         meanVarExpl(isnan(meanVarExpl))=0;
@@ -51,7 +58,7 @@ switch type
     case 'top5'
         meanVarExpl(isnan(meanVarExpl))=0;
         [~,idx] = sort(meanVarExpl,2,'descend');
-        sensorLoc = unique(idx(:,1:5));
+        sensorLoc = unique(idx(:,1:5))';
         
     % Get top 10 sensors from splithalf reliability
     case 'top10reliable'
@@ -61,6 +68,16 @@ switch type
         [~,idx] = sort(splitHalfAmpCorrelation, 'descend');
         sensorLoc = unique(idx(1:10));
         
+    % Get top 10 sensors from fit using original pRF params
+    case 'top10orig'
+        if size(meanVarExpl,1) == 9 
+            origIdx = 5;
+        else
+            origIdx = 8;
+        end
+         meanVarExpl(isnan(meanVarExpl))=0;
+        [~,idx] = sort(meanVarExpl(origIdx,:),'descend');
+        sensorLoc = unique(idx(1:10));
 end
 
 if size(sensorLoc,1)>1
@@ -68,8 +85,8 @@ if size(sensorLoc,1)>1
         fh = mprfPlotHeadLayout(sensorLoc(ii,~isnan(sensorLoc(ii,:))),0,[]);
         
         if opt.saveFig
-            if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
-            print(gcf, fullfile(saveDir, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s_%d', dirPth.subjID, opt.fNamePostFix, type, ii)), '-dpdf');
+            if ~exist(fullfile(saveDir, type, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, type, 'sensorSelection')); end
+            print(gcf, fullfile(saveDir, type, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s_%d', dirPth.subjID, opt.fNamePostFix, type, ii)), '-dpdf');
         end
         close(fh)
     end
@@ -81,8 +98,8 @@ else
         else
             fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type);
         end
-        if ~exist(fullfile(saveDir, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, 'sensorSelection')); end
-        print(gcf, fullfile(saveDir, 'sensorSelection', fname), '-dpdf');
+        if ~exist(fullfile(saveDir, type,'sensorSelection'), 'dir'); mkdir(fullfile(saveDir,type, 'sensorSelection')); end
+        print(gcf, fullfile(saveDir, type,'sensorSelection', fname), '-dpdf');
     end
     
     close(fh)
