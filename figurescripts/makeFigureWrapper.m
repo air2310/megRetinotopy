@@ -8,12 +8,13 @@ function makeFigureWrapper(subjID, whichFigure, sensorsToAverage, plotAverage, s
 %   whichFigure         : figures to plot (int or vect), choose from 1,2,3,
 %                         or 1:3 (default)
 %   sensorsToAverage    : what sensors to average when plotting variations
-%                         in size/position. 
-%                         Choose from 'allPosterior' (default) or 'top10'
-%                         (union of top 10 across all iterations), 
-%                         'top10Positive' (only positive sensors at each
-%                         iteration), or 'top10reliable' use sensors with
-%                         highest split half correlation.
+%                         in size/position. Choose from 'allPosterior',
+%                         'allPosteriorPositive', 'top10' (default, union
+%                         of top 10 sensors across all iterations), 'top5',
+%                         'top15', (same computation as top10, but less or
+%                         more sensors),'top10Positive' (only positive top
+%                         10 sensors at each iteration), or 'top10reliable'
+%                         use sensors with highest split half correlation.
 %   plotAverage         : plot average across subjects (bool), default is
 %                         false. When true, individual subject plotting
 %                         will be ignored, so any subjectID can be used to
@@ -71,6 +72,7 @@ else
     saveFig        = opt.saveFig;
     addOffsetParam = opt.addOffsetParam;
     refitGainParam = opt.refitGainParam;
+    useHCPAveMaps  = opt.mri.useHCPAveMaps;
 end
 
 % Go back to root
@@ -114,7 +116,7 @@ if any(intersect(whichFigure,5))
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
         'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
-        'refitGainParam', refitGainParam);
+        'refitGainParam', refitGainParam, 'useHCPAveMaps', useHCPAveMaps);
     
     if plotAverage
         % Group Average modelfit variance explained (averaging subjects 
@@ -131,7 +133,7 @@ if any(intersect(whichFigure,6))
     opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
         'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
         'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
-         'refitGainParam', refitGainParam);
+         'refitGainParam', refitGainParam, 'useHCPAveMaps', useHCPAveMaps);
     
     if plotAverage       
         % Group Average modelfit (averaging subjects predictions and data
