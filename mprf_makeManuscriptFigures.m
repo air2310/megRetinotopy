@@ -76,6 +76,6 @@ makeSupplementFigureS5('top10reliable');
 makeSupplementFigureS5('top10orig'); 
 
 % Sensor-wise group average
-makeFigure5sensorwiseAverageSubject(sensorsToAverage, summaryMetric, opt)
-makeFigure6sensorwiseAverageSubject(sensorsToAverage, summaryMetric, opt)
+makeSupplementFigureS9_sensorwiseAverage_varyPosition(sensorsToAverage, summaryMetric, opt)
+makeSupplementFigureS9_sensorwiseAverage_varySize(sensorsToAverage, summaryMetric, opt)
 
