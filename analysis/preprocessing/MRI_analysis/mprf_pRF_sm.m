@@ -43,11 +43,10 @@ hvol = viewSet(hvol,'curdt',data_type);
 rm_model = dirPth.fmri.vistaGrayFitFile;
 hvol = rmSelect(hvol,1,rm_model);
 
-% Mask to exclude unreliable voxels (i.e. VE < 0.10) from the smoothing
-% below. Otherwise, the pRF parameters will be averaged with a lot of
-% zeros:
+% We'll mask later unreliable voxels (i.e. VE < 0.10) when loading params:
+% see loadpRFsfromSurface.m. For now we restrict to those voxels with
+% positive only variance explained.
 ve = rmGet(hvol.rm.retinotopyModels{1},'varexplained');
-% ve10mask = ((ve >= opt.mri.varExplThresh(1)) & (ve < opt.mri.varExplThresh(2)));
 ve0mask = ve > 0;
 
 
