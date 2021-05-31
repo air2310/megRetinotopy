@@ -31,7 +31,7 @@ if opt.verbose; fprintf('(%s): Scale pRF sizes with factors: %s\n', mfilename, s
 % Load prf parameters on surface
 if opt.mri.useBensonMaps
     prfParams = {'mask', 'beta','x','y','sigma'};
-elseif opt.mri.useHCPAveMaps
+elseif opt.mri.useHCPAveMaps || opt.mri.useNYU3TAveMaps
     prfParams = {'varexplained', 'mask','beta','x','y','sigma'};
 elseif opt.mri.useSmoothedData
     prfParams = {'varexplained', 'mask','recomp_beta','x_smoothed','y_smoothed','sigma_smoothed'};
