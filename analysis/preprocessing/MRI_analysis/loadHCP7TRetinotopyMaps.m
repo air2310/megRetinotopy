@@ -18,7 +18,7 @@ function prfDataPath = loadHCP7TRetinotopyMaps(subjID, dirPth, opt)
 %
 %
 %
-% Author: Eline R. Kupers <ek99@nyu.edu>, 2019
+% Author: Eline R. Kupers <ek99@nyu.edu>, 2021
 
 
 
