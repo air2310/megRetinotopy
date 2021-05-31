@@ -19,18 +19,14 @@ end
 load(fullfile(varexpl.folder,varexpl.name),'meanVarExpl');
 
 % Set colormap limits
-if opt.mri.useHCPAveMaps
-    clims = [0 max(meanVarExpl,[],'omitnan')];
-else
-    clims = [0 0.5];
-end
-% clims = [0 max(meanVarExpl)];
+clims = [0 0.5]; % or try clims = [0 max(meanVarExpl)];
 interpMethod = 'v4'; % choose 'v4' or 'nearest'
+interplim = 'convex';
 
 % Plot it!
 fH1 = figure; clf;
 megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
-    sprintf('Mean variance explained %s',dirPth.subjID), [],[], 'interpmethod', interpMethod);
+    sprintf('Mean variance explained %s',dirPth.subjID), [],[], 'interpmethod', interpMethod, 'interplim',interplim);
 c = colorbar;
 c.Location = 'eastoutside';
 c.Box = 'off';
@@ -39,9 +35,9 @@ c.TickLength = [0.010 0.010];
 c.FontSize = 12;
 
 if opt.saveFig
-    fprintf('\n(%s): Saving figure 4B in %s\n',mfilename, saveDir);
-    figurewrite(fullfile(saveDir, sprintf('Figure4B_Mean_variance_explained_%s_%s', opt.fNamePostFix, interpMethod)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sprintf('Figure4B_Mean_variance_explained_%s_%s', opt.fNamePostFix, interpMethod)),[], [1 300],'.',1);
+    fprintf('\n(%s): Saving Figure 4B in %s\n',mfilename, saveDir);
+    figurewrite(fullfile(saveDir, sprintf('Figure4B_Mean_variance_explained_%s_%s_%s', opt.fNamePostFix, interpMethod, dirPth.subjID)),[],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('Figure4B_Mean_variance_explained_%s_%s_%s', opt.fNamePostFix, interpMethod, dirPth.subjID)),[], [1 300],'.',1);
 end
 
 end

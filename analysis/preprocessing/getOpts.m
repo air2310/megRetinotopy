@@ -28,9 +28,9 @@ opt.nBoot                 = 10000;              % General: number of bootstraps 
 opt.meg.doFiltering           = false;          % MEG preprocessing
 opt.meg.doDenoise             = true;           % MEG preprocessing
 opt.meg.removeStartOfRunEpoch = false;          % MEG preprocessing
-opt.meg.varThreshold          = [0.05 20];      % MEG preprocessing
-opt.meg.badChannelThreshold   = 0.2;            % MEG preprocessing
-opt.meg.badEpochThreshold     = 0.2;            % MEG preprocessing
+opt.meg.varThreshold          = [0.05 20];      % MEG preprocessing: if mean variance of epoch < bound1 or > bound2, label as bad.
+opt.meg.badChannelThreshold   = 0.2;            % MEG preprocessing: if nr 'bad' epochs > [thresh], label entire channel as bad 
+opt.meg.badEpochThreshold     = 0.2;            % MEG preprocessing: if nr 'bad' channels > [thresh], label entire epoch as bad 
 opt.meg.triggerChan           = 161:168;        % MEG Sensor info
 opt.meg.photoDiodeChan        = 192;            % MEG Sensor info
 opt.meg.dataChan              = 1:157;          % MEG Sensor info
@@ -48,6 +48,7 @@ opt.mri.useSmoothedData       = true;           % MRI prf model: Use smoothed su
 opt.mri.useBensonMaps         = false;          % MRI prf model: Make prediction from Benson retinotopy atlas, instead of actual retinotopy data
 opt.mri.predSurfMaxThresh     = [0 10];         % MRI prf model: if the max of a predicted vertex response response is x10 times larger than grand median, remove this response 
 opt.mri.useHCPAveMaps         = false;          % MRI prf model: Make prediction from HCP 7T retinotopy average, instead of actual subject's retinotopy data
+opt.mri.useNYU3TAveMaps       = false;          % MRI prf model: Make prediction from NYU 3T retinotopy average, instead of actual subject's retinotopy data
 
 % --- PERTUBATION of pRF models ---
 opt.vary.perturbOrigPRFs       = false;         % PERTUBATION of MRI prf model: say false for none, or choose from 'position', 'size', 'scramble'
@@ -105,8 +106,8 @@ if opt.vary.perturbOrigPRFs
 end
 
 % --- Folders and filenames ---
-opt.fNamePostFix          = sprintf('useHCPave%d_benson%d_highres%d_smoothed%d_%s', ...
-                            opt.mri.useHCPAveMaps, opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
+opt.fNamePostFix          = sprintf('useNYU3TAve%d_benson%d_highres%d_smoothed%d_%s', ...
+                            opt.mri.useNYU3TAveMaps, opt.mri.useBensonMaps, opt.fullSizeMesh, opt.mri.useSmoothedData, opt.headmodel);
 
 
 % check in case additional original analyses are performed, we want to save those results separately
@@ -119,6 +120,13 @@ elseif opt.mri.useHCPAveMaps
         opt.subfolder = fullfile(opt.subfolder, 'HCPAveMaps');
     else
         opt.subfolder = 'original/HCPAveMaps';
+    end
+    opt.mri.useSmoothedData = false;
+elseif opt.mri.useNYU3TAveMaps
+    if opt.vary.perturbOrigPRFs
+        opt.subfolder = fullfile(opt.subfolder, 'NYU3TAveMaps');
+    else
+        opt.subfolder = 'original/NYU3TAveMaps';
     end
     opt.mri.useSmoothedData = false;
 end

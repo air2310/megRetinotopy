@@ -18,7 +18,7 @@ fH1 = figure; set(gcf,'Position', sz);
 % Set colormap limits
 clims = [0 0.5]; % or clims = [0 max(meanVarExpl)];
 interpMethod = 'v4'; % choose 'v4' or 'nearest'
-
+interplim    = 'convex';
 for s = 1:length(subjects)
     
     % Get subject name and directories
@@ -39,7 +39,7 @@ for s = 1:length(subjects)
     % Plot it!
     subplot(2,5,s)
     megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
-        sprintf('S%d', s), [],[], 'interpmethod', interpMethod);
+        sprintf('S%d', s), [],[], 'interpmethod', interpMethod, 'interplim', interplim);
     c = colorbar;
     c.Location = 'eastoutside';
     c.Box = 'off';

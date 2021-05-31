@@ -83,8 +83,21 @@ for ii = 1:nIter
         end
     end
     
+    if opt.mri.useNYU3TAveMaps
+        idx = ~isnan(prf.beta);
+        prf.beta(idx) = ones(size(prf.beta(idx)));
+    end
+    
     % MAIN FUNCTION: Get predicted response from prf data
     predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim);
+    
+    if opt.mri.useNYU3TAveMaps
+        predRespSurfaceGain = getPredictedResponseGainAcrossSubjects(dirPth.subjID, opt);
+%         maxSurfResp   = max(predSurfResponse(:,:,ii),[],'omitnan');
+%         ratio = predRespSurfaceGain ./ maxSurfResp;
+        tmp = predSurfResponse(:,:,ii) .* predRespSurfaceGain;
+        predSurfResponse(:,:,ii) = tmp;
+    end
 end
 
 % Check original location if perturbing prfs, we need this iteration to 

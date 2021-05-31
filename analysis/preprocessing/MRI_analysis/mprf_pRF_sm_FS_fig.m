@@ -12,6 +12,9 @@ function mprf_pRF_sm_FS_fig(dirPth,opt)
 if opt.mri.useHCPAveMaps
     prfFSDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS');
     saveDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS', 'figs');
+elseif opt.mri.useNYU3TAveMaps
+    prfFSDir = fullfile(dirPth.fmri.saveDataPth,'NYU3TAveRetinotopyPred','prfFS');
+    saveDir = fullfile(dirPth.fmri.saveDataPth,'NYU3TAveRetinotopyPred','prfFS', 'figs');
 else
     prfFSDir = dirPth.fmri.saveDataPth_prfFS;
     roiFSDir = dirPth.fmri.saveDataPth_roiFS;
@@ -135,7 +138,7 @@ for roiIdx = 1:numROIs
     
     scatter(prfROIData.(fnRoi{roiIdx}).eccentricity, prfROIData.(fnRoi{roiIdx}).sigma,[],c,'*');  hold on;
     labels = {'Original'};
-    if ~opt.mri.useHCPAveMaps
+    if ~opt.mri.useHCPAveMaps && ~opt.mri.useNYU3TAveMaps
         scatter(prfROIData.(fnRoi{roiIdx}).eccentricity_smoothed,prfROIData.(fnRoi{roiIdx}).sigma_smoothed,[],c_sm,'*');
         labels = {'Original', 'Smoothed'};
     end
@@ -154,7 +157,7 @@ roiName_allROI = fnRoi{1};
 fH4 = figure(104); clf; set(gcf, 'Color', 'w', 'Position',[675,384,763,590],'Name', 'pRF size vs ecc all rois');
 scatter(prfROIData.(roiName_allROI).eccentricity, prfROIData.(roiName_allROI).sigma,[],c,'*');  hold on;
 labels = {'Original'};
-if ~opt.mri.useHCPAveMaps
+if ~opt.mri.useHCPAveMaps && ~opt.mri.useNYU3TAveMaps
     scatter(prfROIData.(roiName_allROI).eccentricity_smoothed, prfROIData.(roiName_allROI).sigma_smoothed,[],c_sm,'*');
     labels = {'Original', 'Smoothed'};
 end
@@ -333,6 +336,8 @@ if opt.surfVisualize
     % Get directory to save images
     if opt.mri.useHCPAveMaps
         saveDir = fullfile(dirPth.fmri.saveDataPth,'HCP7TAveRetinotopyPred','prfFS', 'figs');
+    elseif opt.mri.useNYU3TAveMaps
+        saveDir = fullfile(dirPth.fmri.saveDataPth,'NYU3TAveRetinotopyPred','prfFS', 'figs');
     else
         saveDir = fullfile(dirPth.fmri.saveDataPth_prfFS,'figs');
     end

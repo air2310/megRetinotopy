@@ -25,7 +25,9 @@ elseif (~opt.mri.useBensonMaps && opt.mri.useSmoothedData && opt.roi.onlyV123Wan
     prfParams = {'varexplained', 'V123mask', 'recomp_beta', 'x_smoothed', 'y_smoothed', 'sigma_smoothed'};
 elseif opt.mri.useBensonMaps
     prfParams = {'mask', 'beta', 'x', 'y', 'sigma'};
-elseif opt.mri.useHCPAveMaps
+elseif opt.mri.useHCPAveMaps 
+    prfParams = {'varexplained', 'mask', 'x', 'y', 'sigma', 'beta'};
+elseif opt.mri.useNYU3TAveMaps 
     prfParams = {'varexplained', 'mask', 'x', 'y', 'sigma', 'beta'};
 elseif opt.roi.onlyV123WangAtlas
     prfParams = {'varexplained', 'V123mask', 'x', 'y', 'sigma', 'beta'};

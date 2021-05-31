@@ -48,7 +48,7 @@ for s = 1:length(subjects)
     figure(fH1); hold on;
     subplot(2,5,s)
     megPlotMap(ve_nyu3t(s,:),clims,fH1, 'parula', ...
-        sprintf('S%d', s), [],[], 'interpmethod', interpMethod);
+        sprintf('S%d', s), [],[], 'interpmethod', interpMethod, 'interplim', interplim);
     c = colorbar;
     c.Location = 'eastoutside';
     c.Box = 'off';
