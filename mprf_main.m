@@ -124,6 +124,8 @@ if opt.mri.useBensonMaps % Use benson maps or not
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
 elseif opt.mri.useHCPAveMaps
     mri.prfSurfPath = loadHCP7TRetinotopyMaps(subjID, dirPth, opt);  
+elseif opt.mri.useNYU3TAveMaps
+    mri.prfSurfPath = loadNYU3TRetinotopyMaps(subjID, dirPth, opt);  
 elseif opt.fullSizeMesh % if using full gain matrix, we need pRF params on FreeSurfer surface
     mri.prfSurfPath = dirPth.fmri.saveDataPth_prfFS;
 else % if using downsampled gain matrix, we need pRF params on Brainstorm surface
@@ -131,7 +133,7 @@ else % if using downsampled gain matrix, we need pRF params on Brainstorm surfac
 end
 
 % Start MRI data processing (if requested)
-if opt.doMRIPreproc && ~loadBensonRetinotopyMaps && ~opt.mri.useHCPAveMaps
+if opt.doMRIPreproc && ~loadBensonRetinotopyMaps && ~opt.mri.useHCPAveMaps && ~opt.mri.useNYU3TAveMaps
     if opt.verbose; fprintf('(%s): Preprocess MRI data..\n', mfilename); end
     
     % 2.1 Smoothing pRF params in voxel space (and then recompute beta 

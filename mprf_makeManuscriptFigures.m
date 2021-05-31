@@ -79,3 +79,5 @@ makeSupplementFigureS5('top10orig');
 makeSupplementFigureS9_sensorwiseAverage_varyPosition(sensorsToAverage, summaryMetric, opt)
 makeSupplementFigureS9_sensorwiseAverage_varySize(sensorsToAverage, summaryMetric, opt)
 
+% Variance explained maps using group average 3T retinotopy data from NYU
+makeSupplementFigureS10

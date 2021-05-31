@@ -7,7 +7,6 @@ if ~exist('opt', 'var') || isempty(opt)
     opt = getOpts;
 end
 
-
 % Define all subjects
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
     'wlsubj070', 'wlsubj081', 'wlsubj106', 'wlsubj109', 'wlsubj111'};
@@ -49,18 +48,29 @@ for s = 1:length(subjects)
     c.FontSize = 12;
 end
 
-% Save fig
+% Save figures if requested
 if opt.saveFig
-    % Make folder to save figures
-    saveSubDir = ['SupplFigureS2_originalVE'];
-    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+    % Define folder and filename to save figures
+    if opt.mri.useHCPAveMaps || opt.mri.useNYU3TAveMaps
+        saveSubDir = ['SupplFigureS10_' opt.subfolder];
+        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+        fName = sprintf('SupplFigureS10_IndividualSubjects_VarExpOrig%s_%s', opt.fNamePostFix, interpMethod);
+        fprintf('\n(%s): Saving Supplemental Figure S10 in %s\n',mfilename, saveDir);
+    else
+        saveSubDir = ['SupplFigureS2_' opt.subfolder];
+        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+        fName = sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s_%s', opt.fNamePostFix, interpMethod);
+        fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
+    end
+    
+    % Make folder if needed
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
     
-    fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
-    print(fH1, fullfile(saveDir, sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-depsc');
-    print(fH1, fullfile(saveDir, sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s', opt.fNamePostFix)), '-dpng');
+    % Save 'em!
+    figurewrite(fullfile(saveDir, fName),[],0,'.',1); % EPS
+    figurewrite(fullfile(saveDir, fName),[], [1 300],'.',1); % PNG
 end
 
 return
