@@ -51,7 +51,7 @@ else
 end
 
 
-% if ~exist(fullfile(prfDataPath,'pial.x'))
+if ~exist(fullfile(prfDataPath,'pial.x'))
        
     % Load retinotopy templates
     origPth = fullfile(dirPth.fmri.dataPth, subjID, 'NYU3Tave_interp');
@@ -118,7 +118,7 @@ end
         fprintf('(%s): Freesurfer combined hemi files: %s\n',mfilename, curFileToSave);
         
     end
-
+end
 
 if ~exist(fullfile(prfDataPath,'pial.mask'))
     clear tmp

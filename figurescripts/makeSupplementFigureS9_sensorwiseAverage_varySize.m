@@ -105,6 +105,7 @@ averageDataToPlot = nanmean(dataToPlot,1);
 
 figure(fH1);
 plot(range,averageDataToPlot,'r','Linewidth',6);
+yl = [0 50];
 plot([1 1], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
@@ -140,12 +141,12 @@ colorCIPatch = [0.7 0.7 0.7];
 plot(range,zeros(size(aveBoot)),'k','Linewidth',1); hold on;
 patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
 plot(range,aveBoot,'r','Linewidth',5);
-plot([1 1], [min(lo), max(hi)], 'k');
+plot([1 1], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Scale factor of original pRF size');
-set(gca,'XTick', range,'XTickLabel',range, 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',range, 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20, 'XScale', 'log'); axis square;
 title('Bootstrapped average variance explained by modelfit: Vary Size');
 ylabel(yLabel);

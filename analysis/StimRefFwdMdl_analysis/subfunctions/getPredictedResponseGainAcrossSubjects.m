@@ -22,10 +22,10 @@ for s = 1:length(subjects)
     areas         = unique(roiFSWang);
     roiFSWang_mask = roiFSWang>0;
     
-    predRespCortex_var = (var(predRespCortex.predSurfResponse(:,roiFSWang_mask), 'omitnan'));
+    predRespCortex_max = max(predRespCortex.predSurfResponse(:,roiFSWang_mask), [],'omitnan');
 
     for ii = areas(2:end)'
-        gainData(s,ii) = median(predRespCortex_var(roiFSWang(roiFSWang_mask)==ii),'omitnan');
+        gainData(s,ii) = median(predRespCortex_max(roiFSWang(roiFSWang_mask)==ii),'omitnan');
     end
    
 end

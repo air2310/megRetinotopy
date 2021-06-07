@@ -16,6 +16,7 @@ if ~exist('opt', 'var') || isempty(opt)
     opt = getOpts('perturbOrigPRFs','position');
 end
 
+doDemeanVE = false;
 
 % Define all subjects
 subjects = {'wlsubj004', 'wlsubj039', 'wlsubj040', 'wlsubj058','wlsubj068', ...
@@ -95,18 +96,25 @@ for s = 1:length(subjects)
 end
 
 %% Plot average across subjects on top of figure with individual lines
+if doDemeanVE
+    mn = nanmean(dataToPlot,2);
+    averageDataToPlot = nanmean(dataToPlot-mn,1) + mean(mn,1);
+else
+    averageDataToPlot = nanmean(dataToPlot,1);
+end
 
-averageDataToPlot = nanmean(dataToPlot,1);
+
 
 figure(fH1);
 plot(range,averageDataToPlot,'r','Linewidth',5); hold on;
 plot(range, zeros(size(averageDataToPlot)), 'k', 'LineWidth', 1);
 plot([0 0], [min(yl), max(yl)], 'k');
 
+yl = [0 50];
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Rotation angle from original pRF position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(averageDataToPlot), yl(2)], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('sensorwise Average variance explained by modelfit: Vary Position');
 ylabel(yLabel);
@@ -118,7 +126,12 @@ colorCIPatch = [0.7 0.7 0.7];
 
 % Bootstrap with 10,000 iterations
 nBoot = 10000;
-BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
+if doDemeanVE
+    BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot-mean(dataToPlot,1,'omitnan'))+mean(mean(dataToPlot,1,'omitnan'),1,'omitnan'), (1:size(dataToPlot,1)));
+else
+    BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
+end
+
 pct1 = 100 * (0.32/2);
 pct2 = 100 - pct1;
 lo = prctile(BootStrappedData,pct1); % 16th percentile
@@ -138,12 +151,12 @@ fH2 = figure(2); clf; set(gcf,'position',[66,1,1855,1001]);
 plot(range, zeros(size(aveBoot)), 'k', 'LineWidth', 1); hold on;
 patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
 plot(range,aveBoot,'r','Linewidth',5);
-plot([0 0], [min(lo), max(hi)], 'k');
+plot([0 0], [min(yl), max(yl)], 'k');
 
 % Add labels and make pretty
 set(gca,'TickDir', 'out');
 xlabel('Rotation angle from original pRF position (deg)');
-set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', [min(lo), max(hi)], 'XLim', [range(1),range(end)]);
+set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
 title('Bootstrapped average variance explained by modelfit: Vary Position');
 ylabel(yLabel);
@@ -158,8 +171,8 @@ if opt.saveFig
     end
 
     fprintf('\n(%s): Saving Supplementary Figure S9 in %s\n',mfilename, saveDir);
-    print(fH2, fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
-    figurewrite(fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
+    print(fH2, fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, doDemeanVE)), '-dpdf');
+    figurewrite(fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage,doDemeanVE)), [],[1 300],'.',1);
 
 end
 

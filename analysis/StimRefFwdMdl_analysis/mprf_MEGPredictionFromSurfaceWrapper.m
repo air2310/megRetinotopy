@@ -92,10 +92,10 @@ for ii = 1:nIter
     predSurfResponse(:,:,ii) = mprf_MEGPredictionFromSurface(prf, stim);
     
     if opt.mri.useNYU3TAveMaps
-        predRespSurfaceGain = getPredictedResponseGainAcrossSubjects(dirPth.subjID, opt);
-%         maxSurfResp   = max(predSurfResponse(:,:,ii),[],'omitnan');
-%         ratio = predRespSurfaceGain ./ maxSurfResp;
-        tmp = predSurfResponse(:,:,ii) .* predRespSurfaceGain;
+        [predRespSurfaceGain, roiVals] = getPredictedResponseGainAcrossSubjects(dirPth.subjID, opt);
+        maxSurfResp   = max(predSurfResponse(:,:,ii),[],'omitnan');
+        ratio = predRespSurfaceGain ./ maxSurfResp;
+        tmp = predSurfResponse(:,:,ii) .* ratio;
         predSurfResponse(:,:,ii) = tmp;
     end
 end
@@ -124,7 +124,7 @@ end
 fprintf('.Done!\n');
 
 %% Plot predicted response BS surface
-if opt.verbose
+% if opt.verbose
     if opt.saveFig && ~exist(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'),'dir')
         mkdir(fullfile(dirPth.model.saveFigPth, opt.subfolder, 'predSurfResponse'));
     end
@@ -143,7 +143,7 @@ if opt.verbose
                 'predSurfResponse', sprintf('predPRFResponseFromSurface%s_%d', opt.fNamePostFix, ii)), '-dpng')
         end
     end
-end
+% end
 
 % Remove last dimension out, if not used
 predSurfResponse = squeeze(predSurfResponse);
