@@ -30,7 +30,6 @@ dirPth.meg.stimGridFile = fullfile(dirPth.meg.stimFilePth, 'MEG_grid.mat');
 
 dirPth.meg.eyePth       = fullfile(dirPth.meg.dataPth, subjID, 'eye');
 %% ------ FreeSurfer ------ 
-
 if strcmp(subjID, 'wlsubj039') || strcmp(subjID, 'wlsubj081')
     dirPth.fs.segPth    = fullfile(dirPth.fsPth, [subjID '_wVitaminE']);
 else
