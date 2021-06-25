@@ -1,4 +1,6 @@
 function [] = makeSupplementFigureS1()
+% Function to create the Supplement Figure S1: MEG head plots with
+% SSVEF 10 Hz coherence and split half reliability for individual subjects.
 
 plotAverage         = false;
 plotSupplementalFig = true;

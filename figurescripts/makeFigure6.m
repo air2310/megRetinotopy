@@ -13,7 +13,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-5 50];
+yl    = [0 50];
 
 % Load variance explained
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');

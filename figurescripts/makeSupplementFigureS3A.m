@@ -1,4 +1,4 @@
-function [] = makeSupplementFigureS3(sensorsToAverage, summaryMetric, opt)
+function [] = makeSupplementFigureS3A(sensorsToAverage, summaryMetric, opt)
 % Function to plot supplemental data for Figure 6 from manuscript,
 % Variance explained by the model as a function of polar angle
 % rotations around the fovea of the original estimated pRF centers, for
@@ -119,10 +119,9 @@ end
 
 % Save fig
 if opt.saveFig
-    
-    fprintf('\n(%s): Saving Supplemental Figure 3 in %s\n',mfilename, saveDir);
-    figurewrite(fullfile(saveDir, sprintf('SupplFigureS3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)),[],0,'.',1);
-    print(fH1, fullfile(saveDir, sprintf('SupplFigureS3_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
+    fprintf('\n(%s): Saving Supplemental Figure 3A in %s\n',mfilename, saveDir);
+    figurewrite(fullfile(saveDir, sprintf('SupplFigureS3A_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)),[],0,'.',1);
+    print(fH1, fullfile(saveDir, sprintf('SupplFigureS3A_IndividualSubjects_varyPositionSummary%s_%s_%s', opt.fNamePostFix, sensorsToAverage, summaryMetric)), '-dpng');
 end
 
 

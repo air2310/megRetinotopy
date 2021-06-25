@@ -58,9 +58,9 @@ interpMthd = 'v4';
 
 for ii = 1:nrVariations
     load(fullfile(loadDir, sprintf('groupVarExplBoot10000_%d',ii)),'groupVarExpl', 'groupAveData', 'groupAvePredictionScaled', 'opt', 'nBoot');
-    load(fullfile(loadDir, sprintf('groupVarExplNoBoot_%d',ii)),'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allData', 'allPredictions');
     
     if ~opt.vary.perturbOrigPRFs
+        load(fullfile(loadDir, sprintf('groupVarExplNoBoot_%d',ii)),'groupVE_noBootstrp', 'groupAvePredScaled_noBootstrp', 'allData', 'allPredictions');
         groupVarExplMeanBoot = nanmean(groupVarExpl,2);
         ve_cat = cat(1,groupVarExplMeanBoot',groupVE_noBootstrp);
     else
@@ -97,18 +97,20 @@ else
         range = opt.vary.position;
         origIdx = find(range==0);
         for l = 1:length(range)
-            subplotLabels{l} = sprintf('%d deg', rad2deg(range(l)));
+            subplotLabels{l} = sprintf('%d', rad2deg(range(l)));
         end
-        xLabels = 'Rotation angle (deg)';
+        xLabels = 'Rotation angle from initial estimated pRF position (deg)';
         xScale = 'linear';
+        yl = [0 60];
     elseif strcmp(opt.vary.perturbOrigPRFs,'size')
         range = opt.vary.size;
         origIdx = find(range==1);
         for l = 1:length(range)
-            subplotLabels{l} = sprintf('%1.1fx', opt.vary.size(l));
+            subplotLabels{l} = sprintf('%1.1', opt.vary.size(l));
         end
-        xLabels = 'Size Scale factor';
+        xLabels = 'Size scale factor';
         xScale = 'log';
+        yl = [0 70];
     end
     
     
@@ -142,16 +144,16 @@ else
     
     figure(99); set(gcf, 'Position',[520, 39, 996, 759], 'Color', 'w'); clf;
     meandataToPlot = 100.*nanmean(dataToPlot, 1);
-    plot([range(origIdx) range(origIdx)],[0, max(hi')], 'k');  hold on;
+    plot([range(origIdx) range(origIdx)],yl, 'k');  hold on;
     plot([range(1), range(end)], [0 0], 'k');
     err = patch([range, fliplr(range)], [lo', fliplr(hi')], [0.5 0.5 0.5], 'FaceAlpha', 0.5, 'LineStyle',':');
     plot(range,meandataToPlot,'Color', 'r', 'Linewidth',2); hold on;
     
-    set(gca,'TickDir', 'out', 'YLim', [0, max(hi)], 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
-    xlabel(xLabels);
+    set(gca,'TickDir', 'out', 'YLim', yl, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20);
+    set(gca,'XTick', range, 'XTickLabel',subplotLabels);
     set(gca,'XScale', xScale, 'XLim', [range(1),range(end)]); axis square;
     title('Group average fit');
-    ylabel('Variance explained (%)'); box off;
+    ylabel('Variance explained (%)'); xlabel(xLabels); box off;
     
     figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
     figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);

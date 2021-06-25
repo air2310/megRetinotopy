@@ -51,17 +51,11 @@ end
 % Save figures if requested
 if opt.saveFig
     % Define folder and filename to save figures
-    if opt.mri.useHCPAveMaps || opt.mri.useNYU3TAveMaps
-        saveSubDir = ['SupplFigureS10_' opt.subfolder];
-        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
-        fName = sprintf('SupplFigureS10_IndividualSubjects_VarExpOrig%s_%s', opt.fNamePostFix, interpMethod);
-        fprintf('\n(%s): Saving Supplemental Figure S10 in %s\n',mfilename, saveDir);
-    else
-        saveSubDir = ['SupplFigureS2_' opt.subfolder];
-        saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
-        fName = sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s_%s', opt.fNamePostFix, interpMethod);
-        fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
-    end
+    saveSubDir = ['SupplFigureS2_' opt.subfolder];
+    saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir);
+    fName = sprintf('SupplFigureS2_IndividualSubjects_VarExpOrig%s_%s', opt.fNamePostFix, interpMethod);
+    fprintf('\n(%s): Saving Supplemental Figure S2 in %s\n',mfilename, saveDir);
+
     
     % Make folder if needed
     if ~exist(saveDir, 'dir')

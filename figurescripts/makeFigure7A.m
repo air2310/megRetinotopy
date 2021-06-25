@@ -1,4 +1,4 @@
-function makeFigure5sensorwiseAverageSubject(sensorsToAverage, summaryMetric, opt)
+function makeFigure7A(sensorsToAverage, summaryMetric, opt)
 % Function to make sensorwise and bootstrapped sensorwise average across subjects,
 % plotting variance explained by the model as a function of polar angle
 % rotations around the fovea of the original estimated pRF centers.
@@ -127,7 +127,8 @@ colorCIPatch = [0.7 0.7 0.7];
 % Bootstrap with 10,000 iterations
 nBoot = 10000;
 if doDemeanVE
-    BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot-mean(dataToPlot,1,'omitnan'))+mean(mean(dataToPlot,1,'omitnan'),1,'omitnan'), (1:size(dataToPlot,1)));
+    mnSubs = mean(dataToPlot,2,'omitnan');
+    BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot-mnSubs), (1:size(dataToPlot,1)));
 else
     BootStrappedData = bootstrp(nBoot, @(x) mprf_averageVar(x,dataToPlot), (1:size(dataToPlot,1)));
 end
@@ -137,16 +138,25 @@ pct2 = 100 - pct1;
 lo = prctile(BootStrappedData,pct1); % 16th percentile
 hi = prctile(BootStrappedData,pct2); % 84th percentile
 
+if doDemeanVE
+    aveBoot = nanmean(BootStrappedData,1);
+    aveBoot = aveBoot + mnSubs;
+    lo = lo+mnSubs;
+    hi = hi+mnSubs;
+else
+    % Average of bootstrapped data
+    aveBoot = nanmean(BootStrappedData,1);
+end
+
 % Get p value from bootstrapped data
-origIdx = find(range==0);
-[~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
-peakBelowOrigPRF = sum(peakIdx~=origIdx);
-p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
-fprintf('Mean different from original pRF position of %dx bootstrapped p value: %1.3f \n',nBoot, p)
+% origIdx = find(range==0);
+% [~,peakIdx] = max(BootStrappedData(:,1:origIdx+2),[],2);
+% peakBelowOrigPRF = sum(peakIdx~=origIdx);
+% p = 2*(.5-abs(.5- (peakBelowOrigPRF/nBoot)));
+% fprintf('Mean different from original pRF position of %dx bootstrapped p value: %1.3f \n',nBoot, p)
 
-% Average of bootstrapped data
-aveBoot = nanmean(BootStrappedData,1);
-
+% Plot bootstrapped data!
+yl = [5 30];
 fH2 = figure(2); clf; set(gcf,'position',[66,1,1855,1001]);
 plot(range, zeros(size(aveBoot)), 'k', 'LineWidth', 1); hold on;
 patch([range, fliplr(range)], [lo, fliplr(hi)],colorCIPatch, 'FaceAlpha', 0.5, 'LineStyle',':');
@@ -158,21 +168,21 @@ set(gca,'TickDir', 'out');
 xlabel('Rotation angle from original pRF position (deg)');
 set(gca,'XTick', range,'XTickLabel',rad2deg(range), 'YLim', yl, 'XLim', [range(1),range(end)]);
 set(gca, 'XGrid', 'on', 'YGrid', 'on', 'FontSize', 20); axis square;
-title('Bootstrapped average variance explained by modelfit: Vary Position');
+title('Fit-then-average variance explained by modelfit: Vary Position');
 ylabel(yLabel);
 box off;
 
 if opt.saveFig
    
-    saveSubDir = ['SupplFigureS9' opt.subfolder];
+    saveSubDir = ['Figure7A_fitThenAverage_' opt.subfolder];
     saveDir = fullfile(dirPth.finalFig.savePthAverage, saveSubDir, sensorsToAverage);
     if ~exist(saveDir, 'dir')
         mkdir(saveDir);
     end
 
-    fprintf('\n(%s): Saving Supplementary Figure S9 in %s\n',mfilename, saveDir);
-    print(fH2, fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, doDemeanVE)), '-dpdf');
-    figurewrite(fullfile(saveDir, sprintf('SupplFigureS9A_%s_varyPositionSensorWiseSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage,doDemeanVE)), [],[1 300],'.',1);
+    fprintf('\n(%s): Saving Figure 7A in %s\n',mfilename, saveDir);
+    print(fH2, fullfile(saveDir, sprintf('SupplFigure7A_%s_varyPositionFitThenAverageSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage, doDemeanVE)), '-dpdf');
+    figurewrite(fullfile(saveDir, sprintf('SupplFigure7A_%s_varyPositionFitThenAverageSummary%s_%s_demean%d', dirPth.subjID, opt.fNamePostFix, sensorsToAverage,doDemeanVE)), [],[1 300],'.',1);
 
 end
 

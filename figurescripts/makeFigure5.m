@@ -1,5 +1,5 @@
 function makeFigure5(dirPth, opt, sensorsToAverage)
-% Function to make Figure 2 from manuscript, plotting variance explained by
+% Function to make Figure 5 from manuscript, plotting variance explained by
 % the model as a function of polar angle rotations around the fovea of the 
 % original estimated pRF centers.
 
@@ -14,7 +14,7 @@ end
 
 % Define plotting params
 color = [0.5 0.5 0.5];
-yl    = [-5 50];
+yl    = [0 50];
 
 % Load variance explained file
 load(fullfile(dirPth.model.saveDataPth, opt.subfolder, 'pred_resp', 'meanVarExpl'), 'meanVarExpl');
@@ -71,7 +71,7 @@ if opt.saveFig
     fprintf('\n(%s): Saving Figure 5 in %s\n',mfilename, saveDir);
     print(fH1, fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), '-dpdf');
     figurewrite(fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],[1 300],'.',1);
-%     figurewrite(fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
+    figurewrite(fullfile(saveDir, sprintf('Figure5A_%s_varyPositionSummary%s_%s', dirPth.subjID, opt.fNamePostFix, sensorsToAverage)), [],0,'.',1);
 
 end
 

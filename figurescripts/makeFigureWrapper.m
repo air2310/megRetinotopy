@@ -52,27 +52,12 @@ if ~exist('summaryMetric', 'var') || isempty(summaryMetric)
     summaryMetric = 'meanVE';
 end
 
-if ~exist('opt', 'var') || isempty(opt)
-    
-    fullSizeMesh   = true;
-    headmodel      = 'OS';
+if ~exist('opt', 'var') || isempty(opt) 
     verbose        = true;
     saveFig        = true;
-    addOffsetParam = false;  % if true, use both gain and offset parameters in fit, if false, regress with only 1 free param (gain)
-    refitGainParam = false;
-    
+
     % Set options
-    opt = getOpts('verbose', verbose, 'saveFig', saveFig, 'headmodel', headmodel, ...
-                    'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
-                    'refitGainParam', refitGainParam);
-else
-    fullSizeMesh   = opt.fullSizeMesh;
-    headmodel      = opt.headmodel;
-    verbose        = opt.verbose;
-    saveFig        = opt.saveFig;
-    addOffsetParam = opt.addOffsetParam;
-    refitGainParam = opt.refitGainParam;
-    useHCPAveMaps  = opt.mri.useHCPAveMaps;
+    opt = getOpts('verbose', verbose, 'saveFig', saveFig);
 end
 
 % Go back to root
@@ -113,11 +98,9 @@ end
 %% Figure 5. Position range line plot and headplots for every position range
 if any(intersect(whichFigure,5))
     
-    opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
-        'perturbOrigPRFs', 'position', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
-        'refitGainParam', refitGainParam, 'useHCPAveMaps', useHCPAveMaps);
-    
+    opt = getOpts('verbose', opt.verbose, 'saveFig', opt.saveFig, ...
+                    'perturbOrigPRFs','position');
+
     if plotAverage
         % Group Average modelfit variance explained (averaging subjects 
         % predictions and data separately before fitting)
@@ -130,11 +113,8 @@ end
 %% Figure 6. Size range line plot and headplots for every size range
 if any(intersect(whichFigure,6))
     
-    opt = getOpts('verbose', verbose, 'saveFig', saveFig, ...
-        'perturbOrigPRFs', 'size', 'headmodel', headmodel, ...
-        'fullSizeMesh',fullSizeMesh, 'addOffsetParam', addOffsetParam, ...
-         'refitGainParam', refitGainParam, 'useHCPAveMaps', useHCPAveMaps);
-    
+    opt = getOpts('verbose', opt.verbose, 'saveFig', opt.saveFig, ...
+                    'perturbOrigPRFs','size');
     if plotAverage       
         % Group Average modelfit (averaging subjects predictions and data
         % separately before fitting)

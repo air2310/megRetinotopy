@@ -26,7 +26,7 @@ interplim = 'convex';
 % Plot it!
 fH1 = figure; clf;
 megPlotMap(meanVarExpl,clims,fH1, 'parula', ...
-    sprintf('Mean variance explained %s',dirPth.subjID), [],[], 'interpmethod', interpMethod, 'interplim',interplim);
+    sprintf('Mean variance explained %s',dirPth.subjID), [],[], 'interpmethod', interpMethod, 'mask',interplim);
 c = colorbar;
 c.Location = 'eastoutside';
 c.Box = 'off';

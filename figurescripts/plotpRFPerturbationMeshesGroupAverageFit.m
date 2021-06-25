@@ -1,5 +1,5 @@
 function plotpRFPerturbationMeshesGroupAverageFit(dirPth, opt)
-% Function to make third row in Supplemental Figure S$ or S6 of manuscript,
+% Function to make third row in Supplementary Figure S4 or S5 of manuscript,
 % showing the effect of perturbing the original pRFs on a head plot, for
 % the group average modelfit
 
@@ -54,7 +54,7 @@ elseif strcmp(opt.vary.perturbOrigPRFs,'size')
     end
     xLabels = 'Size Scale factor';
     xScale = 'log';
-    figNum = 6;
+    figNum = 5;
 end
 
 

@@ -48,7 +48,7 @@ blank_t = t(blankIdx);
 predMEGResponseScaled(blinkIdx,:) = NaN;
 
 % plot time series
-for tt = 1:length(topSensor)
+for tt = 1;%:length(topSensor)
     
     % Define figure name
     figName = strcat('MEG time series: Measured vs Pred',sprintf('Sensor %d, var expl: %1.2f',topSensor(tt), ve(tt)));
