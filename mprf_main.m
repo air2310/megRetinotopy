@@ -1,5 +1,4 @@
 function results = mprf_main(subjID, opt)
-%
 % Wrapper script containing MEG and MRI preprocessing and analyses subfunctions
 % involved in the MEG Retinotopy project.
 %
@@ -28,28 +27,29 @@ function results = mprf_main(subjID, opt)
 %   3.4: Comparing predicted MEG time series and phase-referenced MEG 
 %           steady-state responses
 %
-%
-%
 % %%% DEPENDENCIES %%%
 % A. MRI preprocessing steps:
-%   A1: FreeSurfer's auto-segmentation of structural MRI data (v6?)
-%   A2: preprocessing of raw functional MRI data into preprocessed nifti's (i.e. MRI
+%   A1: FreeSurfer's auto-segmentation of structural MRI data (v60)
+%   A2: Preprocessing of raw functional MRI data into preprocessed nifti's (i.e. MRI
 %       distortion correction w/ fsl top-up)
 %   A3: Running pRF model in mrVista (voxel space) to get Gray retinotopy modelfits
 %   A4: Apply probabilistic visual ROI atals by Wang et al. (2015) to
 %        subject's anatomy in FreeSurfer directory
 %
 % B. External MATLAB Toolboxes:
-% - Brainstorm (v??)
-% - FieldTrip (v??)
-% - VistaSoft (v??)
-% - meg_utils (v??)
+% - Brainstorm (https://github.com/brainstorm-tools/brainstorm3)
+%       last version commit 49a4f9b6 (June 24, 2021)
+% - FieldTrip (github.com/fieldtrip/fieldtrip)
+%       last version commit 5cf4cf4ce (March 9, 2020)
+% - VistaSoft (github.com/vistalab/vistasoft)
+%       last run version commit d6d0207 (March 17, 2021)
+% - meg_utils (github.com/WinawerLab/meg_utils)
+%       last run version commit f0c35f (December 28, 2020)
 %
 % Add all to path with the ToolboxToolbox:
 %   tbUse('retmeg')
 %
-%
-% Written by Akhil Edadan (UU) and Eline Kupers (NYU) - 2019
+% Written by Eline Kupers (NYU) and Akhil Edadan (UU) - 2019-2021
 %
 
 %% 0. Load paths
@@ -88,8 +88,8 @@ if opt.doMEGPreproc
     gainMtx  = loadGainMtx(subjID, dirPth, opt);
     
 else % If you want to skip preprocessing, load data structs
-    load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'epoched_data_hp_preproc_denoised.mat'), 'data');
-    load(fullfile(dirPth.meg.processedDataPth, 'allEpochs', 'megStimConditions.mat'), 'triggers');
+    load(fullfile(dirPth.meg.processedDataPth, 'epoched_data_hp_preproc_denoised.mat'), 'data');
+    load(fullfile(dirPth.meg.processedDataPth, 'megStimConditions.mat'), 'triggers');
     load(fullfile(dirPth.meg.processedDataPth, 'meg_stimulus.mat'), 'meg_stim');
     gainMtx    = loadGainMtx(subjID, dirPth, opt);
     
@@ -122,8 +122,6 @@ mri     = struct();
 % What pRF retinotopy maps are used on what size mesh?
 if opt.mri.useBensonMaps % Use benson maps or not
     [mri.data, mri.prfSurfPath] = loadBensonRetinotopyMaps(subjID, dirPth, opt);
-elseif opt.mri.useHCPAveMaps
-    mri.prfSurfPath = loadHCP7TRetinotopyMaps(subjID, dirPth, opt);  
 elseif opt.mri.useNYU3TAveMaps
     mri.prfSurfPath = loadNYU3TRetinotopyMaps(subjID, dirPth, opt);  
 elseif opt.fullSizeMesh % if using full gain matrix, we need pRF params on FreeSurfer surface
@@ -133,7 +131,7 @@ else % if using downsampled gain matrix, we need pRF params on Brainstorm surfac
 end
 
 % Start MRI data processing (if requested)
-if opt.doMRIPreproc && ~loadBensonRetinotopyMaps && ~opt.mri.useHCPAveMaps && ~opt.mri.useNYU3TAveMaps
+if opt.doMRIPreproc && ~loadBensonRetinotopyMaps && ~opt.mri.useNYU3TAveMaps
     if opt.verbose; fprintf('(%s): Preprocess MRI data..\n', mfilename); end
     
     % 2.1 Smoothing pRF params in voxel space (and then recompute beta 
