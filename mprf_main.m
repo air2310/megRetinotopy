@@ -29,7 +29,7 @@ function results = mprf_main(subjID, opt)
 %
 % %%% DEPENDENCIES %%%
 % A. MRI preprocessing steps:
-%   A1: FreeSurfer's auto-segmentation of structural MRI data (v60)
+%   A1: FreeSurfer's auto-segmentation of structural MRI data (v5.3)
 %   A2: Preprocessing of raw functional MRI data into preprocessed nifti's (i.e. MRI
 %       distortion correction w/ fsl top-up)
 %   A3: Running pRF model in mrVista (voxel space) to get Gray retinotopy modelfits
