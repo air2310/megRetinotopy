@@ -1,6 +1,6 @@
 # README for MEG Retinotopy code
 
-(Last update by EK: Oct 7, 2020)
+(Last update by EK: June 25, 2021)
 
 ## DESCRIPTION
 This project is an MEG retinotopy project, as a collaboration between 
@@ -54,13 +54,9 @@ This code repository contains 6 subfolders specific for this project:
 
 3. figurescripts --- Folder with functions to reproduce main and supplementary manuscript figures, several helper functions and some loose visualization figures.
 
-4. obsolete --- Folder with old left-over functions from Barrie's legacy, these are not used anymore and should eventually be removed.
+4. Stimulus --- Code to create and run stimulus for MEG and MRI
 
-5. Stimulus --- Code to create and run stimulus for MEG and MRI
-
-6. Synthetic --- Folder to save synthetic data produced by the separated analysis function
-
-## MAIN FUNCTIONS (all code is written in Matlab 2016b)
+## MAIN FUNCTIONS 
 * mprf_addPaths.m
 	+ Function to add data folders and relevant code (used by ToolboxToolbox)
 * mprf_main.m
@@ -84,21 +80,24 @@ Symbolic links point to the following places:
 
 
 ## DEPENDENCIES
-This code is Matlab based, and has the following depencies:
+This code is Matlab based (written in R2016b), and has the following depencies:
 * FreeSurfer (v5.3)
-* Vistasoft/mrVista (v??)
-* ToolboxToolbox (v??)
-* Fieldtrip (v??)
-* Brainstorm (v??)
-* meg_utils (v??)
+* Brainstorm (https://github.com/brainstorm-tools/brainstorm3)
+    last version commit 49a4f9b6 (June 24, 2021)
+* FieldTrip (github.com/fieldtrip/fieldtrip)
+    last version commit 5cf4cf4ce (March 9, 2020)
+* VistaSoft (github.com/vistalab/vistasoft)
+    last run version commit d6d0207 (March 17, 2021)
+* meg_utils (github.com/WinawerLab/meg_utils)
+    last run version commit f0c35f (December 28, 2020)
 
 
 ## HOW TO GET STARTED
 (Here I assume MRI/MEG data are preprocessed)
 
-1. Pull code directory from GitHub with the ToolboxToolbox and add to paths
+1. Pull code directory from GitHub with the ToolboxToolbox (https://github.com/toolboxhub/toolboxtoolbox) and add to paths
 `tbUse('retMeg')`
-2. Set up symbolic links in data folder to MEG/MRI data, Freesurfer subject segmentation folders, Brainstorm database.
+2. Set up symbolic links in data folder to 'Retinotopy' for MEG/MRI data, 'Freesurfer_subjects' for Freesurfer subject segmentation folders, and 'brainstorm_db' for the Brainstorm database.
 3. Define a subject ID:
 `subjectID = wlsubj004;`
 4. Run run the forward model for subject S1, using the original pRF parameters estimated with fMRI
@@ -106,7 +105,29 @@ This code is Matlab based, and has the following depencies:
 5. Visualize results:
  `dirPth = loadPaths(subjectID); opts = getOpts; makeFigure4(dirPth, opts);`
 
+## HOW TO REPRODUCE ANALYSES AND FIGURES
+1. To run all analyses from the paper:
+`mprf_runAllAnalyses.m`
+2. Remake all figures from the paper:
+`mprf_makeManuscriptFigures.m`
 
 
 ## HOW TO PREPROCESS MRI/MEG DATA
-** coming soon / under construction **
+Current data on the OSF webpage (https://osf.io/c3hxj/) are already preprocessed. We tried to share as many data as possible, but because OSF has a storage limit we aren't able to provide raw files (MEG SQD, MRI EPI or T1 niftis, brainstorm database data and anatomy files). We might upload those via a different medium in the future. But in the mean time, if you want to access please reach out to the first or last author of this MEG Retinotopy paper.
+
+* If you want to preprocess MEG data from raw sqd to epoched data, set `opt.doMEGPreproc = true`.
+* If you want to preprocess MRI data from mrVista pRF solutions to pRF solutions on FreeSurfer surface, set `opt.doMRIPreproc = true`.
+* If you want to go from distortion corrected nifti to pRF solutions in mrVista, see `s_preprocessMRIRetinotopyData.m`
+* If you learn how to go from uncorrected EPIs to corrected niftis in BIDS format, see our lab's preprocessing toolbox:  https://github.com/WinawerLab/MRI_tools/blob/master/preprocessing/prisma_preproc.py
+* If you want to learn more about MRI-MEG alignment in Brainstorm, then I have to apologize as there is no script. But please see the Brainstorm website for tutorials. https://neuroimage.usc.edu/brainstorm/Tutorials/ChannelFile
+
+## HOW TO RUN FORWARD MODEL
+1. Fit model with initially estimated fMRI pRF parameters
+`subjID = 'wlsubj004'; mprf_main(subjID);`
+
+2. Fit model for each altered pRF size
+`opt = getOpts('perturbOrigPRFs','size'); subjID = 'wlsubj004'; mprf_main(subjID, opt);`
+
+3. Fit model for each altered pRF size
+`opt = getOpts('perturbOrigPRFs','position'); subjID = 'wlsubj004'; mprf_main(subjID, opt);`
+
