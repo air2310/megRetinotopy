@@ -23,11 +23,6 @@ if ~exist('sensorsToAverage', 'var') || isempty(sensorsToAverage)
     sensorsToAverage = 'top10';
 end
 
-if ~exist('plotSupplementFig', 'var') || isempty(plotSupplementFig)
-    plotSupplementFig = false;
-end
-
-
 %% Make save figure dir
 saveSubDir = sprintf('Figure%d_%s',whichFigure, opt.subfolder);
 saveDir = fullfile(dirPth.finalFig.savePthAverage,saveSubDir, 'GroupAvePrediction');
@@ -85,10 +80,10 @@ if ~opt.vary.perturbOrigPRFs
         c.TickDirection = 'out';
         c.TickLength = [0.010 0.010];
         c.FontSize = 12;
-        
-        figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_%s_%s',opt.fNamePostFix, opt.addOffsetParam, fnameAdd{ii}, interpMthd)),[],0,'.',1);
-        figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_%s_%s',opt.fNamePostFix, opt.addOffsetParam, fnameAdd{ii}, interpMthd)),[],[1 300],'.',1);
-        
+        if opt.saveFig
+            figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_%s_%s',opt.fNamePostFix, opt.addOffsetParam, fnameAdd{ii}, interpMthd)),[],0,'.',1);
+            figurewrite(fullfile(saveDir, sprintf('GroupAverageFit_VarExplMesh_%s_Offset%d_%s_%s',opt.fNamePostFix, opt.addOffsetParam, fnameAdd{ii}, interpMthd)),[],[1 300],'.',1);
+        end
     end
     
 else
@@ -155,9 +150,10 @@ else
     title('Group average fit');
     ylabel('Variance explained (%)'); xlabel(xLabels); box off;
     
-    figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
-    figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);
-    
+    if opt.saveFig
+        figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],0,'.',1);
+        figurewrite(fullfile(saveDir, sensorsToAverage, sprintf('GroupAverageFit_VarExplLine_%s_Offset%d_vary%s_%s',opt.fNamePostFix, opt.addOffsetParam, opt.vary.perturbOrigPRFs,sensorsToAverage)),[],[1 300],'.',1);
+    end
 end
 
     
