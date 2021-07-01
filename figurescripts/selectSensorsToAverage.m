@@ -63,8 +63,10 @@ switch type
     % Get top 10 sensors from splithalf reliability
     case 'top10reliable'
         load(fullfile(dirPth.model.saveDataPth, 'splitHalfAmpReliability1000'), 'splitHalfAmpCorrelation');
+        if size(splitHalfAmpCorrelation,1)>1
+            splitHalfAmpCorrelation = mean(splitHalfAmpCorrelation,1,'omitnan');
+        end
         splitHalfAmpCorrelation(isnan(splitHalfAmpCorrelation))=0;
-        
         [~,idx] = sort(splitHalfAmpCorrelation, 'descend');
         sensorLoc = unique(idx(1:10));
         
@@ -85,8 +87,11 @@ if size(sensorLoc,1)>1
         fh = mprfPlotHeadLayout(sensorLoc(ii,~isnan(sensorLoc(ii,:))),0,[]);
         
         if opt.saveFig
+            aveName = regexp(dirPth.model.saveDataPth,'average', 'match');
+            if isempty(aveName), aveName = dirPth.subjID; else aveName = aveName{1}; end
             if ~exist(fullfile(saveDir, type, 'sensorSelection'), 'dir'); mkdir(fullfile(saveDir, type, 'sensorSelection')); end
-            print(gcf, fullfile(saveDir, type, 'sensorSelection', sprintf('fig2c_%s_varyPositionSensors%s_%s_%d', dirPth.subjID, opt.fNamePostFix, type, ii)), '-dpdf');
+            print(gcf, fullfile(saveDir, type, 'sensorSelection', sprintf('fig2c_%s_vary%s_sensors%s_%s_%d', ...
+                aveName, opt.vary.perturbOrigPRFs, opt.fNamePostFix, type, ii)), '-dpdf');
         end
         close(fh)
     end
@@ -94,9 +99,9 @@ else
     fh = mprfPlotHeadLayout(sensorLoc,0,[]);
     if opt.saveFig
         if cellfind(strsplit(saveDir, '/'), 'average')
-            fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', 'groupAverage', opt.fNamePostFix, type);
+            fname = sprintf('fig2c_%s_vary%sSensors%s_%s', 'groupAverage', opt.fNamePostFix, opt.vary.perturbOrigPRFs, type);
         else
-            fname = sprintf('fig2c_%s_varyPositionSensors%s_%s', dirPth.subjID, opt.fNamePostFix, type);
+            fname = sprintf('fig2c_%s_vary%sSensors%s_%s', dirPth.subjID, opt.fNamePostFix, opt.vary.perturbOrigPRFs, type);
         end
         if ~exist(fullfile(saveDir, type,'sensorSelection'), 'dir'); mkdir(fullfile(saveDir,type, 'sensorSelection')); end
         print(gcf, fullfile(saveDir, type,'sensorSelection', fname), '-dpdf');

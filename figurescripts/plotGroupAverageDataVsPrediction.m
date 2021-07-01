@@ -110,6 +110,8 @@ else
     
     
     % Select sensors to average
+    dir = strsplit(dirPth.finalFig.savePthAverage, '/finalfig');
+    dirPth.model.saveDataPth = dir{1};
     sensorLoc = selectSensorsToAverage(opt, dirPth, saveDir, groupVarExplMean, sensorsToAverage);
     
     % Select data to plot
