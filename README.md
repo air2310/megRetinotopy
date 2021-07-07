@@ -1,6 +1,6 @@
 # README for MEG Retinotopy code
 
-(Last update by EK: June 25, 2021)
+(Last update by EK: July 7, 2021)
 
 ## DESCRIPTION
 This project is an MEG retinotopy project, as a collaboration between 
