@@ -1,31 +1,27 @@
 # README for MEG Retinotopy code
 
-(Last update by EK: July 7, 2021)
+(Last update by EK: Sep 15, 2021)
 
 ## DESCRIPTION
 This project is an MEG retinotopy project, as a collaboration between 
 NYU (Eline Kupers, Noah Benson, and Jon Winawer) and the Amsterdam Spinoza Center 
 (Akhil Edadan, Maartje de Jong, Wietske Zuiderbaan, Serge Dumoulin).
 
-Historically, this project was initiated by Serge Dumoulin and Jon Winawer, and started by Barrie Klein.
-The code from Barrie Klein is archived in this repository under archive/archive_master).
+Historically, this project was initiated by Serge Dumoulin and Jon Winawer, and started by Barrie Klein<sup>1</sup>.
 
 
-## PREPRINT
-Our analyses and results are described in this preprint on BiorXiv. Please cite this paper when using code.
 
-TITLE:		A Population Receptive Field Model of the Magnetoencephalography Response.
+## PAPER
+Our analyses and results are described in the paper below. Please cite this paper when using code:
 
-AUTHORS:	Eline R Kupers\*, Akhil Edadan\*,  Noah C Benson, Wietske Zuiderbaan, Maartje C de Jong, Serge O Dumoulin\*, Jonathan Winawer\*
+ Eline R Kupers\*, Akhil Edadan\*,  Noah C Benson, Wietske Zuiderbaan, Maartje C de Jong, Serge O Dumoulin\*, Jonathan Winawer\*
+ (2021) A Population Receptive Field Model of the Magnetoencephalography Response. _NeuroImage_, 244(118554).
+	
+ DOI: 10.1016/j.neuroimage.2021.118554
+ 
+ URL: https://www.sciencedirect.com/science/article/pii/S1053811921008272?via%3Dihub
 
 (\* indicates shared first or senior authorship)
-
-YEAR:		2020
-
-DOI:		https://doi.org/10.1101/2020.08.28.272534
-
-URL: 		https://www.biorxiv.org/content/10.1101/2020.08.28.272534v1
-
 
 ## GOAL
 The aim of this project is to predict visually-triggered MEG responses responses to retinotopic bar stimuli. To do this, we use the population receptive field (pRF) models estimated with functional MRI and combine these with a forward model of current propagation from the cortex to the MEG sensors. 
@@ -131,3 +127,10 @@ Current data on the OSF webpage (https://osf.io/c3hxj/) are already preprocessed
 3. Fit model for each altered pRF size
 `opt = getOpts('perturbOrigPRFs','position'); subjID = 'wlsubj004'; mprf_main(subjID, opt);`
 
+
+
+
+
+Footnotes:
+
+<sup>1</sup>The code from Barrie Klein is archived in this repository under archive/archive_master).
