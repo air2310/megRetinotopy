@@ -1,9 +1,9 @@
-# README for MEG Retinotopy code
+# README for MEG retinotopy forward modeling approach
 
 (Last update by EK: Sep 15, 2021)
 
 ## DESCRIPTION
-This project is an MEG retinotopy project, as a collaboration between 
+This respository contains code related to our MEG retinotopy paper, which is a collaboration between 
 NYU (Eline Kupers, Noah Benson, and Jon Winawer) and the Amsterdam Spinoza Center 
 (Akhil Edadan, Maartje de Jong, Wietske Zuiderbaan, Serge Dumoulin).
 
@@ -24,7 +24,7 @@ Our analyses and results are described in the paper below. Please cite this pape
 (\* indicates shared first or senior authorship)
 
 ## GOAL
-The aim of this project is to predict visually-triggered MEG responses responses to retinotopic bar stimuli. To do this, we use the population receptive field (pRF) models estimated with functional MRI and combine these with a forward model of current propagation from the cortex to the MEG sensors. 
+The goal of our forward modeling approach is to predict visually-triggered MEG responses responses starting from retinotopic bar stimuli. To do this, we use the population receptive field (pRF) models estimated with functional MRI and combine these with a forward model of current propagation from the cortex to the MEG sensors. 
 
 
 ## MODEL OVERVIEW
