@@ -125,13 +125,11 @@ for sub = 1:length(subids)
     % timepoints   numepochs    nruns      numsensors
     % 1100         140          19         157
     
-    % Options for response plottings
-    % predMEGResponse - epochs by sensors weighted by pRF response function
-    % meg.data raw data in sensor space. 
-    stim = meg.stim;
+
+    % stim = meg.stim;
     numepochs = size(meg.data,2);
-    stimuse = stim.resizedIm;
-    epochsuse = not(stim.conditions.stimConditions(1:140)==20);
+    stimuse = meg.stim.resizedIm;
+    epochsuse = not(meg.stim.conditions.stimConditions(1:140)==20);
     % for epoch = 1:numepochs
     %     idx = find(stim.im(:,epoch));
     %     plot(stim.X(idx), stim.Y(idx), 'x')
@@ -140,8 +138,9 @@ for sub = 1:length(subids)
     %% Plot resposes by epoch. 
     
     figure;
-    datplot = predMEGResponse(epochsuse,:);
-    index = 6:2:26;%61:2:90;
+    datplot = mean(phaseRefMEGResponse(epochsuse,:,:),2);
+    datplot(isnan(datplot)) = 0;
+    index = 6:2:25;%61:2:90;
     clims = [min(min(datplot(index,:))), max(max(datplot(index,:)))];
     count = 0;
     for ee = index
@@ -149,7 +148,7 @@ for sub = 1:length(subids)
         subplot(2,5,count)    
         megPlotMap(squeeze(datplot(ee,:)),clims,[],[],[],[],[],'interpmethod', 'nearest');
     end
-    
+    title(subjID)
     
     figure;
     count = 0;
@@ -165,10 +164,36 @@ for sub = 1:length(subids)
     % megPlotMap(squeeze( nanmean(nanmean(meg.data(:,10,:,:),3),1)),[],[],[],[],[],[],'interpmethod', 'nearest');
     
     %% Save for python
-     conds = stim.conditions.stimConditions(1:140);
+     conds = meg.stim.conditions.stimConditions(1:140);
 
-     save([direct.dataroot 'PythonData\' subjID  '.mat'], 'predMEGResponse')
+     save([direct.dataroot 'PythonData\' subjID  '.mat'], 'phaseRefMEGResponse')
      save([direct.dataroot 'PythonData\' subjID  'stim.mat'], 'stimuse')
      save([direct.dataroot 'PythonData\' subjID  'cond.mat'], 'conds')
 
 end
+
+% Save Grand average images
+allresponses = NaN(140,157,30);
+for sub = 1:length(subids)
+    subjID = subids(sub).name;
+
+    dat = load([direct.dataroot 'PythonData\' subjID  '.mat']);
+    allresponses(:,:,sub) = squeeze(nanmean(dat.phaseRefMEGResponse,2));
+
+end
+
+% plot
+
+figure;
+datplot = mean(phaseRefMEGResponse(epochsuse,:,:),2);
+datplot(isnan(datplot)) = 0;
+index = 6:2:25;%61:2:90;
+clims = [min(min(datplot(index,:))), max(max(datplot(index,:)))];
+count = 0;
+for ee = index
+    count = count + 1;
+    subplot(2,5,count)    
+    megPlotMap(squeeze(datplot(ee,:)),clims,[],[],[],[],[],'interpmethod', 'nearest');
+    plot.title('Position ', str(ee)])
+end
+title(subjID)

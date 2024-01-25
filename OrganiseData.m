@@ -171,3 +171,31 @@ for sub = 1:length(subids)
      save([direct.dataroot 'PythonData\' subjID  'cond.mat'], 'conds')
 
 end
+
+%% Create Grand average images
+allresponses = NaN(140,157,30);
+for sub = 1:length(subids)
+    subjID = subids(sub).name;
+
+    dat = load([direct.dataroot 'PythonData\' subjID  '.mat']);
+    allresponses(:,:,sub) = squeeze(nanmean(dat.phaseRefMEGResponse,2));
+
+end
+
+% plot
+
+h=figure;
+datplot = nanmean(allresponses,3);
+datplot(isnan(datplot)) = 0;
+index = 6:2:25;%61:2:90;
+clims = [min(min(datplot(index,:))), max(max(datplot(index,:)))];
+count = 0;
+for ee = index
+    count = count + 1;
+    subplot(2,5,count)    
+    megPlotMap(squeeze(datplot(ee,:)),clims,[],[],[],[],[],'interpmethod', 'nearest');
+    title(['Position ', num2str(ee)])
+end
+legend('off')
+suptitle('Subject Mean MEG Response')
+saveas(h, [direct.dataroot 'PythonData\MEGSensorResponse.png'])
