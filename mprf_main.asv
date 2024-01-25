@@ -257,4 +257,5 @@ idx = find(stim.im(:,41))
 plot(stim.X(idx), stim.Y(idx), 'x')
 
 figure()
-megPlotMap(squeeze(mean(phaseRefMEGResponse(70,1,:),2))*10000,clims,[],[],[],[],[],'interpmethod', 'nearest');
+
+megPlotMap(squeeze(mean(phaseRefMEGResponse(15,:)),clims,[],[],[],[],[],'interpmethod', 'nearest');

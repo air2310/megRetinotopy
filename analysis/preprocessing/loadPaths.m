@@ -10,14 +10,14 @@ dirPth.rootPth      = mprf_rootPath;
 dirPth.subjID       = subjID;
 retinoFolder        = fullfile(mprf_rootPath,'data','Retinotopy-1'); % should be sym link in git folder
 dirPth.fsPth        = fullfile(mprf_rootPath,'data','Freesurfer_subjects-1'); % should be sym link in git folder
-dirPth.bsPth        = fullfile(mprf_rootPath,'data','brainstorm_db-1','MEG_Retinotopy'); % should be sym link in git folder
+dirPth.bsPth        = fullfile('C:\Users\angel\Documents\MEGRetinotopicMappingData\brainstorm_db');%fullfile(mprf_rootPath,'data','brainstorm_db-1','MEG_Retinotopy'); % should be sym link in git folder
 
 %% Derive other paths
 dirPth.sessionPth       = fullfile(retinoFolder, 'Subject_sessions', subjID);
 
 %% ------ MEG ------
-dirPth.meg.dataPth      = fullfile(retinoFolder, 'Data', 'MEG'); % should be sym link in git folder
-dirPth.meg.saveFigPth   = fullfile(retinoFolder, 'Modelfits', subjID, 'meg'); % should be sym link in git folder
+dirPth.meg.dataPth      = fullfile('C:\Users\angel\Documents\MEGRetinotopicMappingData\MEG');%fullfile(retinoFolder, 'Data', 'MEG'); % should be sym link in git folder
+dirPth.meg.saveFigPth   = fullfile('C:\Users\angel\Documents\MEGRetinotopicMappingData\Results');%fullfile(retinoFolder, 'Modelfits', subjID, 'meg'); % should be sym link in git folder
 
 % Derive other file paths
 dirPth.meg.rawSqdPth    = fullfile(dirPth.meg.dataPth, subjID, 'raw');
@@ -29,6 +29,7 @@ dirPth.meg.stimFile     = fullfile(dirPth.meg.stimFilePth, 'MEG_retinotopy_stimu
 dirPth.meg.stimGridFile = fullfile(dirPth.meg.stimFilePth, 'MEG_grid.mat');
 
 dirPth.meg.eyePth       = fullfile(dirPth.meg.dataPth, subjID, 'eye');
+
 %% ------ FreeSurfer ------ 
 if strcmp(subjID, 'wlsubj039') || strcmp(subjID, 'wlsubj081')
     dirPth.fs.segPth    = fullfile(dirPth.fsPth, [subjID '_wVitaminE']);
@@ -39,8 +40,8 @@ dirPth.fs.surfPth       = fullfile(dirPth.fs.segPth, 'surf');
 
 
 %% ------ fMRI ------ 
-dirPth.fmri.dataPth     = fullfile(retinoFolder, 'Data', 'fMRI'); % should be sym link in git folder
-dirPth.fmri.saveDataPth = fullfile(retinoFolder, 'Modelfits', subjID, 'fmri'); % should be sym link in git folder
+dirPth.fmri.dataPth     = fullfile('C:\Users\angel\Documents\MEGRetinotopicMappingData\fMRI');%fullfile(retinoFolder, 'Data', 'fMRI'); % should be sym link in git folder
+dirPth.fmri.saveDataPth = fullfile(dirPth.fmri.dataPth, subjID); % should be sym link in git folder
 
 dirPth.fmri.mrvPth       = fullfile(dirPth.fmri.dataPth, subjID, 'vistaSession');
 dirPth.fmri.paramFilePth = fullfile(dirPth.fmri.mrvPth, 'Stimuli', 'paramFiles');
@@ -55,12 +56,12 @@ dirPth.fmri.saveDataPth_roiFS = fullfile(dirPth.fmri.saveDataPth, 'roiFS');
 dirPth.fmri.saveDataPth_roiBS = fullfile(dirPth.fmri.saveDataPth, 'roiBS');
 
 d = dir(fullfile(dirPth.fmri.mrvPth, 'Gray', 'Averages','*fFit*'));
-dirPth.fmri.vistaGrayFitFile  = fullfile(d.folder, d.name);
+% dirPth.fmri.vistaGrayFitFile  = fullfile(d.folder, d.name);
 
 %% ------ Brainstorm ------ 
 
-dirPth.bs.dataPth = fullfile(dirPth.bsPth,'data',subjID);
-dirPth.bs.anatPth = fullfile(dirPth.bsPth,'anat',subjID);
+dirPth.bs.dataPth = fullfile(dirPth.bsPth,'MEG_Retinotopy','data',subjID);
+dirPth.bs.anatPth = fullfile(dirPth.bsPth,'MEG_Retinotopy','anat',subjID);
 
 %% ----- Modelfitting ----
 

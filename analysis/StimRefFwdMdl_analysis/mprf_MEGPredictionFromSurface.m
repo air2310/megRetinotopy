@@ -18,10 +18,15 @@ function predResponseAllVertices = mprf_MEGPredictionFromSurface(prf, stim)
 
 % Find loaded prf parameters
 fn = fieldnames(prf);
-x0    = prf.(fn{cellfind(regexp(fn, '\<x'))});
-y0    = prf.(fn{cellfind(regexp(fn, '\<y'))});
-sigma = prf.(fn{cellfind(regexp(fn, '\<sigma'))});
-beta  = prf.(fn{cellfind(regexp(fn, 'beta'))});
+% x0    = prf.(fn{cellfind(regexp(fn, '\<x'))});
+% y0    = prf.(fn{cellfind(regexp(fn, '\<y'))});
+% sigma = prf.(fn{cellfind(regexp(fn, '\<sigma'))});
+% beta  = prf.(fn{cellfind(regexp(fn, 'beta'))});
+
+x0    = prf.(fn{find(~cellfun(@isempty,regexp(fn, '\<x')))});
+y0    = prf.(fn{find(~cellfun(@isempty,regexp(fn, '\<y')))});
+sigma = prf.(fn{find(~cellfun(@isempty,regexp(fn, '\<sigma')))});
+beta  = prf.(fn{find(~cellfun(@isempty,regexp(fn, 'beta')))});
 
 % Preallocate space
 predResponseAllVertices = NaN(size(stim.im,2), size(prf.varexplained,1));

@@ -72,7 +72,7 @@ if exist('varargin', 'var')
         val     = varargin{ii+1};
         
         % check whether this parameter exists in the defaults
-        idx = cellfind(fns, parname);
+        idx = find(contains(fns, parname));
         
         % if so, replace it; if not add it to the end of opt
         if ~isempty(idx), opt.(fns{idx}) = val;
@@ -83,7 +83,7 @@ if exist('varargin', 'var')
             for ii = 1:length(fns)
                 if isstruct(opt.(fns{ii}))
                     subfns = fieldnames(opt.(fns{ii}));
-                    idx = cellfind(subfns, parname);
+                    idx = find(contains(subfns, parname));
                     if ~isempty(idx)
                         opt.(fns{ii}).(subfns{idx}) = val;
                     end

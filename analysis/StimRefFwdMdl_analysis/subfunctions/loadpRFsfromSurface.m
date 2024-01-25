@@ -32,8 +32,8 @@ end
 prf = struct();
 
 % Find X and Y prf parameters
-filenameX = ['pial.' prfParams{cellfind(regexp(prfParams, '\<x'))}];
-filenameY = ['pial.' prfParams{cellfind(regexp(prfParams, '\<y'))}];
+filenameX = ['pial.' prfParams{find(~cellfun(@isempty,regexp(prfParams, '\<x')))}]; %
+filenameY = ['pial.' prfParams{find(~cellfun(@isempty,regexp(prfParams, '\<y')))}];
 
 if regexp(filenameX, '.mgz', 'ONCE')
     if opt.mri.useSmoothedData
